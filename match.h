@@ -76,7 +76,7 @@ void blackman(double array[], long length, double wn[]);
  * @param[in]	winf()	: the window-function
  * @return	the signal's psd
  */
-double * psd(double n[], long length, double dt, void(*winf)(double array[], long length, double wn[]));
+double * psdFunc(double n[], long length, double dt, void(*winf)(double array[], long length, double wn[]));
 
 /**
  *		The function calculates the cross-correlation in time-domain.

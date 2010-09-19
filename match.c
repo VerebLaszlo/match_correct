@@ -32,7 +32,7 @@ void blackman(double array[], long length, double wn[]) {
 	}
 }
 
-double* psd(double n[], long length, double dt, void(*winf)(double array[], long length, double wn[])) {
+double* psdFunc(double n[], long length, double dt, void(*winf)(double array[], long length, double wn[])) {
 	double * wn = fftw_malloc(length * sizeof(double));
 	fftw_complex *cn = fftw_malloc(length * sizeof(fftw_complex));
 	fftw_plan pn = fftw_plan_dft_r2c_1d(length, wn, cn, FFTW_ESTIMATE);

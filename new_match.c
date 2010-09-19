@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
 	matchStruct match;
 	FILE *file;
 	char filename[50];
-	char *PNString[] = { "SpinQuadTaylortwoPointFivePNSS",
+	char *PNString[] = { "SpinQuadTaylortwoPointFivePNQM",
 			"SpinQuadTaylortwoPointFivePNALL" };
 	memset(&injParams, 0, sizeof(SimInspiralTable));
 	memset(&ppnParams, 0, sizeof(PPNParamStruc));
@@ -101,6 +101,15 @@ int main(int argc, char *argv[]) {
 			{ { sin(incl), 0., cos(incl) }, { cos(incl), 0., -sin(incl) } },
 			{ { cos(incl), 0., -sin(incl) }, { sin(incl), 0., cos(incl) } }, };
 
+	//****  PRÓBA  ****//
+	long ni;
+	double noise[10000000];
+	file = fopen("noise.wave", "r");
+	for (ni = 0; !feof(file); ni++) {
+		fscanf(file, "%*g %lg\n", &noise[ni]);
+	}
+	fclose(file);
+	//****  PRÓBA  ****//
 	double freq_i, freq_f, freq_step, fr, df, dt;
 	double ts, tt, ss, *psd;
 	long index_i, index_f;
@@ -178,9 +187,10 @@ int main(int argc, char *argv[]) {
 		df = 1. / dt / rand.psd.length;
 		rand.psd.data = (REAL8*) XLALMalloc(sizeof(REAL8) * rand.psd.length);
 		LALNoiseSpectralDensity(&status, &rand.psd, &LALLIGOIPsd, df);
-		psd = fftw_malloc(length * sizeof(double));
+//		psd = fftw_malloc(length * sizeof(double));
+		psd = psdFunc(noise, length, dt, blackman);
 		for (i = 0; i < length; i++) {
-			psd[i] = rand.psd.data[i];
+//			psd[i] = rand.psd.data[i];
 			fprintf(file, PREC PREC"\n", i*dt, psd[i]);fflush(file);
 		}
 		//****  PRÓBA  ****//
