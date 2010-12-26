@@ -1,0 +1,7 @@
+# rejtett fájlok
+.*
+!.gitignore
+*~
+
+# mappák
+temp
