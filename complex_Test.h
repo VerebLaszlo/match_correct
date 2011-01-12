@@ -1,10 +1,15 @@
+#ifndef COMPLEX_TEST_H_
+#define COMPLEX_TEST_H_
+
 #include "variables.h"
 #include "complex.h"
 
 void devideComplexWithDoubleTEST(void);
 
-void conjugateTEST(void);
+void complexConjugateTEST(void);
 
-void conjugateProductTEST(void);
+void complexConjugateProductTEST(void);
 
-void conjugateProductRealTEST(void);
+void complexConjugateProductRealTEST(void);
+
+#endif /* COMPLEX_H_ */

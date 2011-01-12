@@ -14,5 +14,9 @@ complex_Test.o: complex_Test.c complex_Test.h complex.o
 
 complex.o: complex.c complex.h variables.h
 	$(CC) $(CFLAGS) -c complex.c
+
 clean:
 	rm -rf *o test
+
+run: test
+	./test
