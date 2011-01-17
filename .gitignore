@@ -6,3 +6,7 @@
 # mappák
 temp
 Debug
+
+#
+test
+*.o
