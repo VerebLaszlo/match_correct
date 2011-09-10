@@ -21,16 +21,38 @@ int switchMode = LALSQTPN_PRECESSING;
 /** LAL parameters.
  */
 typedef struct LALParameters {
-	LALStatus status;///<a
-	CoherentGW waveform[2];///<a
-	SimInspiralTable injParams[2];///<a
-	PPNParamStruc ppnParams[2];///<a
-	RandomInspiralSignalIn randIn;///<a
-	short shorter;///<a
-	long min_Length;///<a
-	long max_Length;///<a
+	LALStatus status; ///<a
+	CoherentGW waveform[2]; ///<a
+	SimInspiralTable injParams[2]; ///<a
+	PPNParamStruc ppnParams[2]; ///<a
+	RandomInspiralSignalIn randIn; ///<a
+	short shorter; ///<a
+	long min_Length; ///<a
+	long max_Length; ///<a
 	Approximant approx[2];
 } LALParameters;
+
+void pirintLALParameters(FILE *file, LALParameters *lalparams) {
+	puts("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+	for (short i = 0; i < 2; i++) {
+		fprintf(file, "%lg ", lalparams->injParams[i].mass1);
+		fprintf(file, "%lg\n", lalparams->injParams[i].mass2);
+		fprintf(file, "%lg ", lalparams->injParams[i].spin1x);
+		fprintf(file, "%lg ", lalparams->injParams[i].spin1y);
+		fprintf(file, "%lg\n", lalparams->injParams[i].spin1z);
+		fprintf(file, "%lg ", lalparams->injParams[i].spin2x);
+		fprintf(file, "%lg ", lalparams->injParams[i].spin2y);
+		fprintf(file, "%lg\n", lalparams->injParams[i].spin2z);
+		fprintf(file, "%lg ", lalparams->injParams[i].inclination);
+		fprintf(file, "%lg ", lalparams->injParams[i].f_lower);
+		fprintf(file, "%lg\n ", lalparams->injParams[i].distance);
+		fprintf(file, "%lg ", lalparams->injParams[i].coa_phase);
+		fprintf(file, "%lg ", lalparams->injParams[i].f_lower);
+		fprintf(file, "%lg\n", lalparams->ppnParams[i].deltaT);
+		puts("");
+	}
+	puts("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+}
 
 /**
  * Done
@@ -65,8 +87,8 @@ static void initLALParameters(LALParameters *lalparams, System_Parameters *param
 		lalparams->injParams[i].f_lower = parameters->freq_Initial;
 		lalparams->ppnParams[i].deltaT = 1. / parameters->freq_Sampling;
 		lalparams->injParams[i].amp_order = parameters->amp_Code[i];
-		snprintf(lalparams->injParams[i].waveform, LIGOMETA_WAVEFORM_MAX * sizeof(CHAR), "%s%s%s",
-				parameters->approx[i], parameters->phase[i], parameters->spin[i]);
+		snprintf(lalparams->injParams[i].waveform, LIGOMETA_WAVEFORM_MAX * sizeof(CHAR), "%s%s%s%s",
+			parameters->approx[i], parameters->phase[i], parameters->spin[i], "100");
 		if (strstr(parameters->approx[i], "SpinQuadTaylor")) {
 			lalparams->approx[i] = SpinQuadTaylor;
 		} else if (strstr(parameters->approx[i], "SpinTaylorFrameless")) {
@@ -120,11 +142,11 @@ static void setSignal_From_A1A2(short i, signalStruct *sig, LALParameters *lal) 
  * @param F
  */
 /*static void setSignal_From_HPHC(short i, signalStruct *sig, LALParameters *lal) {
-	for (long j = 0; j < sig->length[i]; j++) {
-		sig->signal[2 * i][j] = lal->waveform[i].h->data->data[2 * j];
-		sig->signal[2 * i + 1][j] = lal->waveform[i].h->data->data[2 * j + 1];
-	}
-}*/
+ for (long j = 0; j < sig->length[i]; j++) {
+ sig->signal[2 * i][j] = lal->waveform[i].h->data->data[2 * j];
+ sig->signal[2 * i + 1][j] = lal->waveform[i].h->data->data[2 * j + 1];
+ }
+ }*/
 
 /**
  *
@@ -161,7 +183,7 @@ static void create_Signal_Struct_From_LAL(signalStruct *signal, LALParameters *l
 	for (short i = 0; i < 2; i++) {
 		switch (lal->approx[i]) {
 		case SpinQuadTaylor:
-			setSignal_From_A1A2(i, signal, lal);
+			set_Signal_From_H(i, signal, lal);
 			break;
 		case SpinTaylorFrameless:
 			set_Signal_From_H(i, signal, lal);
@@ -178,10 +200,11 @@ static void create_Signal_Struct_From_LAL(signalStruct *signal, LALParameters *l
 int generateWaveformPair(System_Parameters *parameters, signalStruct *signal) {
 	static LALParameters lalparams;
 	initLALParameters(&lalparams, parameters);
+	pirintLALParameters(stdout, &lalparams);
 	for (short i = 0; i < 2; i++) {
 		memset(&lalparams.status, 0, sizeof(LALStatus));
 		LALGenerateInspiral(&lalparams.status, &lalparams.waveform[i], &lalparams.injParams[i],
-				&lalparams.ppnParams[i]);
+			&lalparams.ppnParams[i]);
 		if (lalparams.status.statusCode) {
 			fprintf(stderr, "%d: LALSQTPNWaveformTest: error generating waveform\n", i);
 			XLALSQTPNDestroyCoherentGW(&lalparams.waveform[0]);
@@ -190,6 +213,18 @@ int generateWaveformPair(System_Parameters *parameters, signalStruct *signal) {
 		parameters->system[i].coaPhase = lalparams.ppnParams[i].fStop;
 		parameters->system[i].coaTime = lalparams.ppnParams[i].tc;
 	}
+	////
+	FILE *file = safelyOpenForWriting("../xx.out");
+	size_t length =
+		lalparams.waveform[0].h->data->length < lalparams.waveform[1].h->data->length ?
+			lalparams.waveform[0].h->data->length : lalparams.waveform[1].h->data->length;
+	for (size_t i = 0; i < length; i++) {
+		fprintf(file, "%10.4lg %10.4lg %10.4lg\n", i * lalparams.ppnParams[0].deltaT,
+			lalparams.waveform[0].h->data->data[2 * i],
+			lalparams.waveform[0].h->data->data[2 * i + 1]);
+	}
+	fclose(file);
+	////
 	if (signal) {
 		create_Signal_Struct_From_LAL(signal, &lalparams);
 		createPSD(&lalparams, signal->psd);
