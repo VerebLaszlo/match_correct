@@ -69,7 +69,6 @@ int main(int argc, char *argv[]) {
 	SystemParameter parameter[2];
 	memset(&parameter, 0, 2 * sizeof(SystemParameter));
 	testParser(parameter);
-	printSystemParameters(stdout, &parameter[0], defaultFormat);
 	puts("\nOK");
 	return 0;
 }

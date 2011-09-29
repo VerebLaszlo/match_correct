@@ -38,74 +38,127 @@ char const * optionName[] = { "boundaryFrequency", "samplingFrequency", "default
 								"distance", "detector", "generation", "approximant", "phase",
 								"spin", "amplitude", "name" };
 
-static void getLimits(config_setting_t *limits, double *min, double *max) {
-	if (config_setting_length(limits) != 2) {
+typedef struct {
+	double magnitude[MINMAX];
+	double inclination[MINMAX];
+	double azimuth[MINMAX];
+} SpinLimits;
+
+static void printSpinLimits(FILE *file, SpinLimits *spin) {
+	fprintf(file, "magnitude: %lg %lg\n", spin->magnitude[MIN], spin->magnitude[MAX]);
+	fprintf(file, "inclination: %lg %lg\n", spin->inclination[MIN], spin->inclination[MAX]);
+	fprintf(file, "azimuth: %lg %lg\n", spin->azimuth[MIN], spin->azimuth[MAX]);
+}
+
+typedef struct {
+	double mass[NUMBER_OF_BLACKHOLES][MINMAX];
+	SpinLimits spin[NUMBER_OF_BLACKHOLES];
+	double inclination[MINMAX];
+	double distance[MINMAX];
+} SourceLimits;
+
+static void printSourceLimits(FILE *file, SourceLimits *source) {
+	fprintf(file, "mass1: %lg %lg\n", source->mass[0][MIN], source->mass[0][MAX]);
+	fprintf(file, "mass2: %lg %lg\n", source->mass[1][MIN], source->mass[1][MAX]);
+	printSpinLimits(file, &source->spin[0]);
+	printSpinLimits(file, &source->spin[1]);
+	fprintf(file, "incl: %lg %lg\n", source->inclination[MIN], source->inclination[MAX]);
+	fprintf(file, "dist: %lg %lg\n", source->distance[MIN], source->distance[MAX]);
+}
+
+typedef struct {
+	SourceLimits source;
+	char approximant[LENGTH_OF_STRING];
+	char phase[LENGTH_OF_STRING];
+	char spin[LENGTH_OF_STRING];
+	char amplitude[LENGTH_OF_STRING];
+	char name[LENGTH_OF_STRING];
+} Limits;
+
+static void printLimits(FILE *file, Limits *limit) {
+	printSourceLimits(file, &limit->source);
+	fprintf(file, "appr: %s\n", limit->approximant);
+	fprintf(file, "phase: %s\n", limit->phase);
+	fprintf(file, "spin: %s\n", limit->spin);
+	fprintf(file, "ampl: %s\n", limit->amplitude);
+	fprintf(file, "name: %s\n", limit->name);
+}
+
+static ushort neededElementNumber(ushort number, config_setting_t *elements) {
+	ushort count = (ushort) config_setting_length(elements);
+	if (count != number) {
 		exit(EXIT_FAILURE);
 	}
-	*min = config_setting_get_float_elem(limits, MIN);
-	*max = config_setting_get_float_elem(limits, MAX);
+	return count;
 }
 
-static void getMasses(config_setting_t *binary, SystemParameter parameter[]) {
-	config_setting_t *masses = config_setting_get_member(binary, optionName[MASSES]);
-	int count = config_setting_length(masses);
+static void getLimits(config_setting_t *limits, double limit[]) {
+	int count = neededElementNumber(MINMAX, limits);
 	for (ushort i = 0; i < count; i++) {
-		config_setting_t *mass = config_setting_get_elem(masses, i);
-		getLimits(mass, &parameter[MIN].system[0].mass.mass[i],
-			&parameter[MAX].system[0].mass.mass[i]);
+		limit[i] = config_setting_get_float_elem(limits, i);
 	}
 }
 
-static void getSpins(config_setting_t *binary, SystemParameter parameter[]) {
+static void getMasses(config_setting_t *binary, double limit[NUMBER_OF_BLACKHOLES][MINMAX]) {
+	config_setting_t *masses = config_setting_get_member(binary, optionName[MASSES]);
+	int count = neededElementNumber(NUMBER_OF_BLACKHOLES, masses);
+	for (ushort i = 0; i < count; i++) {
+		config_setting_t *mass = config_setting_get_elem(masses, i);
+		getLimits(mass, limit[i]);
+	}
+}
+
+static void getSpin(config_setting_t *spin, SpinLimits *limit) {
 	config_setting_t *current;
+	current = config_setting_get_member(spin, optionName[MAGNITUDE]);
+	getLimits(current, limit->magnitude);
+	current = config_setting_get_member(spin, optionName[INCLINATION]);
+	getLimits(current, limit->inclination);
+	current = config_setting_get_member(spin, optionName[AZIMUTH]);
+	getLimits(current, limit->azimuth);
+}
+
+static void getSpins(config_setting_t *binary, SourceLimits *limit) {
 	config_setting_t *spins = config_setting_get_member(binary, optionName[SPINS]);
 	int count = config_setting_length(spins);
 	for (ushort i = 0; i < count; i++) {
 		config_setting_t *spin = config_setting_get_elem(spins, i);
-		current = config_setting_get_member(spin, optionName[MAGNITUDE]);
-		getLimits(current, &parameter[MIN].system[0].spin[i].magnitude,
-			&parameter[MAX].system[0].spin[i].magnitude);
-		current = config_setting_get_member(spin, optionName[INCLINATION]);
-		getLimits(current, &parameter[MIN].system[0].spin[i].inclination[PRECESSING],
-			&parameter[MAX].system[0].spin[i].inclination[PRECESSING]);
-		current = config_setting_get_member(spin, optionName[AZIMUTH]);
-		getLimits(current, &parameter[MIN].system[0].spin[i].azimuth[PRECESSING],
-			&parameter[MAX].system[0].spin[i].azimuth[PRECESSING]);
+		getSpin(spin, &limit->spin[i]);
 	}
 }
 
-static void getSourceParameters(config_setting_t *waveform, SystemParameter *parameter) {
+static void getSourceParameters(config_setting_t *waveform, SourceLimits *limit) {
 	config_setting_t *source = config_setting_get_member(waveform, optionName[SOURCE]);
-	getMasses(source, parameter);
-	getSpins(source, parameter);
+	getMasses(source, limit->mass);
+	getSpins(source, limit);
 	config_setting_t *current;
 	current = config_setting_get_member(source, optionName[INCLINATION]);
-	getLimits(current, &parameter[MIN].system[0].inclination,
-		&parameter[MAX].system[0].inclination);
+	getLimits(current, limit->inclination);
 	current = config_setting_get_member(source, optionName[DISTANCE]);
-	getLimits(current, &parameter[MIN].system[0].distance, &parameter[MAX].system[0].distance);
+	getLimits(current, limit->distance);
 }
 
 typedef const char *cstring;
-static void getGenerationParameters(config_setting_t *waveform, SystemParameter *parameter) {
+
+static void getGenerationParameters(config_setting_t *waveform, Limits *limit) {
 	config_setting_t *generation = config_setting_get_member(waveform, optionName[GENERATION]);
 	cstring approximant, phase, spin, amplitude;
 	config_setting_lookup_string(generation, optionName[APPROXIMANT], &approximant);
-	strcpy(parameter[0].approximant[0], approximant);
+	strcpy(limit->approximant, approximant);
 	config_setting_lookup_string(generation, optionName[PHASE], &phase);
-	strcpy(parameter[0].phase[0], phase);
+	strcpy(limit->phase, phase);
 	config_setting_lookup_string(generation, optionName[SPIN], &spin);
-	strcpy(parameter[0].spin[0], spin);
+	strcpy(limit->spin, spin);
 	config_setting_lookup_string(generation, optionName[AMPLITUDE], &amplitude);
-	strcpy(parameter[0].amplitude[0], amplitude);
+	strcpy(limit->amplitude, amplitude);
 }
 
-static void getWaveformParameters(config_setting_t *waveform, SystemParameter *parameter) {
-	getSourceParameters(waveform, parameter);
-	getGenerationParameters(waveform, parameter);
+static void getWaveformParameters(config_setting_t *waveform, Limits *limit) {
+	getSourceParameters(waveform, &limit->source);
+	getGenerationParameters(waveform, limit);
 	cstring name;
 	config_setting_lookup_string(waveform, optionName[NAME], &name);
-	strcpy(parameter[0].name[0], name);
+	strcpy(limit->name, name);
 }
 
 void testParser(SystemParameter *parameter) {
@@ -117,6 +170,8 @@ void testParser(SystemParameter *parameter) {
 		exit(EXIT_FAILURE);
 	}
 	config_setting_t *defaultWave = config_lookup(&cfg, optionName[DEFAULT]);
-	getWaveformParameters(defaultWave, parameter);
+	Limits limit;
+	getWaveformParameters(defaultWave, &limit);
+	printLimits(stdout, &limit);
 	config_destroy(&cfg);
 }
