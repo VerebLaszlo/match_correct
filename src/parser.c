@@ -31,13 +31,15 @@ typedef enum {
 	AMPLITUDE,
 	NAME,
 	PAIRS,
+	SIGNAL,
+	TEMPLATES,
 	NUMBER_OF_OPTIONS,
 } OptionCode;
 
 char const * optionName[] = { "boundaryFrequency", "samplingFrequency", "default", "source",
 								"binary", "masses", "spins", "magnitude", "inclination", "azimuth",
 								"distance", "detector", "generation", "approximant", "phase",
-								"spin", "amplitude", "name", "pairs", };
+								"spin", "amplitude", "name", "pairs", "signal", "templates", };
 
 typedef struct {
 	double magnitude[MINMAX];
@@ -184,6 +186,7 @@ void testParser(SystemParameter *parameter) {
 	Limits limit;
 	getWaveformParameters(defaultWave, &limit);
 	printLimits(stdout, &limit);
+	// pairs
 	Limits *pairsLimit = NULL;
 	config_setting_t *current;
 	config_setting_t *pairs = config_lookup(&cfg, optionName[PAIRS]);
@@ -192,18 +195,18 @@ void testParser(SystemParameter *parameter) {
 	for (size_t i = 0; i < numberOfPairs; i++) {
 		current = config_setting_get_elem(pairs, i);
 		getWavePairParameters(current, &pairsLimit[2 * i]);
-		puts("");
-		printLimits(stdout, &pairsLimit[2 * i]);
-		printLimits(stdout, &pairsLimit[2 * i + 1]);
 	}
-	/*Limits signalLimit;
-	 Limits *templatesLimit = NULL;
-	 free(NULL);
-	 */
-	/*
-	 for (size_t i = 0; i < numberOfPairs; i++) {
-	 printLimits(stdout, &pairsLimit[i]);
-	 }
-	 */
+	// signal + templates
+	Limits signalLimit;
+	config_setting_t *signal = config_lookup(&cfg, optionName[SIGNAL]);
+	getWaveformParameters(signal, &signalLimit);
+	Limits *templatesLimit = NULL;
+	config_setting_t *templates = config_lookup(&cfg, optionName[TEMPLATES]);
+	size_t numberOfTemplates = (size_t) config_setting_length(templates);
+	templatesLimit = calloc(numberOfTemplates, sizeof(Limits));
+	for (size_t i = 0; i < numberOfTemplates; i++) {
+		current = config_setting_get_elem(templates, i);
+		getWaveformParameters(current, &templatesLimit[i]);
+	}
 	config_destroy(&cfg);
 }
