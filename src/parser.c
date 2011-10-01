@@ -30,13 +30,14 @@ typedef enum {
 	SPIN,
 	AMPLITUDE,
 	NAME,
+	PAIRS,
 	NUMBER_OF_OPTIONS,
 } OptionCode;
 
 char const * optionName[] = { "boundaryFrequency", "samplingFrequency", "default", "source",
 								"binary", "masses", "spins", "magnitude", "inclination", "azimuth",
 								"distance", "detector", "generation", "approximant", "phase",
-								"spin", "amplitude", "name" };
+								"spin", "amplitude", "name", "pairs", };
 
 typedef struct {
 	double magnitude[MINMAX];
@@ -87,6 +88,7 @@ static void printLimits(FILE *file, Limits *limit) {
 static ushort neededElementNumber(ushort number, config_setting_t *elements) {
 	ushort count = (ushort) config_setting_length(elements);
 	if (count != number) {
+		printf("%d\n", count);
 		exit(EXIT_FAILURE);
 	}
 	return count;
@@ -161,6 +163,15 @@ static void getWaveformParameters(config_setting_t *waveform, Limits *limit) {
 	strcpy(limit->name, name);
 }
 
+static void getWavePairParameters(config_setting_t *pair, Limits limit[]) {
+	config_setting_t *current;
+	ushort count = (ushort) neededElementNumber(2, pair);
+	for (ushort i = 0; i < count; i++) {
+		current = config_setting_get_elem(pair, i);
+		getWaveformParameters(current, &limit[i]);
+	}
+}
+
 void testParser(SystemParameter *parameter) {
 	config_t cfg;
 	memset(&cfg, 0, sizeof(cfg));
@@ -173,5 +184,26 @@ void testParser(SystemParameter *parameter) {
 	Limits limit;
 	getWaveformParameters(defaultWave, &limit);
 	printLimits(stdout, &limit);
+	Limits *pairsLimit = NULL;
+	config_setting_t *current;
+	config_setting_t *pairs = config_lookup(&cfg, optionName[PAIRS]);
+	size_t numberOfPairs = (size_t) config_setting_length(pairs);
+	pairsLimit = calloc(2 * numberOfPairs, sizeof(Limits));
+	for (size_t i = 0; i < numberOfPairs; i++) {
+		current = config_setting_get_elem(pairs, i);
+		getWavePairParameters(current, &pairsLimit[2 * i]);
+		puts("");
+		printLimits(stdout, &pairsLimit[2 * i]);
+		printLimits(stdout, &pairsLimit[2 * i + 1]);
+	}
+	/*Limits signalLimit;
+	 Limits *templatesLimit = NULL;
+	 free(NULL);
+	 */
+	/*
+	 for (size_t i = 0; i < numberOfPairs; i++) {
+	 printLimits(stdout, &pairsLimit[i]);
+	 }
+	 */
 	config_destroy(&cfg);
 }
