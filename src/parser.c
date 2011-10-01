@@ -103,7 +103,8 @@ static void getLimits(config_setting_t *limits, double limit[]) {
 	}
 }
 
-static void getMasses(config_setting_t *binary, double limit[NUMBER_OF_BLACKHOLES][MINMAX]) {
+static void getMasses(config_setting_t *binary, double defaults[NUMBER_OF_BLACKHOLES][MINMAX],
+	double limit[NUMBER_OF_BLACKHOLES][MINMAX]) {
 	config_setting_t *masses = config_setting_get_member(binary, optionName[MASSES]);
 	int count = neededElementNumber(NUMBER_OF_BLACKHOLES, masses);
 	for (ushort i = 0; i < count; i++) {
@@ -112,7 +113,7 @@ static void getMasses(config_setting_t *binary, double limit[NUMBER_OF_BLACKHOLE
 	}
 }
 
-static void getSpin(config_setting_t *spin, SpinLimits *limit) {
+static void getSpin(config_setting_t *spin, SpinLimits *defaults, SpinLimits *limit) {
 	config_setting_t *current;
 	current = config_setting_get_member(spin, optionName[MAGNITUDE]);
 	getLimits(current, limit->magnitude);
@@ -122,19 +123,20 @@ static void getSpin(config_setting_t *spin, SpinLimits *limit) {
 	getLimits(current, limit->azimuth);
 }
 
-static void getSpins(config_setting_t *binary, SourceLimits *limit) {
+static void getSpins(config_setting_t *binary, SourceLimits *defaults, SourceLimits *limit) {
 	config_setting_t *spins = config_setting_get_member(binary, optionName[SPINS]);
 	int count = config_setting_length(spins);
 	for (ushort i = 0; i < count; i++) {
 		config_setting_t *spin = config_setting_get_elem(spins, i);
-		getSpin(spin, &limit->spin[i]);
+		getSpin(spin, &defaults->spin[i], &limit->spin[i]);
 	}
 }
 
-static void getSourceParameters(config_setting_t *waveform, SourceLimits *limit) {
+static void getSourceParameters(config_setting_t *waveform, SourceLimits *defaults,
+	SourceLimits *limit) {
 	config_setting_t *source = config_setting_get_member(waveform, optionName[SOURCE]);
-	getMasses(source, limit->mass);
-	getSpins(source, limit);
+	getMasses(source, defaults->mass, limit->mass);
+	getSpins(source, defaults, limit);
 	config_setting_t *current;
 	current = config_setting_get_member(source, optionName[INCLINATION]);
 	getLimits(current, limit->inclination);
@@ -144,7 +146,7 @@ static void getSourceParameters(config_setting_t *waveform, SourceLimits *limit)
 
 typedef const char *cstring;
 
-static void getGenerationParameters(config_setting_t *waveform, Limits *limit) {
+static void getGenerationParameters(config_setting_t *waveform, Limits *defaults, Limits *limit) {
 	config_setting_t *generation = config_setting_get_member(waveform, optionName[GENERATION]);
 	cstring approximant, phase, spin, amplitude;
 	config_setting_lookup_string(generation, optionName[APPROXIMANT], &approximant);
@@ -157,20 +159,20 @@ static void getGenerationParameters(config_setting_t *waveform, Limits *limit) {
 	strcpy(limit->amplitude, amplitude);
 }
 
-static void getWaveformParameters(config_setting_t *waveform, Limits *limit) {
-	getSourceParameters(waveform, &limit->source);
-	getGenerationParameters(waveform, limit);
+static void getWaveformParameters(config_setting_t *waveform, Limits *defaults, Limits *limit) {
+	getSourceParameters(waveform, &defaults->source, &limit->source);
+	getGenerationParameters(waveform, defaults, limit);
 	cstring name;
 	config_setting_lookup_string(waveform, optionName[NAME], &name);
 	strcpy(limit->name, name);
 }
 
-static void getWavePairParameters(config_setting_t *pair, Limits limit[]) {
+static void getWavePairParameters(config_setting_t *pair, Limits *defaults, Limits limit[]) {
 	config_setting_t *current;
 	ushort count = (ushort) neededElementNumber(2, pair);
 	for (ushort i = 0; i < count; i++) {
 		current = config_setting_get_elem(pair, i);
-		getWaveformParameters(current, &limit[i]);
+		getWaveformParameters(current, defaults, &limit[i]);
 	}
 }
 
@@ -184,7 +186,7 @@ void testParser(SystemParameter *parameter) {
 	}
 	config_setting_t *defaultWave = config_lookup(&cfg, optionName[DEFAULT]);
 	Limits limit;
-	getWaveformParameters(defaultWave, &limit);
+	getWaveformParameters(defaultWave, NULL, &limit);
 	printLimits(stdout, &limit);
 	// pairs
 	Limits *pairsLimit = NULL;
@@ -194,19 +196,19 @@ void testParser(SystemParameter *parameter) {
 	pairsLimit = calloc(2 * numberOfPairs, sizeof(Limits));
 	for (size_t i = 0; i < numberOfPairs; i++) {
 		current = config_setting_get_elem(pairs, i);
-		getWavePairParameters(current, &pairsLimit[2 * i]);
+		getWavePairParameters(current, &limit, &pairsLimit[2 * i]);
 	}
 	// signal + templates
 	Limits signalLimit;
 	config_setting_t *signal = config_lookup(&cfg, optionName[SIGNAL]);
-	getWaveformParameters(signal, &signalLimit);
+	getWaveformParameters(signal, &limit, &signalLimit);
 	Limits *templatesLimit = NULL;
 	config_setting_t *templates = config_lookup(&cfg, optionName[TEMPLATES]);
 	size_t numberOfTemplates = (size_t) config_setting_length(templates);
 	templatesLimit = calloc(numberOfTemplates, sizeof(Limits));
 	for (size_t i = 0; i < numberOfTemplates; i++) {
 		current = config_setting_get_elem(templates, i);
-		getWaveformParameters(current, &templatesLimit[i]);
+		getWaveformParameters(current, &limit, &templatesLimit[i]);
 	}
 	config_destroy(&cfg);
 }
