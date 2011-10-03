@@ -156,8 +156,7 @@ void printMassParameters(FILE *file, massParameters *mass, OutputFormat *format)
  * @param[in]	inclination	: inclination of the precessing frame
  * @param[in]	mode		: generation mode
  */
-void generateSpin(spinParameters *spin, spinParameters limits[], double inclination,
-	spinGenerationMode mode);
+void generateSpin(spinParameters *spin, spinLimits *limit, double inclination);
 /**
  * @param file
  * @param spin
@@ -171,7 +170,7 @@ void printSpinParameters(FILE *file, spinParameters *spin, OutputFormat *format)
  * @param[in]	genMass	: mass generation mode
  * @param[in]	genSpin	: spin generation mode
  */
-void generateBinarySystemParameters(BinarySystem *system, binaryLimits *limit, spinGenerationMode genSpin);
+void generateBinarySystemParameters(BinarySystem *system, binaryLimits *limit);
 
 /**
  * @param file

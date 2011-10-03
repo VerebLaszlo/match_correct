@@ -46,31 +46,31 @@ static void convertSpinsToUnity(spinParameters *spin) {
  * @param[in] limits	: limits of the spin parameters
  * @return true or false
  */
-static bool isSpinBetweenLimits(spinParameters *spin, spinParameters limits[]) {
+static bool isSpinBetweenLimits(spinParameters *spin, spinLimits *limit) {
 	BACKUP_DEFINITION_LINE();    //
 	assert(spin);
-	assert(limits);
-	if (limits[MIN].magnitude > spin->magnitude || spin->magnitude > limits[MAX].magnitude) {
+	assert(limit);
+	if (limit->magnitude[MIN] > spin->magnitude || spin->magnitude > limit->magnitude[MAX]) {
 		return false;
 	}
 	for (short coordinate = 0; coordinate < COORDINATE_CONVENTIONS; coordinate++) {
-		if (limits[MIN].azimuth[coordinate] > spin->azimuth[coordinate]
-			|| spin->azimuth[coordinate] > limits[MAX].azimuth[coordinate]) {
+		if (limit->azimuth[coordinate][MIN] > spin->azimuth[coordinate]
+			|| spin->azimuth[coordinate] > limit->azimuth[coordinate][MAX]) {
 			return false;
 		}
-		if (limits[MIN].inclination[coordinate] > spin->inclination[coordinate]
-			|| spin->inclination[coordinate] > limits[MAX].inclination[coordinate]) {
+		if (limit->inclination[coordinate][MIN] > spin->inclination[coordinate]
+			|| spin->inclination[coordinate] > limit->inclination[coordinate][MAX]) {
 			return false;
 		}
-		if (limits[MIN].elevation[coordinate] > spin->elevation[coordinate]
-			|| spin->elevation[coordinate] > limits[MAX].elevation[coordinate]) {
+		if (limit->elevation[coordinate][MIN] > spin->elevation[coordinate]
+			|| spin->elevation[coordinate] > limit->elevation[coordinate][MAX]) {
 			return false;
 		}
 		for (short dimension = 0; dimension < DIMENSION; dimension++) {
-			if (limits[MIN].component[coordinate][dimension]
+			if (limit->component[coordinate][dimension][MIN]
 				> spin->component[coordinate][dimension]
 				|| spin->component[coordinate][dimension]
-					> limits[MAX].component[coordinate][dimension]) {
+					> limit->component[coordinate][dimension][MAX]) {
 				return false;
 			}
 		}
@@ -210,49 +210,48 @@ static void convertSpin(spinParameters spin[NUMBER_OF_BLACKHOLES], const double 
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
-void generateSpin(spinParameters *spin, spinParameters limits[], double inclination,
-	spinGenerationMode mode) {
+void generateSpin(spinParameters *spin, spinLimits *limit, double inclination) {
 	BACKUP_DEFINITION_LINE();    //
 	assert(spin);
-	assert(limits);
-	switch (mode) {
+	assert(limit);
+	switch (limit->mode) {
 	case GEN_FIXED_XYZ:
 		do {
 			for (short j = 0; j < DIMENSION; j++) {
-				spin->component[FIXED][j] = randomBetween(limits[MIN].component[FIXED][j],
-					limits[MAX].component[FIXED][j]);
+				spin->component[FIXED][j] = randomBetween(limit->component[FIXED][j][MIN],
+					limit->component[FIXED][j][MAX]);
 			}
-			convertSpin(spin, inclination, mode);
-		} while (!isSpinBetweenLimits(spin, limits));
+			convertSpin(spin, inclination, limit->mode);
+		} while (!isSpinBetweenLimits(spin, limit));
 		break;
 	case GEN_FIXED_ANGLES:
 		do {
-			spin->magnitude = randomBetween(limits[MIN].magnitude, limits[MAX].magnitude);
-			spin->azimuth[FIXED] = randomBetween(limits[MIN].azimuth[FIXED],
-				limits[MAX].azimuth[FIXED]);
-			spin->inclination[FIXED] = randomBetween(limits[MIN].inclination[FIXED],
-				limits[MAX].inclination[FIXED]);
-			convertSpin(spin, inclination, mode);
-		} while (!isSpinBetweenLimits(spin, limits));
+			spin->magnitude = randomBetween(limit->magnitude[MIN], limit->magnitude[MAX]);
+			spin->azimuth[FIXED] = randomBetween(limit->azimuth[FIXED][MIN],
+				limit->azimuth[FIXED][MAX]);
+			spin->inclination[FIXED] = randomBetween(limit->inclination[FIXED][MIN],
+				limit->inclination[FIXED][MAX]);
+			convertSpin(spin, inclination, limit->mode);
+		} while (!isSpinBetweenLimits(spin, limit));
 		break;
 	case GEN_PRECESSING_XYZ:
 		do {
 			for (short j = 0; j < DIMENSION; j++) {
-				spin->component[FIXED][j] = randomBetween(limits[MIN].component[FIXED][j],
-					limits[MAX].component[FIXED][j]);
+				spin->component[FIXED][j] = randomBetween(limit->component[FIXED][j][MIN],
+					limit->component[FIXED][j][MAX]);
 			}
-			convertSpin(spin, inclination, mode);
-		} while (!isSpinBetweenLimits(spin, limits));
+			convertSpin(spin, inclination, limit->mode);
+		} while (!isSpinBetweenLimits(spin, limit));
 		break;
 	case GEN_PRECESSING_ANGLES:
 		do {
-			spin->magnitude = randomBetween(limits[MIN].magnitude, limits[MAX].magnitude);
-			spin->azimuth[PRECESSING] = randomBetween(limits[MIN].azimuth[PRECESSING],
-				limits[MAX].azimuth[PRECESSING]);
-			spin->inclination[PRECESSING] = randomBetween(limits[MIN].inclination[PRECESSING],
-				limits[MAX].inclination[PRECESSING]);
-			convertSpin(spin, inclination, mode);
-		} while (!isSpinBetweenLimits(spin, limits));
+			spin->magnitude = randomBetween(limit->magnitude[MIN], limit->magnitude[MAX]);
+			spin->azimuth[PRECESSING] = randomBetween(limit->azimuth[PRECESSING][MIN],
+				limit->azimuth[PRECESSING][MAX]);
+			spin->inclination[PRECESSING] = randomBetween(limit->inclination[PRECESSING][MIN],
+				limit->inclination[PRECESSING][MAX]);
+			convertSpin(spin, inclination, limit->mode);
+		} while (!isSpinBetweenLimits(spin, limit));
 		break;
 	case SPIN_GENERATIONS:
 	default:
@@ -309,70 +308,71 @@ static bool isOK_magnitudeOfSpins(void) {
 
 static bool isOK_isSpinBetweenLimits(void) {
 	double mult = 3.0;
-	spinParameters spin, limits[2];
-	limits[MAX].magnitude = mult * (limits[MIN].magnitude = 0.9);
+	spinParameters spin;
+	spinLimits limit;
+	limit.magnitude[MAX] = mult * (limit.magnitude[MIN] = 0.9);
 	for (ushort coordinate = 0; coordinate < COORDINATE_CONVENTIONS; coordinate++) {
-		limits[MAX].azimuth[coordinate] = mult
-			* (limits[MIN].azimuth[coordinate] = 0.3 + (double) coordinate);
-		limits[MAX].inclination[coordinate] = mult
-			* (limits[MIN].inclination[coordinate] = 0.3 + (double) coordinate);
-		limits[MAX].elevation[coordinate] = mult
-			* (limits[MIN].elevation[coordinate] = 0.3 + (double) coordinate);
+		limit.azimuth[coordinate][MAX] = mult
+			* (limit.azimuth[coordinate][MIN] = 0.3 + (double) coordinate);
+		limit.inclination[coordinate][MAX] = mult
+			* (limit.inclination[coordinate][MIN] = 0.3 + (double) coordinate);
+		limit.elevation[coordinate][MAX] = mult
+			* (limit.elevation[coordinate][MIN] = 0.3 + (double) coordinate);
 		for (ushort dim = 0; dim < DIMENSION; dim++) {
-			limits[MAX].component[coordinate][dim] = mult
-				* (limits[MIN].component[coordinate][dim] = 0.3 + (double) (coordinate + dim));
-			limits[MAX].unity[coordinate][dim] = mult
-				* (limits[MIN].unity[coordinate][dim] = 0.1 + (double) (coordinate + dim));
+			limit.component[coordinate][dim][MAX] = mult
+				* (limit.component[coordinate][dim][MIN] = 0.3 + (double) (coordinate + dim));
+			limit.unity[coordinate][dim][MAX] = mult
+				* (limit.unity[coordinate][dim][MIN] = 0.1 + (double) (coordinate + dim));
 		}
 	}
 	for (ushort i = 1; i < mult; i++) {
-		spin.magnitude = limits[MAX].magnitude / (double) i;
+		spin.magnitude = limit.magnitude[MAX] / (double) i;
 		for (ushort coordinate = 0; coordinate < COORDINATE_CONVENTIONS; coordinate++) {
-			spin.azimuth[coordinate] = limits[MAX].azimuth[coordinate] / (double) i;
-			spin.inclination[coordinate] = limits[MAX].inclination[coordinate] / (double) i;
-			spin.elevation[coordinate] = limits[MAX].elevation[coordinate] / (double) i;
+			spin.azimuth[coordinate] = limit.azimuth[coordinate][MAX] / (double) i;
+			spin.inclination[coordinate] = limit.inclination[coordinate][MAX] / (double) i;
+			spin.elevation[coordinate] = limit.elevation[coordinate][MAX] / (double) i;
 			for (ushort dim = 0; dim < DIMENSION; dim++) {
-				spin.component[coordinate][dim] = limits[MAX].component[coordinate][dim]
+				spin.component[coordinate][dim] = limit.component[coordinate][dim][MAX]
 					/ (double) i;
-				spin.unity[coordinate][dim] = limits[MAX].unity[coordinate][dim] / (double) i;
+				spin.unity[coordinate][dim] = limit.unity[coordinate][dim][MAX] / (double) i;
 			}
 		}
 		SAVE_FUNCTION_CALLER();
-		if (!isSpinBetweenLimits(&spin, limits)) {
+		if (!isSpinBetweenLimits(&spin, &limit)) {
 			PRINT_ERROR();
 			return false;
 		}
 	}
 	double multMod = mult + 1.0;
-	spin.magnitude = limits[MAX].magnitude / (double) multMod;
+	spin.magnitude = limit.magnitude[MAX] / (double) multMod;
 	for (ushort coordinate = 0; coordinate < COORDINATE_CONVENTIONS; coordinate++) {
-		spin.azimuth[coordinate] = limits[MAX].azimuth[coordinate] / (double) multMod;
-		spin.inclination[coordinate] = limits[MAX].inclination[coordinate] / (double) multMod;
-		spin.elevation[coordinate] = limits[MAX].elevation[coordinate] / (double) multMod;
+		spin.azimuth[coordinate] = limit.azimuth[coordinate][MAX] / (double) multMod;
+		spin.inclination[coordinate] = limit.inclination[coordinate][MAX] / (double) multMod;
+		spin.elevation[coordinate] = limit.elevation[coordinate][MAX] / (double) multMod;
 		for (ushort dim = 0; dim < DIMENSION; dim++) {
-			spin.component[coordinate][dim] = limits[MAX].component[coordinate][dim]
+			spin.component[coordinate][dim] = limit.component[coordinate][dim][MAX]
 				/ (double) multMod;
-			spin.unity[coordinate][dim] = limits[MAX].unity[coordinate][dim] / (double) multMod;
+			spin.unity[coordinate][dim] = limit.unity[coordinate][dim][MAX] / (double) multMod;
 		}
 	}
 	SAVE_FUNCTION_CALLER();
-	if (isSpinBetweenLimits(&spin, limits)) {
+	if (isSpinBetweenLimits(&spin, &limit)) {
 		PRINT_ERROR();
 		return false;
 	}
 	multMod = mult - 1.0;
-	spin.magnitude = limits[MAX].magnitude * multMod;
+	spin.magnitude = limit.magnitude[MAX] * multMod;
 	for (ushort coordinate = 0; coordinate < COORDINATE_CONVENTIONS; coordinate++) {
-		spin.azimuth[coordinate] = limits[MAX].azimuth[coordinate] * multMod;
-		spin.inclination[coordinate] = limits[MAX].inclination[coordinate] * multMod;
-		spin.elevation[coordinate] = limits[MAX].elevation[coordinate] * multMod;
+		spin.azimuth[coordinate] = limit.azimuth[coordinate][MAX] * multMod;
+		spin.inclination[coordinate] = limit.inclination[coordinate][MAX] * multMod;
+		spin.elevation[coordinate] = limit.elevation[coordinate][MAX] * multMod;
 		for (ushort dim = 0; dim < DIMENSION; dim++) {
-			spin.component[coordinate][dim] = limits[MAX].component[coordinate][dim] * multMod;
-			spin.unity[coordinate][dim] = limits[MAX].unity[coordinate][dim] * multMod;
+			spin.component[coordinate][dim] = limit.component[coordinate][dim][MAX] * multMod;
+			spin.unity[coordinate][dim] = limit.unity[coordinate][dim][MAX] * multMod;
 		}
 	}
 	SAVE_FUNCTION_CALLER();
-	if (isSpinBetweenLimits(&spin, limits)) {
+	if (isSpinBetweenLimits(&spin, &limit)) {
 		PRINT_ERROR();
 		return false;
 	}
@@ -644,30 +644,31 @@ static bool isOK_generateSpin(void) {
 		return false;
 	}
 	double inclination = 0.0;
-	spinParameters spin, limits[2];
-	memset(limits, 0, 2 * sizeof(spinParameters));
-	limits[MAX].magnitude = 100.0 * (limits[MIN].magnitude = 1.0);
-	limits[MAX].azimuth[FIXED] = 10000.0 * (limits[MIN].azimuth[FIXED] = 0.000314);
-	limits[MAX].azimuth[PRECESSING] = 10000.0 * (limits[MIN].azimuth[PRECESSING] = 0.000314);
-	limits[MAX].inclination[FIXED] = 10000.0 * (limits[MIN].inclination[FIXED] = 0.000314);
-	limits[MAX].inclination[PRECESSING] = 10000.0
-		* (limits[MIN].inclination[PRECESSING] = 0.000314);
-	limits[MAX].elevation[FIXED] = M_PI + (limits[MIN].elevation[FIXED] = -M_PI_2);
-	limits[MAX].elevation[PRECESSING] = M_PI + (limits[MIN].elevation[PRECESSING] = -M_PI_4);
-	limits[MAX].component[FIXED][X] = 10.0 * (limits[MIN].component[FIXED][X] = 1.0);
-	limits[MAX].component[FIXED][Y] = 10.0 * (limits[MIN].component[FIXED][Y] = 1.0);
-	limits[MAX].component[FIXED][Z] = 10.0 * (limits[MIN].component[FIXED][Z] = 1.0);
-	limits[MAX].component[PRECESSING][X] = 40.0 + (limits[MIN].component[PRECESSING][X] = -20.0);
-	limits[MAX].component[PRECESSING][Y] = 40.0 + (limits[MIN].component[PRECESSING][Y] = -20.0);
-	limits[MAX].component[PRECESSING][Z] = 40.0 + (limits[MIN].component[PRECESSING][Z] = -20.0);
+	spinParameters spin;
+	spinLimits limit;
+	memset(&limit, 0, sizeof(spinLimits));
+	limit.magnitude[MAX] = 100.0 * (limit.magnitude[MIN] = 1.0);
+	limit.azimuth[FIXED][MAX] = 10000.0 * (limit.azimuth[FIXED][MIN] = 0.000314);
+	limit.azimuth[PRECESSING][MAX] = 10000.0 * (limit.azimuth[PRECESSING][MIN] = 0.000314);
+	limit.inclination[FIXED][MAX] = 10000.0 * (limit.inclination[FIXED][MIN] = 0.000314);
+	limit.inclination[PRECESSING][MAX] = 10000.0 * (limit.inclination[PRECESSING][MIN] = 0.000314);
+	limit.elevation[FIXED][MAX] = M_PI + (limit.elevation[FIXED][MIN] = -M_PI_2);
+	limit.elevation[PRECESSING][MAX] = M_PI + (limit.elevation[PRECESSING][MIN] = -M_PI_4);
+	limit.component[FIXED][X][MAX] = 10.0 * (limit.component[FIXED][X][MIN] = 1.0);
+	limit.component[FIXED][Y][MAX] = 10.0 * (limit.component[FIXED][Y][MIN] = 1.0);
+	limit.component[FIXED][Z][MAX] = 10.0 * (limit.component[FIXED][Z][MIN] = 1.0);
+	limit.component[PRECESSING][X][MAX] = 40.0 + (limit.component[PRECESSING][X][MIN] = -20.0);
+	limit.component[PRECESSING][Y][MAX] = 40.0 + (limit.component[PRECESSING][Y][MIN] = -20.0);
+	limit.component[PRECESSING][Z][MAX] = 40.0 + (limit.component[PRECESSING][Z][MIN] = -20.0);
+	limit.mode = GEN_FIXED_XYZ;
 	SAVE_FUNCTION_CALLER();
-	generateSpin(&spin, limits, inclination, GEN_FIXED_XYZ);
-	if (!isSpinBetweenLimits(&spin, limits)) {
-		generateSpin(&spin, limits, inclination, GEN_FIXED_XYZ);
+	generateSpin(&spin, &limit, inclination);
+	if (!isSpinBetweenLimits(&spin, &limit)) {
+		generateSpin(&spin, &limit, inclination);
 		PRINT_ERROR();
 		return false;
 	}
-	generateSpin(&spin, limits, inclination, GEN_FIXED_XYZ);
+	generateSpin(&spin, &limit, inclination);
 	PRINT_OK();
 	return true;
 }

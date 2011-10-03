@@ -13,8 +13,7 @@
 /// @name Generation functions
 ///@{
 
-void generateBinarySystemParameters(BinarySystem *system, binaryLimits *limit,
-	spinGenerationMode genSpin) {
+void generateBinarySystemParameters(BinarySystem *system, binaryLimits *limit) {
 	BACKUP_DEFINITION_LINE(); //
 	assert(system);
 	assert(limit);
@@ -24,11 +23,8 @@ void generateBinarySystemParameters(BinarySystem *system, binaryLimits *limit,
 		system->flatness[i] = randomBetween(limit->flatness[i][MIN], limit->flatness[i][MAX]);
 	}
 	generateMass(&system->mass, &limit->mass);
-	spinParameters spin[2];
 	for (short i = 0; i < NUMBER_OF_BLACKHOLES; i++) {
-		spin[MIN] = limit->spin[i];
-		spin[MAX] = limit->spin[i];
-		generateSpin(&system->spin[i], spin, system->inclination, genSpin);
+		generateSpin(&system->spin[i], &limit->spin[i], system->inclination);
 	} //
 	SAVE_FUNCTION_FOR_TESTING();
 }
@@ -112,7 +108,8 @@ static bool isOK_generateBinarySystemParameters(void) {
 		limit.spin[i].component[PRECESSING][Z][MAX] = 40.0
 			+ (limit.spin[i].component[PRECESSING][Z][MIN] = -20.0);
 	}
-	generateBinarySystemParameters(&system, &limit, GEN_FIXED_XYZ);
+	limit.spin[0].mode = limit.spin[1].mode = GEN_FIXED_XYZ;
+	generateBinarySystemParameters(&system, &limit);
 	if (!isOK) {
 		return isOK;
 	}PRINT_OK();
