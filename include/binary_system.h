@@ -139,10 +139,9 @@ typedef struct tagBinaryLimits {
 
 /**	Generates the mass parameters according the generation mode.
  * @param[out]	mass	: generated mass parameters
- * @param[in]	limits	: limits of the mass parameters
- * @param[in]	mode	: generation mode
+ * @param[in]	limit	: limits of the mass parameters
  */
-void generateMass(massParameters *mass, massParameters *limits, massGenerationMode mode);
+void generateMass(massParameters *mass, massLimits *limit);
 
 /**
  * @param file
@@ -172,8 +171,7 @@ void printSpinParameters(FILE *file, spinParameters *spin, OutputFormat *format)
  * @param[in]	genMass	: mass generation mode
  * @param[in]	genSpin	: spin generation mode
  */
-void generateBinarySystemParameters(BinarySystem *system, BinarySystem limits[],
-	massGenerationMode genMass, spinGenerationMode genSpin);
+void generateBinarySystemParameters(BinarySystem *system, binaryLimits *limit, spinGenerationMode genSpin);
 
 /**
  * @param file

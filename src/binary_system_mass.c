@@ -31,28 +31,30 @@ static void m1m2ToRemainingMass(massParameters *mass) {
  * @param[in] limits	: limits of the mass parameters
  * @return true or false
  */
-static bool isMassBetweenLimits(massParameters *mass, massParameters limits[]) {
+static bool isMassBetweenLimits(massParameters *mass, massLimits *limits) {
 	BACKUP_DEFINITION_LINE(); //
 	assert(mass);
 	assert(limits);
 	bool between = true;
 	for (short i = 0; i < NUMBER_OF_BLACKHOLES; i++) {
-		if (limits[MIN].mass[i] > mass->mass[i] || mass->mass[i] > limits[MAX].mass[i]) {
+		if (limits->mass[i][MIN] > mass->mass[i] || mass->mass[i] > limits->mass[i][MAX]) {
 			between = false;
 		}
 	}
-	if (limits[MIN].eta > mass->eta || mass->eta > limits[MAX].eta) {
+	if (limits->eta[MIN] > mass->eta || mass->eta > limits->eta[MAX]) {
 		between = false;
-	} else if (limits[MIN].totalMass > mass->totalMass || mass->totalMass > limits[MAX].totalMass) {
+	} else if (limits->totalMass[MIN] > mass->totalMass
+		|| mass->totalMass > limits->totalMass[MAX]) {
 		between = false;
-	} else if (limits[MIN].chirpMass > mass->chirpMass || mass->chirpMass > limits[MAX].chirpMass) {
+	} else if (limits->chirpMass[MIN] > mass->chirpMass
+		|| mass->chirpMass > limits->chirpMass[MAX]) {
 		between = false;
-	} else if (limits[MIN].mu > mass->mu || mass->mu > limits[MAX].mu) {
+	} else if (limits->mu[MIN] > mass->mu || mass->mu > limits->mu[MAX]) {
 		between = false;
-	} else if (limits[MIN].nu > mass->nu || mass->nu > limits[MAX].nu) {
+	} else if (limits->nu[MIN] > mass->nu || mass->nu > limits->nu[MAX]) {
 		between = false;
-	} else if ((limits[MIN].m1_m2 < mass->m1_m2 || mass->m1_m2 < limits[MAX].m1_m2)
-		&& (limits[MAX].m1_m2 < mass->m1_m2 || mass->m1_m2 < limits[MIN].m1_m2)) {
+	} else if ((limits->m1_m2[MIN] < mass->m1_m2 || mass->m1_m2 < limits->m1_m2[MAX])
+		&& (limits->m1_m2[MAX] < mass->m1_m2 || mass->m1_m2 < limits->m1_m2[MIN])) {
 		between = false;
 	}SAVE_FUNCTION_FOR_TESTING();
 	return between;
@@ -152,32 +154,32 @@ static void convertMasses(massParameters *mass, massConversionMode convert) {
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
-void generateMass(massParameters *mass, massParameters *limits, massGenerationMode mode) {
+void generateMass(massParameters *mass, massLimits *limit) {
 	BACKUP_DEFINITION_LINE(); //
 	assert(mass);
-	assert(limits);
-	switch (mode) {
+	assert(limit);
+	switch (limit->mode) {
 	case GEN_ETAM:
 		do {
-			mass->totalMass = randomBetween(limits[MIN].totalMass, limits[MAX].totalMass);
-			mass->eta = randomBetween(limits[MIN].eta, limits[MAX].eta);
+			mass->totalMass = randomBetween(limit->totalMass[MIN], limit->totalMass[MAX]);
+			mass->eta = randomBetween(limit->eta[MIN], limit->eta[MAX]);
 			convertMasses(mass, FROM_ETAM);
-		} while (!isMassBetweenLimits(mass, limits));
+		} while (!isMassBetweenLimits(mass, limit));
 		break;
 	case GEN_M1M2:
 		do {
 			for (short i = 0; i < NUMBER_OF_BLACKHOLES; i++) {
-				mass->mass[i] = randomBetween(limits[MIN].mass[i], limits[MAX].mass[i]);
+				mass->mass[i] = randomBetween(limit->mass[i][MIN], limit->mass[i][MAX]);
 			}
 			convertMasses(mass, FROM_M1M2);
-		} while (!isMassBetweenLimits(mass, limits));
+		} while (!isMassBetweenLimits(mass, limit));
 		break;
 	case GEN_ETACHIRP:
 		do {
-			mass->chirpMass = randomBetween(limits[MIN].chirpMass, limits[MAX].chirpMass);
-			mass->eta = randomBetween(limits[MIN].eta, limits[MAX].eta);
+			mass->chirpMass = randomBetween(limit->chirpMass[MIN], limit->chirpMass[MAX]);
+			mass->eta = randomBetween(limit->eta[MIN], limit->eta[MAX]);
 			convertMasses(mass, FROM_ETACHIRP);
-		} while (!isMassBetweenLimits(mass, limits));
+		} while (!isMassBetweenLimits(mass, limit));
 		break;
 	case MASS_GENERATIONS:
 	default:
@@ -237,55 +239,56 @@ static bool isOK_m1m2ToRemainingMass(void) {
 
 static bool isOK_isMassBetweenLimits(void) {
 	double mult = 3.0;
-	massParameters mass, limits[2];
-	limits[MAX].mass[0] = mult * (limits[MIN].mass[0] = 7.0);
-	limits[MAX].mass[1] = mult * (limits[MIN].mass[1] = 3.0);
-	limits[MAX].eta = mult * (limits[MIN].eta = 0.1);
-	limits[MAX].totalMass = mult * (limits[MIN].totalMass = 5.0);
-	limits[MAX].chirpMass = mult * (limits[MIN].chirpMass = 4.0);
-	limits[MAX].mu = mult * (limits[MIN].mu = 0.4);
-	limits[MAX].nu = mult * (limits[MIN].nu = 0.7);
-	limits[MAX].m1_m2 = mult * (limits[MIN].m1_m2 = 1.0);
+	massParameters mass;
+	massLimits limit;
+	limit.mass[0][MAX] = mult * (limit.mass[0][MIN] = 7.0);
+	limit.mass[1][MAX] = mult * (limit.mass[1][MIN] = 3.0);
+	limit.eta[MAX] = mult * (limit.eta[MIN] = 0.1);
+	limit.totalMass[MAX] = mult * (limit.totalMass[MIN] = 5.0);
+	limit.chirpMass[MAX] = mult * (limit.chirpMass[MIN] = 4.0);
+	limit.mu[MAX] = mult * (limit.mu[MIN] = 0.4);
+	limit.nu[MAX] = mult * (limit.nu[MIN] = 0.7);
+	limit.m1_m2[MAX] = mult * (limit.m1_m2[MIN] = 1.0);
 	for (ushort i = 1; i < mult; i++) {
-		mass.mass[0] = limits[MAX].mass[0] / (double) i;
-		mass.mass[1] = limits[MAX].mass[1] / (double) i;
-		mass.eta = limits[MAX].eta / (double) i;
-		mass.totalMass = limits[MAX].totalMass / (double) i;
-		mass.chirpMass = limits[MAX].chirpMass / (double) i;
-		mass.mu = limits[MAX].mu / (double) i;
-		mass.nu = limits[MAX].nu / (double) i;
-		mass.m1_m2 = limits[MAX].m1_m2 / (double) i;
+		mass.mass[0] = limit.mass[0][MAX] / (double) i;
+		mass.mass[1] = limit.mass[1][MAX] / (double) i;
+		mass.eta = limit.eta[MAX] / (double) i;
+		mass.totalMass = limit.totalMass[MAX] / (double) i;
+		mass.chirpMass = limit.chirpMass[MAX] / (double) i;
+		mass.mu = limit.mu[MAX] / (double) i;
+		mass.nu = limit.nu[MAX] / (double) i;
+		mass.m1_m2 = limit.m1_m2[MAX] / (double) i;
 		SAVE_FUNCTION_CALLER();
-		if (!isMassBetweenLimits(&mass, limits)) {
+		if (!isMassBetweenLimits(&mass, &limit)) {
 			PRINT_ERROR();
 			return false;
 		}
 	}
 	double multMod = mult + 1.0;
-	mass.mass[0] = limits[MAX].mass[0] / multMod;
-	mass.mass[1] = limits[MAX].mass[1] / multMod;
-	mass.eta = limits[MAX].eta / multMod;
-	mass.totalMass = limits[MAX].totalMass / multMod;
-	mass.chirpMass = limits[MAX].chirpMass / multMod;
-	mass.mu = limits[MAX].mu / multMod;
-	mass.nu = limits[MAX].nu / multMod;
-	mass.m1_m2 = limits[MAX].m1_m2 / multMod;
+	mass.mass[0] = limit.mass[0][MAX] / multMod;
+	mass.mass[1] = limit.mass[1][MAX] / multMod;
+	mass.eta = limit.eta[MAX] / multMod;
+	mass.totalMass = limit.totalMass[MAX] / multMod;
+	mass.chirpMass = limit.chirpMass[MAX] / multMod;
+	mass.mu = limit.mu[MAX] / multMod;
+	mass.nu = limit.nu[MAX] / multMod;
+	mass.m1_m2 = limit.m1_m2[MAX] / multMod;
 	SAVE_FUNCTION_CALLER();
-	if (isMassBetweenLimits(&mass, limits)) {
+	if (isMassBetweenLimits(&mass, &limit)) {
 		PRINT_ERROR();
 		return false;
 	}
 	multMod = mult - 1.0;
-	mass.mass[0] = limits[MAX].mass[0] * multMod;
-	mass.mass[1] = limits[MAX].mass[1] * multMod;
-	mass.eta = limits[MAX].eta * multMod;
-	mass.totalMass = limits[MAX].totalMass * multMod;
-	mass.chirpMass = limits[MAX].chirpMass * multMod;
-	mass.mu = limits[MAX].mu * multMod;
-	mass.nu = limits[MAX].nu * multMod;
-	mass.m1_m2 = limits[MAX].m1_m2 * multMod;
+	mass.mass[0] = limit.mass[0][MAX] * multMod;
+	mass.mass[1] = limit.mass[1][MAX] * multMod;
+	mass.eta = limit.eta[MAX] * multMod;
+	mass.totalMass = limit.totalMass[MAX] * multMod;
+	mass.chirpMass = limit.chirpMass[MAX] * multMod;
+	mass.mu = limit.mu[MAX] * multMod;
+	mass.nu = limit.nu[MAX] * multMod;
+	mass.m1_m2 = limit.m1_m2[MAX] * multMod;
 	SAVE_FUNCTION_CALLER();
-	if (isMassBetweenLimits(&mass, limits)) {
+	if (isMassBetweenLimits(&mass, &limit)) {
 		PRINT_ERROR();
 		return false;
 	}
@@ -402,19 +405,21 @@ static bool isOK_generateMass(void) {
 	if (!isOK_convertMasses()) {
 		return false;
 	}
-	massParameters mass, limits[2];
-	limits[MIN].mass[0] = 3.0 * (limits[MIN].mass[1] = 3.0);
-	limits[MAX].mass[0] = 2.0 * (limits[MAX].mass[1] = 30.0);
-	convertMassesFromM1M2(&limits[MIN]);
-	convertMassesFromM1M2(&limits[MAX]);
+	massParameters mass;
+	massLimits limit;
+	limit.mass[0][MIN] = 3.0 * (limit.mass[1][MIN] = 3.0);
+	limit.mass[0][MAX] = 2.0 * (limit.mass[1][MAX] = 30.0);
+	limit.mode = GEN_M1M2;
+	//convertMassesFromM1M2(&limit[MIN]);
+	//convertMassesFromM1M2(&limit[MAX]);
 	SAVE_FUNCTION_CALLER();
-	generateMass(&mass, limits, GEN_M1M2);
-	if (!isMassBetweenLimits(&mass, limits)) {
-		generateMass(&mass, limits, GEN_M1M2);
+	generateMass(&mass, &limit);
+	if (!isMassBetweenLimits(&mass, &limit)) {
+		generateMass(&mass, &limit);
 		PRINT_ERROR();
 		return false;
 	}
-	generateMass(&mass, limits, GEN_M1M2);
+	generateMass(&mass, &limit);
 	PRINT_OK();
 	return true;
 }

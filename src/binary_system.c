@@ -13,22 +13,21 @@
 /// @name Generation functions
 ///@{
 
-void generateBinarySystemParameters(BinarySystem *system, BinarySystem limits[],
-	massGenerationMode genMass, spinGenerationMode genSpin) {
+void generateBinarySystemParameters(BinarySystem *system, binaryLimits *limit,
+	spinGenerationMode genSpin) {
 	BACKUP_DEFINITION_LINE(); //
 	assert(system);
-	assert(limits);
-	system->inclination = randomBetween(limits[MIN].inclination, limits[MAX].inclination);
-	system->distance = randomBetween(limits[MIN].distance, limits[MAX].distance);
+	assert(limit);
+	system->inclination = randomBetween(limit->inclination[MIN], limit->inclination[MAX]);
+	system->distance = randomBetween(limit->distance[MIN], limit->distance[MAX]);
 	for (short i = 0; i < NUMBER_OF_BLACKHOLES; i++) {
-		system->flatness[i] = randomBetween(limits[MIN].flatness[i], limits[MAX].flatness[i]);
+		system->flatness[i] = randomBetween(limit->flatness[i][MIN], limit->flatness[i][MAX]);
 	}
-	massParameters mass[2] = { limits[MIN].mass, limits[MAX].mass };
-	generateMass(&system->mass, mass, genMass);
+	generateMass(&system->mass, &limit->mass);
 	spinParameters spin[2];
 	for (short i = 0; i < NUMBER_OF_BLACKHOLES; i++) {
-		spin[MIN] = limits[MIN].spin[i];
-		spin[MAX] = limits[MAX].spin[i];
+		spin[MIN] = limit->spin[i];
+		spin[MAX] = limit->spin[i];
 		generateSpin(&system->spin[i], spin, system->inclination, genSpin);
 	} //
 	SAVE_FUNCTION_FOR_TESTING();
@@ -70,50 +69,50 @@ static bool isOK_generateBinarySystemParameters(void) {
 	} else if (!areBinarySystemSpinFunctionsGood()) {
 		isOK = false;
 	}
-	BinarySystem system, limits[2];
+	BinarySystem system;
+	binaryLimits limit;
 	SAVE_FUNCTION_CALLER();
-	limits[MAX].mass.mass[0] = 100.0 * (limits[MIN].mass.mass[0] = 1.0);
-	limits[MAX].mass.mass[1] = 100.0 * (limits[MIN].mass.mass[1] = 1.0);
-	limits[MAX].mass.totalMass = 100.0 * (limits[MIN].mass.totalMass = 2.0);
-	limits[MAX].mass.eta = 100.0 + (limits[MIN].mass.eta = 0.0);
-	limits[MAX].mass.chirpMass = 100.0 + (limits[MIN].mass.chirpMass = 0.0);
-	limits[MAX].mass.mu = 100.0 + (limits[MIN].mass.mu = 0.0);
-	limits[MAX].mass.nu = 100.0 + (limits[MIN].mass.nu = 0.0);
-	limits[MAX].mass.m1_m2 = 100.0 + (limits[MIN].mass.m1_m2 = 0.0);
+	limit.mass.mass[0][MAX] = 100.0 * (limit.mass.mass[0][MIN] = 1.0);
+	limit.mass.mass[1][MAX] = 100.0 * (limit.mass.mass[1][MIN] = 1.0);
+	limit.mass.totalMass[MAX] = 100.0 * (limit.mass.totalMass[MIN] = 2.0);
+	limit.mass.eta[MAX] = 100.0 + (limit.mass.eta[MIN] = 0.0);
+	limit.mass.chirpMass[MAX] = 100.0 + (limit.mass.chirpMass[MIN] = 0.0);
+	limit.mass.mu[MAX] = 100.0 + (limit.mass.mu[MIN] = 0.0);
+	limit.mass.nu[MAX] = 100.0 + (limit.mass.nu[MIN] = 0.0);
+	limit.mass.m1_m2[MAX] = 100.0 + (limit.mass.m1_m2[MIN] = 0.0);
 	for (ushort dim = 0; dim < DIMENSION; dim++) {
-		limits[MAX].spin[0].component[FIXED][dim] = 100.0
-			* (limits[MIN].spin[0].component[FIXED][dim] = 1.0);
-		limits[MAX].spin[1].component[FIXED][dim] = 100.0
-			* (limits[MIN].spin[1].component[FIXED][dim] = 1.0);
+		limit.spin[0].component[FIXED][dim][MAX] = 100.0
+			* (limit.spin[0].component[FIXED][dim][MIN] = 1.0);
+		limit.spin[1].component[FIXED][dim][MAX] = 100.0
+			* (limit.spin[1].component[FIXED][dim][MIN] = 1.0);
 	}
 	for (ushort i = 0; i < 2; i++) {
-		limits[MAX].spin[i].magnitude = 100.0 * (limits[MIN].spin[i].magnitude = 1.0);
-		limits[MAX].spin[i].azimuth[FIXED] = 10000.0 * (limits[MIN].spin[i].azimuth[FIXED] =
+		limit.spin[i].magnitude[MAX] = 100.0 * (limit.spin[i].magnitude[MIN] = 1.0);
+		limit.spin[i].azimuth[FIXED][MAX] = 10000.0 * (limit.spin[i].azimuth[FIXED][MIN] = 0.000314);
+		limit.spin[i].azimuth[PRECESSING][MAX] = 10000.0 * (limit.spin[i].azimuth[PRECESSING][MIN] =
 			0.000314);
-		limits[MAX].spin[i].azimuth[PRECESSING] = 10000.0
-			* (limits[MIN].spin[i].azimuth[PRECESSING] = 0.000314);
-		limits[MAX].spin[i].inclination[FIXED] = 10000.0 * (limits[MIN].spin[i].inclination[FIXED] =
+		limit.spin[i].inclination[FIXED][MAX] = 10000.0 * (limit.spin[i].inclination[FIXED][MIN] =
 			0.000314);
-		limits[MAX].spin[i].inclination[PRECESSING] = 10000.0
-			* (limits[MIN].spin[i].inclination[PRECESSING] = 0.000314);
-		limits[MAX].spin[i].elevation[FIXED] = M_PI + (limits[MIN].spin[i].elevation[FIXED] =
-			-M_PI_2);
-		limits[MAX].spin[i].elevation[PRECESSING] = M_PI
-			+ (limits[MIN].spin[i].elevation[PRECESSING] = -M_PI_4);
-		limits[MAX].spin[i].component[FIXED][X] = 10.0 * (limits[MIN].spin[i].component[FIXED][X] =
+		limit.spin[i].inclination[PRECESSING][MAX] = 10000.0
+			* (limit.spin[i].inclination[PRECESSING][MIN] = 0.000314);
+		limit.spin[i].elevation[FIXED][MAX] = M_PI
+			+ (limit.spin[i].elevation[FIXED][MIN] = -M_PI_2);
+		limit.spin[i].elevation[PRECESSING][MAX] = M_PI
+			+ (limit.spin[i].elevation[PRECESSING][MIN] = -M_PI_4);
+		limit.spin[i].component[FIXED][X][MAX] = 10.0 * (limit.spin[i].component[FIXED][X][MIN] =
 			1.0);
-		limits[MAX].spin[i].component[FIXED][Y] = 10.0 * (limits[MIN].spin[i].component[FIXED][Y] =
+		limit.spin[i].component[FIXED][Y][MAX] = 10.0 * (limit.spin[i].component[FIXED][Y][MIN] =
 			1.0);
-		limits[MAX].spin[i].component[FIXED][Z] = 10.0 * (limits[MIN].spin[i].component[FIXED][Z] =
+		limit.spin[i].component[FIXED][Z][MAX] = 10.0 * (limit.spin[i].component[FIXED][Z][MIN] =
 			1.0);
-		limits[MAX].spin[i].component[PRECESSING][X] = 40.0
-			+ (limits[MIN].spin[i].component[PRECESSING][X] = -20.0);
-		limits[MAX].spin[i].component[PRECESSING][Y] = 40.0
-			+ (limits[MIN].spin[i].component[PRECESSING][Y] = -20.0);
-		limits[MAX].spin[i].component[PRECESSING][Z] = 40.0
-			+ (limits[MIN].spin[i].component[PRECESSING][Z] = -20.0);
+		limit.spin[i].component[PRECESSING][X][MAX] = 40.0
+			+ (limit.spin[i].component[PRECESSING][X][MIN] = -20.0);
+		limit.spin[i].component[PRECESSING][Y][MAX] = 40.0
+			+ (limit.spin[i].component[PRECESSING][Y][MIN] = -20.0);
+		limit.spin[i].component[PRECESSING][Z][MAX] = 40.0
+			+ (limit.spin[i].component[PRECESSING][Z][MIN] = -20.0);
 	}
-	generateBinarySystemParameters(&system, limits, GEN_M1M2, GEN_FIXED_XYZ);
+	generateBinarySystemParameters(&system, &limit, GEN_FIXED_XYZ);
 	if (!isOK) {
 		return isOK;
 	}PRINT_OK();
