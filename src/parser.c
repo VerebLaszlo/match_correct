@@ -17,8 +17,10 @@ typedef enum {
 	DEFAULT,
 	SOURCE,
 	BINARY,
-	MASSES,
-	SPINS,
+	MASS1,
+	MASS2,
+	SPIN1,
+	SPIN2,
 	MAGNITUDE,
 	INCLINATION,
 	AZIMUTH,
@@ -37,9 +39,10 @@ typedef enum {
 } OptionCode;
 
 char const * optionName[] = { "boundaryFrequency", "samplingFrequency", "default", "source",
-								"binary", "masses", "spins", "magnitude", "inclination", "azimuth",
-								"distance", "detector", "generation", "approximant", "phase",
-								"spin", "amplitude", "name", "pairs", "signal", "templates", };
+								"binary", "mass1", "mass2", "spin1", "spin2", "magnitude",
+								"inclination", "azimuth", "distance", "detector", "generation",
+								"approximant", "phase", "spin", "amplitude", "name", "pairs",
+								"signal", "templates", };
 
 typedef struct {
 	double magnitude[MINMAX];
@@ -103,22 +106,20 @@ static void getLimits(config_setting_t *limits, double limit[]) {
 	}
 }
 
-static void getMasses(config_setting_t *binary, double defaults[NUMBER_OF_BLACKHOLES][MINMAX],
-	double limit[NUMBER_OF_BLACKHOLES][MINMAX]) {
-	bool found = false;
-	config_setting_t *masses = config_setting_get_member(binary, optionName[MASSES]);
-	if (masses) {
-		int count = config_setting_length(masses);
-		if (count == 2) {
-			found = true;
-			for (ushort i = 0; i < count; i++) {
-				config_setting_t *mass = config_setting_get_elem(masses, i);
-				getLimits(mass, limit[i]);
-			}
-		}
+static void getMass(ushort blackhole, config_setting_t *source, double defaults[MINMAX],
+	double limit[MINMAX]) {
+	config_setting_t *mass = config_setting_get_member(source, optionName[MASS1 + blackhole]);
+	if (mass) {
+		getLimits(mass, limit);
+	} else {
+		memcpy(limit, defaults, 2*sizeof(defaults[MINMAX]));
 	}
-	if (!found) {
-		memcpy(limit, defaults, MINMAX * NUMBER_OF_BLACKHOLES * sizeof(double));
+}
+
+static void getMasses(config_setting_t *source, double defaults[NUMBER_OF_BLACKHOLES][MINMAX],
+	double limit[NUMBER_OF_BLACKHOLES][MINMAX]) {
+	for (ushort blackholes = 0; blackholes < NUMBER_OF_BLACKHOLES; blackholes++) {
+		getMass(blackholes, source, defaults[blackholes], limit[blackholes]);
 	}
 }
 
@@ -144,21 +145,15 @@ static void getSpin(config_setting_t *spin, SpinLimits *defaults, SpinLimits *li
 	}
 }
 
-static void getSpins(config_setting_t *binary, SourceLimits *defaults, SourceLimits *limit) {
-	bool found = false;
-	config_setting_t *spins = config_setting_get_member(binary, optionName[SPINS]);
-	if (spins) {
-		int count = config_setting_length(spins);
-		if (count == 2) {
-			found = true;
-			for (ushort i = 0; i < count; i++) {
-				config_setting_t *spin = config_setting_get_elem(spins, i);
-				getSpin(spin, &defaults->spin[i], &limit->spin[i]);
-			}
+static void getSpins(config_setting_t *source, SourceLimits *defaults, SourceLimits *limit) {
+	for (ushort blackhole = 0; blackhole < NUMBER_OF_BLACKHOLES; blackhole++) {
+		config_setting_t *spin = config_setting_get_member(source, optionName[SPIN1 + blackhole]);
+		if (spin) {
+			getSpin(spin, &defaults->spin[blackhole], &limit->spin[blackhole]);
+		} else {
+			memcpy(&limit->spin[blackhole], &defaults->spin[blackhole],
+				sizeof(defaults->spin[blackhole]));
 		}
-	}
-	if (!found) {
-		memcpy(limit->spin, defaults->spin, sizeof(defaults->spin));
 	}
 }
 
