@@ -15,7 +15,6 @@ typedef enum {
 	BOUNDARY_FREQUENCY,
 	SAMPLING_FREQUENCY,
 	DEFAULT,
-	SOURCE,
 	BINARY,
 	MASS1,
 	MASS2,
@@ -38,11 +37,10 @@ typedef enum {
 	NUMBER_OF_OPTIONS,
 } OptionCode;
 
-char const * optionName[] = { "boundaryFrequency", "samplingFrequency", "default", "source",
-								"binary", "mass1", "mass2", "spin1", "spin2", "magnitude",
-								"inclination", "azimuth", "distance", "detector", "generation",
-								"approximant", "phase", "spin", "amplitude", "name", "pairs",
-								"signal", "templates", };
+char const * optionName[] =
+	{ "boundaryFrequency", "samplingFrequency", "default", "binary", "mass1", "mass2", "spin1",
+		"spin2", "magnitude", "inclination", "azimuth", "distance", "detector", "generation",
+		"approximant", "phase", "spin", "amplitude", "name", "pairs", "signal", "templates", };
 
 static ushort neededElementNumber(ushort number, config_setting_t *elements) {
 	ushort count = (ushort) config_setting_length(elements);
@@ -60,14 +58,14 @@ static void getLimits(config_setting_t *limits, double limit[]) {
 	}
 }
 
-static void getMasses(config_setting_t *source, massLimits *defaults, massLimits *limit) {
-	config_setting_t *mass = config_setting_get_member(source, optionName[MASS1]);
+static void getMasses(config_setting_t *binary, massLimits *defaults, massLimits *limit) {
+	config_setting_t *mass = config_setting_get_member(binary, optionName[MASS1]);
 	if (mass) {
 		getLimits(mass, limit->mass[0]);
 	} else {
 		memcpy(limit->mass[0], defaults->mass[0], 2 * sizeof(defaults[0]));
 	}
-	mass = config_setting_get_member(source, optionName[MASS2]);
+	mass = config_setting_get_member(binary, optionName[MASS2]);
 	if (mass) {
 		getLimits(mass, limit->mass[1]);
 	} else {
@@ -99,9 +97,9 @@ static void getSpin(config_setting_t *spin, spinLimits *defaults, spinLimits *li
 	limit->mode = GEN_PRECESSING_ANGLES;
 }
 
-static void getSpins(config_setting_t *source, SourceLimits *defaults, SourceLimits *limit) {
+static void getSpins(config_setting_t *binary, binaryLimits *defaults, binaryLimits *limit) {
 	for (ushort blackhole = 0; blackhole < NUMBER_OF_BLACKHOLES; blackhole++) {
-		config_setting_t *spin = config_setting_get_member(source, optionName[SPIN1 + blackhole]);
+		config_setting_t *spin = config_setting_get_member(binary, optionName[SPIN1 + blackhole]);
 		if (spin) {
 			getSpin(spin, &defaults->spin[blackhole], &limit->spin[blackhole]);
 		} else {
@@ -111,27 +109,27 @@ static void getSpins(config_setting_t *source, SourceLimits *defaults, SourceLim
 	}
 }
 
-static void getSourceParameters(config_setting_t *waveform, SourceLimits *defaults,
-	SourceLimits *limit) {
-	config_setting_t *source = config_setting_get_member(waveform, optionName[SOURCE]);
-	if (source) {
-		getMasses(source, &defaults->mass, &limit->mass);
-		getSpins(source, defaults, limit);
+static void getSourceParameters(config_setting_t *waveform, binaryLimits *defaults,
+	binaryLimits *limit) {
+	config_setting_t *binary = config_setting_get_member(waveform, optionName[BINARY]);
+	if (binary) {
+		getMasses(binary, &defaults->mass, &limit->mass);
+		getSpins(binary, defaults, limit);
 		config_setting_t *current;
-		current = config_setting_get_member(source, optionName[INCLINATION]);
+		current = config_setting_get_member(binary, optionName[INCLINATION]);
 		if (current) {
 			getLimits(current, limit->inclination);
 		} else {
 			memcpy(defaults->inclination, limit->inclination, MINMAX * sizeof(double));
 		}
-		current = config_setting_get_member(source, optionName[DISTANCE]);
+		current = config_setting_get_member(binary, optionName[DISTANCE]);
 		if (current) {
 			getLimits(current, limit->distance);
 		} else {
 			memcpy(defaults->distance, limit->distance, MINMAX * sizeof(double));
 		}
 	} else {
-		memcpy(limit, defaults, sizeof(SourceLimits));
+		memcpy(limit, defaults, sizeof(binaryLimits));
 	}
 }
 
@@ -172,7 +170,7 @@ static void getGenerationParameters(config_setting_t *waveform, Limits *defaults
 }
 
 static void getWaveformParameters(config_setting_t *waveform, Limits *defaults, Limits *limit) {
-	getSourceParameters(waveform, &defaults->source, &limit->source);
+	getSourceParameters(waveform, &defaults->binary, &limit->binary);
 	getGenerationParameters(waveform, defaults, limit);
 	cstring name;
 	config_setting_lookup_string(waveform, optionName[NAME], &name);

@@ -16,50 +16,13 @@ typedef enum ParameterConstants_ {
 } ParameterConstants;
 
 typedef struct {
-	massLimits mass;
-	spinLimits spin[NUMBER_OF_BLACKHOLES];
-	double inclination[MINMAX];
-	double distance[MINMAX];
-} SourceLimits;
-
-static void printMassLimits(FILE *file, massLimits* mass) {
-	fprintf(file, "mass1: %lg %lg\n", mass->mass[0][MIN], mass->mass[0][MAX]);
-	fprintf(file, "mass2: %lg %lg\n", mass->mass[1][MIN], mass->mass[1][MAX]);
-}
-
-static void printSpinLimits(FILE *file, spinLimits *spin) {
-	fprintf(file, "magnitude: %lg %lg\n", spin->magnitude[MIN], spin->magnitude[MAX]);
-	fprintf(file, "inclination: %lg %lg\n", spin->inclination[PRECESSING][MIN],
-		spin->inclination[PRECESSING][MAX]);
-	fprintf(file, "azimuth: %lg %lg\n", spin->azimuth[PRECESSING][MIN],
-		spin->azimuth[PRECESSING][MAX]);
-}
-
-static void printSourceLimits(FILE *file, SourceLimits *source) {
-	printMassLimits(file, &source->mass);
-	printSpinLimits(file, &source->spin[0]);
-	printSpinLimits(file, &source->spin[1]);
-	fprintf(file, "incl: %lg %lg\n", source->inclination[MIN], source->inclination[MAX]);
-	fprintf(file, "dist: %lg %lg\n", source->distance[MIN], source->distance[MAX]);
-}
-
-typedef struct {
-	SourceLimits source;
+	binaryLimits binary;
 	char approximant[LENGTH_OF_STRING];
 	char phase[LENGTH_OF_STRING];
 	char spin[LENGTH_OF_STRING];
 	char amplitude[LENGTH_OF_STRING];
 	char name[LENGTH_OF_STRING];
 } Limits;
-
-static void printLimits(FILE *file, Limits *limit) {
-	printSourceLimits(file, &limit->source);
-	fprintf(file, "appr: %s\n", limit->approximant);
-	fprintf(file, "phase: %s\n", limit->phase);
-	fprintf(file, "spin: %s\n", limit->spin);
-	fprintf(file, "ampl: %s\n", limit->amplitude);
-	fprintf(file, "name: %s\n", limit->name);
-}
 
 typedef struct SystemParameter_ {
 	BinarySystem system[NUMBER_OF_SYSTEMS];
@@ -83,6 +46,8 @@ typedef struct ProgramParameter_ {
 	ushort precision[NUMBER_OF_FORMATS];
 	ushort width[NUMBER_OF_FORMATS];
 } ProgramParameter;
+
+void printLimits(FILE *file, Limits *limit);
 
 void readExactParameters(FILE *file, SystemParameter *params);
 

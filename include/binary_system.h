@@ -125,6 +125,18 @@ typedef struct tagBinarySystem {
 	double coalescenceTime; ///< the length of the gravitational wave at the coalescence in \f$s\f$
 } BinarySystem;
 
+/**	Contains the parameter limits of the binary system.
+ */
+typedef struct tagBinaryLimits {
+	massLimits mass; ///< mass parameters
+	spinLimits spin[NUMBER_OF_BLACKHOLES]; ///< spin parameters
+	double flatness[NUMBER_OF_BLACKHOLES][MINMAX]; ///< flatness of the blackholes
+	double inclination[MINMAX]; ///< inclination of the total angular momentum
+	double distance[MINMAX]; ///< distance of the binary system from the detector in \f$Mpc\f$
+	double coalescencePhase[MINMAX]; ///< phase at the coalescence
+	double coalescenceTime[MINMAX]; ///< the length of the gravitational wave at the coalescence in \f$s\f$
+} binaryLimits;
+
 /**	Generates the mass parameters according the generation mode.
  * @param[out]	mass	: generated mass parameters
  * @param[in]	limits	: limits of the mass parameters
