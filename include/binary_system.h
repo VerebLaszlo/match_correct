@@ -77,6 +77,19 @@ typedef struct tagMassParameters {
 	double m1_m2; ///< \f$m_1/m_2\f$
 } massParameters;
 
+/**	Contains the limits of the mass parameters.
+ */
+typedef struct tagMassLimits {
+	double mass[NUMBER_OF_BLACKHOLES][MINMAX]; ///< \f$m_1,m_2\f$ in \f$M_\odot\f$
+	double totalMass[MINMAX]; ///< \f$M=m_1+m_2\f$ in \f$M_\odot\f$
+	double eta[MINMAX]; ///< \f$\eta=m_1m_2/M^2\f$
+	double mu[MINMAX]; ///< \f$\mu=m_1m_2/M\f$ in \f$M_\odot\f$
+	double chirpMass[MINMAX]; ///< \f$\mathcal{M}=M\eta^{3/5}\f$ in \f$M_\odot\f$
+	double nu[MINMAX]; ///< \f$\min(m_1,m_2)/\max(m_1,m_2)\f$
+	double m1_m2[MINMAX]; ///< \f$m_1/m_2\f$
+	massGenerationMode mode;
+} massLimits;
+
 /**	Contains the spin parameters.
  */
 typedef struct tagSpinParameters {

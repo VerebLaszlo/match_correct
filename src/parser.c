@@ -60,21 +60,20 @@ static void getLimits(config_setting_t *limits, double limit[]) {
 	}
 }
 
-static void getMass(ushort blackhole, config_setting_t *source, double defaults[MINMAX],
-	double limit[MINMAX]) {
-	config_setting_t *mass = config_setting_get_member(source, optionName[MASS1 + blackhole]);
+static void getMasses(config_setting_t *source, massLimits *defaults, massLimits *limit) {
+	config_setting_t *mass = config_setting_get_member(source, optionName[MASS1]);
 	if (mass) {
-		getLimits(mass, limit);
+		getLimits(mass, limit->mass[0]);
 	} else {
-		memcpy(limit, defaults, 2*sizeof(defaults[MINMAX]));
+		memcpy(limit->mass[0], defaults->mass[0], 2 * sizeof(defaults[0]));
 	}
-}
-
-static void getMasses(config_setting_t *source, double defaults[NUMBER_OF_BLACKHOLES][MINMAX],
-	double limit[NUMBER_OF_BLACKHOLES][MINMAX]) {
-	for (ushort blackholes = 0; blackholes < NUMBER_OF_BLACKHOLES; blackholes++) {
-		getMass(blackholes, source, defaults[blackholes], limit[blackholes]);
+	mass = config_setting_get_member(source, optionName[MASS2]);
+	if (mass) {
+		getLimits(mass, limit->mass[1]);
+	} else {
+		memcpy(limit->mass[1], defaults->mass[1], 2 * sizeof(defaults[0]));
 	}
+	limit->mode = GEN_M1M2;
 }
 
 static void getSpin(config_setting_t *spin, SpinLimits *defaults, SpinLimits *limit) {
@@ -115,7 +114,7 @@ static void getSourceParameters(config_setting_t *waveform, SourceLimits *defaul
 	SourceLimits *limit) {
 	config_setting_t *source = config_setting_get_member(waveform, optionName[SOURCE]);
 	if (source) {
-		getMasses(source, defaults->mass, limit->mass);
+		getMasses(source, &defaults->mass, &limit->mass);
 		getSpins(source, defaults, limit);
 		config_setting_t *current;
 		current = config_setting_get_member(source, optionName[INCLINATION]);

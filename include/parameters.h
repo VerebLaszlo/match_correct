@@ -28,15 +28,19 @@ static void printSpinLimits(FILE *file, SpinLimits *spin) {
 }
 
 typedef struct {
-	double mass[NUMBER_OF_BLACKHOLES][MINMAX];
+	massLimits mass;
 	SpinLimits spin[NUMBER_OF_BLACKHOLES];
 	double inclination[MINMAX];
 	double distance[MINMAX];
 } SourceLimits;
 
+static void printMassLimits(FILE *file, massLimits* mass) {
+	fprintf(file, "mass1: %lg %lg\n", mass->mass[0][MIN], mass->mass[0][MAX]);
+	fprintf(file, "mass2: %lg %lg\n", mass->mass[1][MIN], mass->mass[1][MAX]);
+}
+
 static void printSourceLimits(FILE *file, SourceLimits *source) {
-	fprintf(file, "mass1: %lg %lg\n", source->mass[0][MIN], source->mass[0][MAX]);
-	fprintf(file, "mass2: %lg %lg\n", source->mass[1][MIN], source->mass[1][MAX]);
+	printMassLimits(file, &source->mass);
 	printSpinLimits(file, &source->spin[0]);
 	printSpinLimits(file, &source->spin[1]);
 	fprintf(file, "incl: %lg %lg\n", source->inclination[MIN], source->inclination[MAX]);
@@ -60,10 +64,6 @@ static void printLimits(FILE *file, Limits *limit) {
 	fprintf(file, "ampl: %s\n", limit->amplitude);
 	fprintf(file, "name: %s\n", limit->name);
 }
-typedef enum ParameterConstants_ {
-	TO_PLOT, TO_BACKUP, NUMBER_OF_FORMATS, NUMBER_OF_SYSTEMS = 2, LENGTH_OF_STRING = 100,
-} ParameterConstants;
-
 
 typedef struct SystemParameter_ {
 	BinarySystem system[NUMBER_OF_SYSTEMS];
