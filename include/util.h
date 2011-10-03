@@ -11,6 +11,7 @@
 #include <stdbool.h>
 
 typedef char *string; ///< shorthand for dynamic string type
+typedef const char *cstring;	//< shorthand for constant dynamic string type
 typedef unsigned short ushort; ///< shorthand for unsigned short int type
 typedef unsigned long ulong;
 

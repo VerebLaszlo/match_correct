@@ -19,7 +19,8 @@ doc
 out*
 own
 
-# Ignore the folders
+# other
+*.zip
 
 # Ignore everything starting with dot, exept .gitignore
 .*
