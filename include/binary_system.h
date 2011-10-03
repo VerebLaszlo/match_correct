@@ -101,6 +101,18 @@ typedef struct tagSpinParameters {
 	double elevation[COORDINATE_CONVENTIONS]; ///< elevation in the corresponding convention, \f$[-\pi/2,\pi/2]\f$
 } spinParameters;
 
+/**	Contains the limits of the spin parameters.
+ */
+typedef struct tagSpinLimits {
+	double component[COORDINATE_CONVENTIONS][DIMENSION][MINMAX]; ///< components in the corresponding convention
+	double magnitude[MINMAX]; ///< magnitude of the spin
+	double unity[COORDINATE_CONVENTIONS][DIMENSION][MINMAX]; ///< unity components in the corresponding convention
+	double azimuth[COORDINATE_CONVENTIONS][MINMAX]; ///< azimuth in the corresponding convention, \f$\in[0,2\pi)\f$
+	double inclination[COORDINATE_CONVENTIONS][MINMAX]; ///< inclination in the corresponding convention, \f$[0,\pi]\f$
+	double elevation[COORDINATE_CONVENTIONS][MINMAX]; ///< elevation in the corresponding convention, \f$[-\pi/2,\pi/2]\f$
+	spinGenerationMode mode;
+} spinLimits;
+
 /**	Contains the parameters of the binary system.
  */
 typedef struct tagBinarySystem {

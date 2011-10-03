@@ -16,20 +16,8 @@ typedef enum ParameterConstants_ {
 } ParameterConstants;
 
 typedef struct {
-	double magnitude[MINMAX];
-	double inclination[MINMAX];
-	double azimuth[MINMAX];
-} SpinLimits;
-
-static void printSpinLimits(FILE *file, SpinLimits *spin) {
-	fprintf(file, "magnitude: %lg %lg\n", spin->magnitude[MIN], spin->magnitude[MAX]);
-	fprintf(file, "inclination: %lg %lg\n", spin->inclination[MIN], spin->inclination[MAX]);
-	fprintf(file, "azimuth: %lg %lg\n", spin->azimuth[MIN], spin->azimuth[MAX]);
-}
-
-typedef struct {
 	massLimits mass;
-	SpinLimits spin[NUMBER_OF_BLACKHOLES];
+	spinLimits spin[NUMBER_OF_BLACKHOLES];
 	double inclination[MINMAX];
 	double distance[MINMAX];
 } SourceLimits;
@@ -37,6 +25,14 @@ typedef struct {
 static void printMassLimits(FILE *file, massLimits* mass) {
 	fprintf(file, "mass1: %lg %lg\n", mass->mass[0][MIN], mass->mass[0][MAX]);
 	fprintf(file, "mass2: %lg %lg\n", mass->mass[1][MIN], mass->mass[1][MAX]);
+}
+
+static void printSpinLimits(FILE *file, spinLimits *spin) {
+	fprintf(file, "magnitude: %lg %lg\n", spin->magnitude[MIN], spin->magnitude[MAX]);
+	fprintf(file, "inclination: %lg %lg\n", spin->inclination[PRECESSING][MIN],
+		spin->inclination[PRECESSING][MAX]);
+	fprintf(file, "azimuth: %lg %lg\n", spin->azimuth[PRECESSING][MIN],
+		spin->azimuth[PRECESSING][MAX]);
 }
 
 static void printSourceLimits(FILE *file, SourceLimits *source) {

@@ -76,7 +76,7 @@ static void getMasses(config_setting_t *source, massLimits *defaults, massLimits
 	limit->mode = GEN_M1M2;
 }
 
-static void getSpin(config_setting_t *spin, SpinLimits *defaults, SpinLimits *limit) {
+static void getSpin(config_setting_t *spin, spinLimits *defaults, spinLimits *limit) {
 	config_setting_t *current;
 	current = config_setting_get_member(spin, optionName[MAGNITUDE]);
 	if (current) {
@@ -86,16 +86,17 @@ static void getSpin(config_setting_t *spin, SpinLimits *defaults, SpinLimits *li
 	}
 	current = config_setting_get_member(spin, optionName[INCLINATION]);
 	if (current) {
-		getLimits(current, limit->inclination);
+		getLimits(current, limit->inclination[PRECESSING]);
 	} else {
 		memcpy(limit->inclination, defaults->inclination, MINMAX * sizeof(double));
 	}
 	current = config_setting_get_member(spin, optionName[AZIMUTH]);
 	if (current) {
-		getLimits(current, limit->azimuth);
+		getLimits(current, limit->azimuth[PRECESSING]);
 	} else {
 		memcpy(limit->azimuth, defaults->azimuth, MINMAX * sizeof(double));
 	}
+	limit->mode = GEN_PRECESSING_ANGLES;
 }
 
 static void getSpins(config_setting_t *source, SourceLimits *defaults, SourceLimits *limit) {
