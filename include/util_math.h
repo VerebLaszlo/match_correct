@@ -19,7 +19,7 @@ typedef enum {
 } Coordinates;
 
 typedef enum {
-	MIN, MAX,
+	MIN, MAX, MINMAX,
 } Codes;
 
 /**	Inserts the square of the number.

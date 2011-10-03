@@ -7,6 +7,7 @@
  */
 
 #include "program_functions.h"
+#include "parser.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -56,15 +57,18 @@ int main(int argc, char *argv[]) {
 #ifdef TEST
 	//testingFunctions();
 #endif // TEST
-	Options option;
-	if (argc == 1) {
-		printHelp();
-		exit(EXIT_SUCCESS);
-	}
-	argc--;
-	argv++;
-	interpretOptions(&option, argc, argv);
-	run(option.programFile, option.parameterFile, option.plot, option.calculateMatch);
+	/*Options option;
+	 if (argc == 1) {
+	 printHelp();
+	 exit(EXIT_SUCCESS);
+	 }
+	 argc--;
+	 argv++;
+	 interpretOptions(&option, argc, argv);
+	 run(option.programFile, option.parameterFile, option.plot, option.calculateMatch);*/
+	SystemParameter parameter[2];
+	memset(&parameter, 0, 2 * sizeof(SystemParameter));
+	testParser(parameter);
 	puts("\nOK");
 	return 0;
 }

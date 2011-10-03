@@ -6,7 +6,38 @@
  */
 
 #include <assert.h>
+#include <string.h>
 #include "parameters.h"
+
+static void printMassLimits(FILE *file, massLimits* mass) {
+	fprintf(file, "mass1: %lg %lg\n", mass->mass[0][MIN], mass->mass[0][MAX]);
+	fprintf(file, "mass2: %lg %lg\n", mass->mass[1][MIN], mass->mass[1][MAX]);
+}
+
+static void printSpinLimits(FILE *file, spinLimits *spin) {
+	fprintf(file, "magnitude: %lg %lg\n", spin->magnitude[MIN], spin->magnitude[MAX]);
+	fprintf(file, "inclination: %lg %lg\n", spin->inclination[PRECESSING][MIN],
+		spin->inclination[PRECESSING][MAX]);
+	fprintf(file, "azimuth: %lg %lg\n", spin->azimuth[PRECESSING][MIN],
+		spin->azimuth[PRECESSING][MAX]);
+}
+
+static void printBinaryLimits(FILE *file, binaryLimits *binary) {
+	printMassLimits(file, &binary->mass);
+	printSpinLimits(file, &binary->spin[0]);
+	printSpinLimits(file, &binary->spin[1]);
+	fprintf(file, "incl: %lg %lg\n", binary->inclination[MIN], binary->inclination[MAX]);
+	fprintf(file, "dist: %lg %lg\n", binary->distance[MIN], binary->distance[MAX]);
+}
+
+void printLimits(FILE *file, Limits *limit) {
+	printBinaryLimits(file, &limit->binary);
+	fprintf(file, "appr: %s\n", limit->approximant);
+	fprintf(file, "phase: %s\n", limit->phase);
+	fprintf(file, "spin: %s\n", limit->spin);
+	fprintf(file, "ampl: %s\n", limit->amplitude);
+	fprintf(file, "name: %s\n", limit->name);
+}
 
 void readExactParameters(FILE *file, SystemParameter *params) {
 	memset(params, 0, sizeof(SystemParameter));

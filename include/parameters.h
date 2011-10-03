@@ -15,6 +15,15 @@ typedef enum ParameterConstants_ {
 	TO_PLOT, TO_BACKUP, NUMBER_OF_FORMATS, NUMBER_OF_SYSTEMS = 2, LENGTH_OF_STRING = 100,
 } ParameterConstants;
 
+typedef struct {
+	binaryLimits binary;
+	char approximant[LENGTH_OF_STRING];
+	char phase[LENGTH_OF_STRING];
+	char spin[LENGTH_OF_STRING];
+	char amplitude[LENGTH_OF_STRING];
+	char name[LENGTH_OF_STRING];
+} Limits;
+
 typedef struct SystemParameter_ {
 	BinarySystem system[NUMBER_OF_SYSTEMS];
 	DetectorParameters detector[NUMBER_OF_SYSTEMS];
@@ -37,6 +46,8 @@ typedef struct ProgramParameter_ {
 	ushort precision[NUMBER_OF_FORMATS];
 	ushort width[NUMBER_OF_FORMATS];
 } ProgramParameter;
+
+void printLimits(FILE *file, Limits *limit);
 
 void readExactParameters(FILE *file, SystemParameter *params);
 

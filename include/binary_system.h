@@ -77,6 +77,19 @@ typedef struct tagMassParameters {
 	double m1_m2; ///< \f$m_1/m_2\f$
 } massParameters;
 
+/**	Contains the limits of the mass parameters.
+ */
+typedef struct tagMassLimits {
+	double mass[NUMBER_OF_BLACKHOLES][MINMAX]; ///< \f$m_1,m_2\f$ in \f$M_\odot\f$
+	double totalMass[MINMAX]; ///< \f$M=m_1+m_2\f$ in \f$M_\odot\f$
+	double eta[MINMAX]; ///< \f$\eta=m_1m_2/M^2\f$
+	double mu[MINMAX]; ///< \f$\mu=m_1m_2/M\f$ in \f$M_\odot\f$
+	double chirpMass[MINMAX]; ///< \f$\mathcal{M}=M\eta^{3/5}\f$ in \f$M_\odot\f$
+	double nu[MINMAX]; ///< \f$\min(m_1,m_2)/\max(m_1,m_2)\f$
+	double m1_m2[MINMAX]; ///< \f$m_1/m_2\f$
+	massGenerationMode mode;
+} massLimits;
+
 /**	Contains the spin parameters.
  */
 typedef struct tagSpinParameters {
@@ -87,6 +100,18 @@ typedef struct tagSpinParameters {
 	double inclination[COORDINATE_CONVENTIONS]; ///< inclination in the corresponding convention, \f$[0,\pi]\f$
 	double elevation[COORDINATE_CONVENTIONS]; ///< elevation in the corresponding convention, \f$[-\pi/2,\pi/2]\f$
 } spinParameters;
+
+/**	Contains the limits of the spin parameters.
+ */
+typedef struct tagSpinLimits {
+	double component[COORDINATE_CONVENTIONS][DIMENSION][MINMAX]; ///< components in the corresponding convention
+	double magnitude[MINMAX]; ///< magnitude of the spin
+	double unity[COORDINATE_CONVENTIONS][DIMENSION][MINMAX]; ///< unity components in the corresponding convention
+	double azimuth[COORDINATE_CONVENTIONS][MINMAX]; ///< azimuth in the corresponding convention, \f$\in[0,2\pi)\f$
+	double inclination[COORDINATE_CONVENTIONS][MINMAX]; ///< inclination in the corresponding convention, \f$[0,\pi]\f$
+	double elevation[COORDINATE_CONVENTIONS][MINMAX]; ///< elevation in the corresponding convention, \f$[-\pi/2,\pi/2]\f$
+	spinGenerationMode mode;
+} spinLimits;
 
 /**	Contains the parameters of the binary system.
  */
@@ -99,6 +124,18 @@ typedef struct tagBinarySystem {
 	double coalescencePhase; ///< phase at the coalescence
 	double coalescenceTime; ///< the length of the gravitational wave at the coalescence in \f$s\f$
 } BinarySystem;
+
+/**	Contains the parameter limits of the binary system.
+ */
+typedef struct tagBinaryLimits {
+	massLimits mass; ///< mass parameters
+	spinLimits spin[NUMBER_OF_BLACKHOLES]; ///< spin parameters
+	double flatness[NUMBER_OF_BLACKHOLES][MINMAX]; ///< flatness of the blackholes
+	double inclination[MINMAX]; ///< inclination of the total angular momentum
+	double distance[MINMAX]; ///< distance of the binary system from the detector in \f$Mpc\f$
+	double coalescencePhase[MINMAX]; ///< phase at the coalescence
+	double coalescenceTime[MINMAX]; ///< the length of the gravitational wave at the coalescence in \f$s\f$
+} binaryLimits;
 
 /**	Generates the mass parameters according the generation mode.
  * @param[out]	mass	: generated mass parameters

@@ -42,6 +42,7 @@ includes := -I$(incdir) #-I/usr/include
 
 objs_test := main_test.o signals.o detector.o binary_system.o binary_system_mass.o program_functions.o
 objs_test += binary_system_spin.o util_math.o util_IO.o util.o test.o parameters.o lal_wrapper.o
+objs_test += parser.o
 
 vpath
 vpath %.c $(srcdir)
@@ -53,17 +54,17 @@ vpath %.d $(objdir)
 #vpath lib%.so $(subst -L,,$(subst lib\ -L,lib:,$(shell pkg-config --libs-only-L lalinspiral)))
 #vpath lib%.a $(subst -L,,$(subst lib\ -L,lib:,$(shell pkg-config --libs-only-L lalinspiral)))
 
-lal_includes := $(shell pkg-config --cflags lalinspiral)
+lal_includes := $(shell pkg-config --cflags lalinspiral) $(shell pkg-config --cflags libconfig)
 includes += $(lal_includes)
 lal_libraries := $(shell pkg-config --libs-only-l lalinspiral)
-lal_libraries_path := $(shell pkg-config --libs-only-L lalinspiral)
+lal_libraries_path := $(shell pkg-config --libs-only-L lalinspiral) $(shell pkg-config --libs-only-L libconfig)
 
 all : test
 
 test main : CFLAGS += $(errorExtraFlags) $(lal_libraries_path)
 test : macros += -DTEST
 
-test main : $(objects) -lfftw3 -lm
+test main : $(objects) -lfftw3 -lm $(shell pkg-config --libs-only-l libconfig)
 	@echo -e '\e[36mLinking: $@\e[0m'
 	$(hide_echo)$(CC) $(CFLAGS) $(macros) $(lal_libraries) -o $@ $^
 	@echo -e '\e[35mFinished linking: $@\e[0m'
