@@ -11,6 +11,8 @@
 #include <fftw3.h>
 #include "util_IO.h"
 
+/**	Constants indexing the signal components.
+ */
 typedef enum {
 	H1P, H1C, H2P, H2C, NUMBER_OF_SIGNALS_COMPONENTS, H1 = 0, H2, NUMBER_OF_SIGNALS,
 } SignalComponentCodes;
@@ -29,9 +31,6 @@ typedef struct {
 	double samplingTime;
 } SignalStruct;
 
-extern void (*createSignal)(SignalStruct *signal, size_t size);
-extern void (*destroySignal)(SignalStruct *signal);
-
 /**	Creates the signal structure.
  * @param[out] signal : the allocated memory for the signals
  * @param[in]  size	  : the size of the allocated memories
@@ -43,11 +42,24 @@ void createSignalWithoutmatch(SignalStruct *signal, size_t size);
  */
 void destroySignalWithoutMatch(SignalStruct *signal);
 
+/**	Creates the signal structure for calculating match.
+ * @param[out] signal : the allocated memory for the signals
+ * @param[in] size	  : the size of the allocated memories
+ */
 void createSignalForMatch(SignalStruct *signal, size_t size);
 
-void setSignalExistanceFunctions(bool calculateMatch);
-
+/** Destroys the signal structure allocated for calculating match.
+ * @param[in] signal :
+ */
 void destroySignalForMatch(SignalStruct *signal);
+
+extern void (*createSignal)(SignalStruct *signal, size_t size);	///< Function pointer to the signal structure creator function.
+extern void (*destroySignal)(SignalStruct *signal);	///< Function pointer to the signal structure destroyer function.
+
+/**	Sets the signal structure creator and destroyes functions.
+ * @param[in] calculateMatch : true if you want to calculate match.
+ */
+void setSignalExistanceFunctions(bool calculateMatch);
 
 /**	Prints two signals.
  * @param[in] file	 : output stream

@@ -10,6 +10,7 @@
 #include "detector.h"
 #include "test.h"
 
+/// Contains the detector specific parameters.
 const DetectorTable detectors[] = { //
 	{ LL, "LL", //
 		{ //

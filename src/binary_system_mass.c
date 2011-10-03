@@ -80,6 +80,11 @@ static bool areMassParametersNear(massParameters *left, massParameters *right) {
 	return areEqual;
 }
 
+/**	Calculates the chirpmass.
+ * @param[in] totalMass
+ * @param[in] eta
+ * @return
+ */
 static double calcChirpMass(double totalMass, double eta) {
 	return pow(eta, 3.0 / 5.0) * totalMass;
 }

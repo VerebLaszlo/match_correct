@@ -11,9 +11,10 @@
 #include "signals.h"
 #include "parameters.h"
 
-/**
- * @param parameters
- * @param signal
+/**	Generates a waveform pair.
+ * @param[in] parameters	   : the waveform's parameters
+ * @param[out] signal		   : the generated waveform pair
+ * @param[in] calculateMatches : true if you want to calculate match
  * @return
  */
 int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool calculateMatches);

@@ -23,6 +23,12 @@ static void initializeGeneration(ProgramParameter *program, SystemParameter *par
 
 }
 
+/**	Runs the program.
+ * @param[in] programFile	   :
+ * @param[in] parametersFile   :
+ * @param[in] plot			   :
+ * @param[in] calculateMatches :
+ */
 void run(char *programFile, char *parametersFile, bool plot, bool calculateMatches) {
 	SystemParameter parameters;
 	ProgramParameter program;
@@ -54,6 +60,9 @@ void run(char *programFile, char *parametersFile, bool plot, bool calculateMatch
 	destroySignal(&signal);
 }
 
+/**	Calls the testing functions.
+ * @return succes of the run.
+ */
 bool testingFunctions(void) {
 	srand(86);
 	bool succes = true;

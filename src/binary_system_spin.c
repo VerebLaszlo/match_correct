@@ -30,6 +30,9 @@ static void magnitudeOfSpin(spinParameters *spin) {
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
+/** Calculates the unity vector.
+ * @param spin
+ */
 static void convertSpinsToUnity(spinParameters *spin) {
 	for (ushort frame = 0; frame < COORDINATE_CONVENTIONS; frame++) {
 		for (ushort dim = X; dim < DIMENSION; dim++) {

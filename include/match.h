@@ -28,6 +28,13 @@
 void calc_Matches(SignalStruct *in, long min_Index, long max_Index, double *typ, double *best,
 	double *minimax);
 
+/**	Calculates the index boundaries from the frequency boundaries.
+ * @param[in] min			 : starting frequency
+ * @param[in] max			 : ending frequency
+ * @param[in] step			 : sampling frequency
+ * @param[out] startingIndex : stariting index
+ * @param[out] endingIndex	 : ending index
+ */
 void calculateIndexBoundariesFromFrequencies(double min, double max, double step,
 	size_t *startingIndex, size_t *endingIndex);
 

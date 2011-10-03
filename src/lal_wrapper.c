@@ -31,6 +31,9 @@ typedef struct LALParameters {
 	Approximant approx[NUMBER_OF_SYSTEMS];
 } LALParameters;
 
+/**	Prints the parameters in the lal structures.
+ * @param[in] params
+ */
 static void printLALParameters(LALParameters *params) {
 	for (short i = 0; i < 2; i++) {
 		printf("%lg %lg\n", params->injParams[i].mass1, params->injParams[i].mass1);
