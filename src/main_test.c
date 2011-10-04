@@ -67,13 +67,14 @@ int main(int argc, char *argv[]) {
 	 interpretOptions(&option, argc, argv);
 	 run(option.programFile, option.parameterFile, option.plot, option.calculateMatch);*/
 	cstring fileName = "parser.conf";
+	ConstantParameters constants;
 	Limits *pair = NULL;
 	Limits *signalWithTemplates = NULL;
-	size_t numberOfPairs = getWaveformPairLimitsFrom(fileName, &pair);
+	size_t numberOfPairs = getWaveformPairLimitsFrom(fileName, &constants, &pair);
 	printf("%d\n", numberOfPairs);
 	printLimits(stdout, &pair[0]);
 	puts("");
-	size_t numberOfTemplates = getSignalAndTemplatesLimitsFrom(fileName, &signalWithTemplates);
+	size_t numberOfTemplates = getSignalAndTemplatesLimitsFrom(fileName, &constants, &signalWithTemplates);
 	printf("%d\n", numberOfTemplates);
 	printLimits(stdout, &signalWithTemplates[0]);
 	puts("");

@@ -186,7 +186,16 @@ static void getWavePairParameters(config_setting_t *pair, Limits *defaults, Limi
 	}
 }
 
-size_t getWaveformPairLimitsFrom(cstring fileName, Limits **pairsLimit) {
+static void getConstantParameters(ConstantParameters *constants, config_t *cfg) {
+	config_setting_t *frequency = config_lookup(cfg, optionName[BOUNDARY_FREQUENCY]);
+	constants->initialFrequency = config_setting_get_float_elem(frequency, MIN);
+	constants->endingFrequency = config_setting_get_float_elem(frequency, MAX);
+	frequency = config_lookup(cfg, optionName[SAMPLING_FREQUENCY]);
+	constants->samplingFrequency = config_setting_get_float(frequency);
+}
+
+size_t getWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants,
+	Limits **pairsLimit) {
 	config_t cfg;
 	memset(&cfg, 0, sizeof(cfg));
 	if (!config_read_file(&cfg, fileName)) {
@@ -195,6 +204,7 @@ size_t getWaveformPairLimitsFrom(cstring fileName, Limits **pairsLimit) {
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
+	getConstantParameters(constants, &cfg);
 	config_setting_t *defaultWave = config_lookup(&cfg, optionName[DEFAULT]);
 	Limits limit;
 	getWaveformParameters(defaultWave, NULL, &limit);
@@ -210,7 +220,8 @@ size_t getWaveformPairLimitsFrom(cstring fileName, Limits **pairsLimit) {
 	return numberOfPairs;
 }
 
-size_t getSignalAndTemplatesLimitsFrom(cstring fileName, Limits **waveformLimit) {
+size_t getSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *constants,
+	Limits **waveformLimit) {
 	config_t cfg;
 	memset(&cfg, 0, sizeof(cfg));
 	if (!config_read_file(&cfg, "parser.conf")) {
@@ -219,6 +230,7 @@ size_t getSignalAndTemplatesLimitsFrom(cstring fileName, Limits **waveformLimit)
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
+	getConstantParameters(constants, &cfg);
 	config_setting_t *defaultWave = config_lookup(&cfg, optionName[DEFAULT]);
 	Limits limit;
 	getWaveformParameters(defaultWave, NULL, &limit);

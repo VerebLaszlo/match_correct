@@ -16,6 +16,12 @@ typedef enum ParameterConstants_ {
 } ParameterConstants;
 
 typedef struct {
+	double initialFrequency;
+	double samplingFrequency;
+	double endingFrequency;
+} ConstantParameters;
+
+typedef struct {
 	binaryLimits binary;
 	char approximant[LENGTH_OF_STRING];
 	char phase[LENGTH_OF_STRING];
