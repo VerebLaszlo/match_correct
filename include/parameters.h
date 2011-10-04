@@ -40,6 +40,8 @@ typedef struct SystemParameter_ {
 	char amplitude[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 } SystemParameter;
 
+void getSysemParametersFromLimits(Limits *limit, SystemParameter *parameter);
+
 typedef struct ProgramParameter_ {
 	char outputDirectory[FILENAME_MAX];
 	ulong numberOfRuns;
