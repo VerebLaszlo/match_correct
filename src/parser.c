@@ -186,42 +186,53 @@ static void getWavePairParameters(config_setting_t *pair, Limits *defaults, Limi
 	}
 }
 
-void testParser(SystemParameter *parameter) {
+size_t getWaveformPairLimitsFrom(cstring fileName, Limits **pairsLimit) {
 	config_t cfg;
 	memset(&cfg, 0, sizeof(cfg));
-	if (!config_read_file(&cfg, "parser.conf")) {
-		fprintf(stderr, "%d - %s\n", config_error_line(&cfg), config_error_text(&cfg));
+	if (!config_read_file(&cfg, fileName)) {
+		fprintf(stderr, "Error in %s config file: %d - %s\n", fileName, config_error_line(&cfg),
+			config_error_text(&cfg));
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
 	config_setting_t *defaultWave = config_lookup(&cfg, optionName[DEFAULT]);
 	Limits limit;
 	getWaveformParameters(defaultWave, NULL, &limit);
-	printLimits(stdout, &limit);
-	puts("");
-	// pairs
-	Limits *pairsLimit = NULL;
 	config_setting_t *current;
 	config_setting_t *pairs = config_lookup(&cfg, optionName[PAIRS]);
 	size_t numberOfPairs = (size_t) config_setting_length(pairs);
-	pairsLimit = calloc(2 * numberOfPairs, sizeof(Limits));
+	(*pairsLimit) = calloc(2 * numberOfPairs, sizeof(Limits));
 	for (size_t i = 0; i < numberOfPairs; i++) {
 		current = config_setting_get_elem(pairs, i);
-		getWavePairParameters(current, &limit, &pairsLimit[2 * i]);
-		printLimits(stderr, &pairsLimit[0]);
-		//printLimits(stderr, &pairsLimit[1]);
+		getWavePairParameters(current, &limit, &(*pairsLimit)[2 * i]);
 	}
-	// signal + templates
-	/*Limits signalLimit;
-	 config_setting_t *signal = config_lookup(&cfg, optionName[SIGNAL]);
-	 getWaveformParameters(signal, &limit, &signalLimit);
-	 Limits *templatesLimit = NULL;
-	 config_setting_t *templates = config_lookup(&cfg, optionName[TEMPLATES]);
-	 size_t numberOfTemplates = (size_t) config_setting_length(templates);
-	 templatesLimit = calloc(numberOfTemplates, sizeof(Limits));
-	 for (size_t i = 0; i < numberOfTemplates; i++) {
-	 current = config_setting_get_elem(templates, i);
-	 getWaveformParameters(current, &limit, &templatesLimit[i]);
-	 }*/
 	config_destroy(&cfg);
+	return numberOfPairs;
+}
+
+size_t getSignalAndTemplatesLimitsFrom(cstring fileName, Limits **waveformLimit) {
+	config_t cfg;
+	memset(&cfg, 0, sizeof(cfg));
+	if (!config_read_file(&cfg, "parser.conf")) {
+		fprintf(stderr, "Error in %s config file: %d - %s\n", fileName, config_error_line(&cfg),
+			config_error_text(&cfg));
+		config_destroy(&cfg);
+		exit(EXIT_FAILURE);
+	}
+	config_setting_t *defaultWave = config_lookup(&cfg, optionName[DEFAULT]);
+	Limits limit;
+	getWaveformParameters(defaultWave, NULL, &limit);
+	// signal + templates
+	config_setting_t *signal = config_lookup(&cfg, optionName[SIGNAL]);
+	config_setting_t *templates = config_lookup(&cfg, optionName[TEMPLATES]);
+	size_t numberOfTemplates = (size_t) config_setting_length(templates);
+	(*waveformLimit) = calloc(numberOfTemplates + 1, sizeof(Limits));
+	getWaveformParameters(signal, &limit, &(*waveformLimit)[0]);
+	config_setting_t *current;
+	for (size_t i = 0; i < numberOfTemplates; i++) {
+		current = config_setting_get_elem(templates, i);
+		getWaveformParameters(current, &limit, &(*waveformLimit)[i + 1]);
+	}
+	config_destroy(&cfg);
+	return numberOfTemplates + 1;
 }

@@ -10,6 +10,8 @@
 
 #include "parameters.h"
 
-void testParser(SystemParameter *parameter);
+size_t getWaveformPairLimitsFrom(cstring fileName, Limits **pairsLimit);
+
+size_t getSignalAndTemplatesLimitsFrom(cstring fileName, Limits **waveformLimit);
 
 #endif /* PARSER_H_ */
