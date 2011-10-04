@@ -9,15 +9,17 @@
 #include <string.h>
 #include "parameters.h"
 
-void getSysemParametersFromLimits(Limits limit[], SystemParameter *parameter) {
+void getSysemParametersFromLimits(Limits limit[], ConstantParameters *constants, SystemParameter *parameter) {
 	for (ushort blackhole = 0; blackhole < NUMBER_OF_BLACKHOLES; blackhole++) {
 		generateBinarySystemParameters(&parameter->system[blackhole], &limit[blackhole].binary);
-		// starting frequency, sampling frequency, ending frequency
 		strcpy(parameter->approximant[blackhole], limit[blackhole].approximant);
 		strcpy(parameter->phase[blackhole], limit[blackhole].phase);
 		strcpy(parameter->spin[blackhole], limit[blackhole].spin);
 		strcpy(parameter->amplitude[blackhole], limit[blackhole].amplitude);
 	}
+	parameter->initialFrequency = constants->initialFrequency;
+	parameter->samplingFrequency = constants->samplingFrequency;
+	parameter->endingFrequency= constants->endingFrequency;
 }
 
 static void printMassLimits(FILE *file, massLimits* mass) {
