@@ -248,3 +248,45 @@ size_t getSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *con
 	config_destroy(&cfg);
 	return numberOfTemplates + 1;
 }
+
+typedef enum {
+	OUTPUT_DIRECTORY,
+	NUMBER_OF_RUNS,
+	FORMATS,
+	FORMAT_NAME,
+	PRECISION,
+	WIDTH,
+	NUMBER_OF_PROGRAM_OPTIONS,
+} ProgramOptionCode;
+
+char const * programOptionName[] = { "outputDirectory", "numberOfRuns", "formats", "name",
+										"precision", "width", };
+
+void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters) {
+	config_t cfg;
+	memset(&cfg, 0, sizeof(cfg));
+	if (!config_read_file(&cfg, fileName)) {
+		fprintf(stderr, "Error in %s config file: %d - %s\n", fileName, config_error_line(&cfg),
+			config_error_text(&cfg));
+		config_destroy(&cfg);
+		exit(EXIT_FAILURE);
+	}
+	config_setting_t *setting = config_lookup(&cfg, programOptionName[OUTPUT_DIRECTORY]);
+	cstring outputDirectoryName = config_setting_get_string(setting);
+	strcpy(parameters->outputDirectory, outputDirectoryName);
+	config_lookup_int(&cfg, programOptionName[NUMBER_OF_RUNS], &parameters->numberOfRuns);
+	setting = config_lookup(&cfg, programOptionName[FORMATS]);
+	ushort numberOfFormats = (ushort) config_setting_length(setting);
+	createFormats(numberOfFormats, &parameters->format);
+	for (ushort current = 0; current < numberOfFormats; current++) {
+		long value;
+		config_setting_t *format = config_setting_get_elem(setting, current);
+		config_setting_lookup_int(format, programOptionName[PRECISION], &value);
+		parameters->format.precision[current] = (ushort) value;
+		config_setting_lookup_int(format, programOptionName[WIDTH], &value);
+		parameters->format.width[current] = (ushort) value;
+		cstring formatName;
+		config_setting_lookup_string(format, programOptionName[FORMAT_NAME], &formatName);
+		strcpy(parameters->format.name[current], formatName);
+	}
+}

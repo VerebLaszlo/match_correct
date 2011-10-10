@@ -7,7 +7,22 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 #include "parameters.h"
+
+void createFormats(size_t number, Formats *formats) {
+	formats->number = number;
+	formats->precision = calloc(formats->number, sizeof(ushort));
+	formats->width = calloc(formats->number, sizeof(ushort));
+	formats->name = calloc(formats->number, sizeof(string));
+}
+
+void destroyFormats(Formats *formats) {
+	free(formats->precision);
+	free(formats->width);
+	free(formats->name);
+	formats->number = 0;
+}
 
 static void printMassLimits(FILE *file, massLimits* mass) {
 	fprintf(file, "mass1: %lg %lg\n", mass->mass[0][MIN], mass->mass[0][MAX]);
@@ -111,23 +126,23 @@ void readProgramParameters(FILE *file, ProgramParameter *params) {
 	fgets(line, length, file);
 	sscanf(line, "%ld\n", &params->numberOfRuns);
 	fgets(line, length, file);
-	sscanf(line, "%hd\n", &params->precision[TO_PLOT]);
+	sscanf(line, "%hd\n", &params->format.precision[TO_PLOT]);
 	fgets(line, length, file);
-	sscanf(line, "%hd\n", &params->width[TO_PLOT]);
+	sscanf(line, "%hd\n", &params->format.width[TO_PLOT]);
 	fgets(line, length, file);
-	sscanf(line, "%hd\n", &params->precision[TO_BACKUP]);
+	sscanf(line, "%hd\n", &params->format.precision[TO_BACKUP]);
 	fgets(line, length, file);
-	sscanf(line, "%hd\n", &params->width[TO_BACKUP]);
+	sscanf(line, "%hd\n", &params->format.width[TO_BACKUP]);
 	fgets(line, length, file);
 	sscanf(line, "%4096s\n", params->outputDirectory);
 }
 
 void printProgramParameters(FILE *file, ProgramParameter *params) {
 	fprintf(file, "%10s %10ld\n", "numOfRuns", params->numberOfRuns);
-	fprintf(file, "%10s %10hd\n", "prec", params->precision[TO_PLOT]);
-	fprintf(file, "%10s %10d\n", "width", params->width[TO_PLOT]);
-	fprintf(file, "%10s %10hd\n", "precPlot", params->precision[TO_BACKUP]);
-	fprintf(file, "%10s %10d\n", "widthPlot", params->width[TO_BACKUP]);
+	fprintf(file, "%10s %10hd\n", "prec", params->format.precision[TO_PLOT]);
+	fprintf(file, "%10s %10d\n", "width", params->format.width[TO_PLOT]);
+	fprintf(file, "%10s %10hd\n", "precPlot", params->format.precision[TO_BACKUP]);
+	fprintf(file, "%10s %10d\n", "widthPlot", params->format.width[TO_BACKUP]);
 	fprintf(file, "%10s %10s\n", "folder", params->outputDirectory);
 }
 

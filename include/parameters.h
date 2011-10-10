@@ -46,11 +46,21 @@ typedef struct SystemParameter_ {
 	char amplitude[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 } SystemParameter;
 
+typedef struct {
+	size_t number;
+	ushort *precision;
+	ushort *width;
+	string *name;
+} Formats;
+
+void createFormats(size_t number, Formats *formats);
+
+void destroyFormats(Formats *formats);
+
 typedef struct ProgramParameter_ {
 	char outputDirectory[FILENAME_MAX];
+	Formats format;
 	ulong numberOfRuns;
-	ushort precision[NUMBER_OF_FORMATS];
-	ushort width[NUMBER_OF_FORMATS];
 } ProgramParameter;
 
 void printLimits(FILE *file, Limits *limit);
