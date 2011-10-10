@@ -10,14 +10,15 @@
 
 #include <stdbool.h>
 
-typedef char *string; ///< shorthand for dynamic string type
+typedef enum {
+	ZERO = 0, STRING_LENGTH = 100,
+} UtilityConstants;
+
+typedef char string[STRING_LENGTH];
+typedef char *stringPointer; ///< shorthand for dynamic string type
 typedef const char *cstring;	//< shorthand for constant dynamic string type
 typedef unsigned short ushort; ///< shorthand for unsigned short int type
 typedef unsigned long ulong;
-
-typedef enum {
-	ZERO = 0,
-} UtilityConstants;
 
 /**	Negates the boolean variable.
  * @param[in,out] var	: boolean variable to be negated.

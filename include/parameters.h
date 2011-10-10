@@ -52,11 +52,21 @@ void getSysemParametersFromLimit(Limits *limit, ConstantParameters *constants,
 void getSysemParametersFromLimits(Limits *limit, ConstantParameters *constants,
 	SystemParameter *parameter);
 
+typedef struct {
+	size_t number;
+	ushort *precision;
+	ushort *width;
+	string *name;
+} Formats;
+
+void createFormats(size_t number, Formats *formats);
+
+void destroyFormats(Formats *formats);
+
 typedef struct ProgramParameter_ {
 	char outputDirectory[FILENAME_MAX];
+	Formats format;
 	ulong numberOfRuns;
-	ushort precision[NUMBER_OF_FORMATS];
-	ushort width[NUMBER_OF_FORMATS];
 	bool plot;
 	bool calculateMatches;
 } ProgramParameter;

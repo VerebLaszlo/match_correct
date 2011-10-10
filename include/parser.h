@@ -16,4 +16,6 @@ size_t getWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants
 size_t getSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *constants,
 	Limits **waveformLimit);
 
+void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters);
+
 #endif /* PARSER_H_ */
