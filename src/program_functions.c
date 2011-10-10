@@ -9,7 +9,23 @@
 #include "program_functions.h"
 #include "parser.h"
 #include "match.h"
+#include "parser.h"
 #include "lal_wrapper.h"
+
+void runForSignalAndTemplates(cstring fileName, ProgramParameter *program) {
+	ConstantParameters constants;
+	Limits *template;
+	SystemParameter parameter;
+	size_t numberOfTemplatesWithSignal = getSignalAndTemplatesLimitsFrom(fileName, &constants,
+		&template);
+	getSysemParametersFromLimit(template, &constants, &parameter, 0);
+	for (ushort currentTemplate = 1; currentTemplate < numberOfTemplatesWithSignal;
+		currentTemplate++) {
+		getSysemParametersFromLimit(template, &constants, &parameter, 1);
+		run(program, &parameter);
+	}
+	free(template);
+}
 
 void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
 	ConstantParameters constants;

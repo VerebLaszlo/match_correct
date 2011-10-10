@@ -10,8 +10,10 @@
 
 #include "parameters.h"
 
-size_t getWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants, Limits **pairsLimit);
+size_t getWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants,
+	Limits **pairsLimit);
 
-size_t getSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *constants, Limits **waveformLimit);
+size_t getSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *constants,
+	Limits **waveformLimit);
 
 #endif /* PARSER_H_ */

@@ -46,6 +46,9 @@ typedef struct SystemParameter_ {
 	char amplitude[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 } SystemParameter;
 
+void getSysemParametersFromLimit(Limits *limit, ConstantParameters *constants,
+	SystemParameter *parameter, ushort blackhole);
+
 void getSysemParametersFromLimits(Limits *limit, ConstantParameters *constants,
 	SystemParameter *parameter);
 
