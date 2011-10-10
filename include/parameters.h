@@ -11,6 +11,13 @@
 #include "binary_system.h"
 #include "detector.h"
 
+typedef struct {
+	char parameterFile[FILENAME_MAX];
+	char programFile[FILENAME_MAX];
+	bool plot;
+	bool calculateMatch;
+} Options;
+
 typedef enum ParameterConstants_ {
 	TO_PLOT, TO_BACKUP, NUMBER_OF_FORMATS, NUMBER_OF_SYSTEMS = 2, LENGTH_OF_STRING = 100,
 } ParameterConstants;

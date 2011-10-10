@@ -19,13 +19,6 @@ static void printHelp(void) {
 	puts("i: the file initialize the program");
 }
 
-typedef struct {
-	char parameterFile[FILENAME_MAX];
-	char programFile[FILENAME_MAX];
-	bool plot;
-	bool calculateMatch;
-} Options;
-
 static void interpretOptions(Options *option, int argc, char *argv[]) {
 	option->plot = false;
 	option->calculateMatch = false;
@@ -57,30 +50,15 @@ int main(int argc, char *argv[]) {
 #ifdef TEST
 	//testingFunctions();
 #endif // TEST
-	/*Options option;
-	 if (argc == 1) {
-	 printHelp();
-	 exit(EXIT_SUCCESS);
-	 }
-	 argc--;
-	 argv++;
-	 interpretOptions(&option, argc, argv);
-	 run(option.programFile, option.parameterFile, option.plot, option.calculateMatch);*/
-	cstring fileName = "parser.conf";
-	ConstantParameters constants;
-	Limits *pair = NULL;
-	Limits *signalWithTemplates = NULL;
-	size_t numberOfPairs = getWaveformPairLimitsFrom(fileName, &constants, &pair);
-	printf("%d\n", numberOfPairs);
-	printLimits(stdout, &pair[0]);
-	puts("");
-	size_t numberOfTemplates = getSignalAndTemplatesLimitsFrom(fileName, &constants, &signalWithTemplates);
-	printf("%d\n", numberOfTemplates);
-	printLimits(stdout, &signalWithTemplates[0]);
-	puts("");
-	printLimits(stdout, &signalWithTemplates[1]);
-	free(pair);
-	free(signalWithTemplates);
+	Options option;
+	if (argc == 1) {
+		printHelp();
+		exit(EXIT_SUCCESS);
+	}
+	argc--;
+	argv++;
+	interpretOptions(&option, argc, argv);
+	runProgram(option.programFile, option.parameterFile, &option);
 	puts("\nOK");
 	return 0;
 }

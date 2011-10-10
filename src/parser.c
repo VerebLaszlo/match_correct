@@ -262,7 +262,7 @@ typedef enum {
 char const * programOptionName[] = { "outputDirectory", "numberOfRuns", "formats", "name",
 										"precision", "width", };
 
-void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters) {
+void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters, Options *option) {
 	config_t cfg;
 	memset(&cfg, 0, sizeof(cfg));
 	if (!config_read_file(&cfg, fileName)) {
@@ -271,6 +271,8 @@ void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters) {
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
+	parameters->calculateMatches = option->calculateMatch;
+	parameters->plot = option->plot;
 	config_setting_t *setting = config_lookup(&cfg, programOptionName[OUTPUT_DIRECTORY]);
 	cstring outputDirectoryName = config_setting_get_string(setting);
 	strcpy(parameters->outputDirectory, outputDirectoryName);

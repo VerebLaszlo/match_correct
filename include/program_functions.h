@@ -9,6 +9,9 @@
 #define PROGRAM_FUNCTIONS_H_
 
 #include "parameters.h"
+
+void runProgram(cstring programFileName, cstring parameterFileName, Options *option);
+
 void runForSignalAndTemplates(cstring fileName, ProgramParameter *program);
 
 void runForWaveformPairs(cstring fileName, ProgramParameter *program);
