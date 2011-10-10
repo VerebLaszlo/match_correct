@@ -46,13 +46,16 @@ typedef struct SystemParameter_ {
 	char amplitude[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 } SystemParameter;
 
-void getSysemParametersFromLimits(Limits *limit, ConstantParameters *constants, SystemParameter *parameter);
+void getSysemParametersFromLimits(Limits *limit, ConstantParameters *constants,
+	SystemParameter *parameter);
 
 typedef struct ProgramParameter_ {
 	char outputDirectory[FILENAME_MAX];
 	ulong numberOfRuns;
 	ushort precision[NUMBER_OF_FORMATS];
 	ushort width[NUMBER_OF_FORMATS];
+	bool plot;
+	bool calculateMatches;
 } ProgramParameter;
 
 void printLimits(FILE *file, Limits *limit);

@@ -79,6 +79,8 @@ int main(int argc, char *argv[]) {
 	printLimits(stdout, &signalWithTemplates[0]);
 	puts("");
 	printLimits(stdout, &signalWithTemplates[1]);
+	free(pair);
+	free(signalWithTemplates);
 	puts("\nOK");
 	return 0;
 }

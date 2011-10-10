@@ -10,7 +10,9 @@
 
 #include "parameters.h"
 
-void run(char *programFile, char *parametersFile, bool plot, bool calculateMatches);
+void runForWaveformPairs(cstring fileName, ProgramParameter *program);
+
+void run(ProgramParameter *program, SystemParameter *parameters);
 
 bool testingFunctions(void);
 

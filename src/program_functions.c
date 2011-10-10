@@ -7,36 +7,31 @@
 
 #include <math.h>
 #include "program_functions.h"
+#include "parser.h"
 #include "match.h"
 #include "lal_wrapper.h"
 
-static void initializeGeneration(ProgramParameter *program, SystemParameter *parameters,
-	char *programFile, char *parametersFile) {
-	FILE *file = safelyOpenForReading(programFile);
-	readProgramParameters(file, program);
-	fclose(file);
-	file = safelyOpenForReading(parametersFile);
-	readExactParameters(file, parameters);
-	convertSpinGlobal(parameters->system[0].spin);
-	convertSpinGlobal(parameters->system[1].spin);
-	fclose(file);
-
+void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
+	ConstantParameters constants;
+	Limits *pair;
+	size_t numberOfPairs = getWaveformPairLimitsFrom(fileName, &constants, &pair);
+	for (ushort currentPair = 0; currentPair < numberOfPairs; currentPair++) {
+		SystemParameter parameter;
+		getSysemParametersFromLimits(&pair[currentPair], &constants, &parameter);
+		run(program, &parameter);
+	}
+	free(pair);
 }
 
 /**	Runs the program.
- * @param[in] programFile	   :
- * @param[in] parametersFile   :
- * @param[in] plot			   :
- * @param[in] calculateMatches :
+ * @param[in] program	   :
+ * @param[in] parameters   :
  */
-void run(char *programFile, char *parametersFile, bool plot, bool calculateMatches) {
-	SystemParameter parameters;
-	ProgramParameter program;
-	initializeGeneration(&program, &parameters, programFile, parametersFile);
-	setSignalExistanceFunctions(calculateMatches);
+void run(ProgramParameter *program, SystemParameter *parameters) {
+	setSignalExistanceFunctions(program->calculateMatches);
 	SignalStruct signal;
-	generateWaveformPair(&parameters, &signal, calculateMatches);
-	if (plot) {
+	generateWaveformPair(parameters, &signal, program->calculateMatches);
+	if (program->plot) {
 		for (size_t i = 0; i < signal.size; i++) {
 			signal.inTime[H1][i] = M_SQRT1_2
 				* (signal.componentsInTime[H1P][i] + signal.componentsInTime[H1C][i]);
@@ -44,16 +39,16 @@ void run(char *programFile, char *parametersFile, bool plot, bool calculateMatch
 				* (signal.componentsInTime[H2P][i] + signal.componentsInTime[H2C][i]);
 		}
 		char fileName[1000];
-		sprintf(fileName, "%s/%s", program.outputDirectory, "proba.dat");
+		sprintf(fileName, "%s/%s", program->outputDirectory, "proba.dat");
 		FILE *file = safelyOpenForWriting(fileName);
 		printTwoSignals(file, &signal, defaultFormat);
 		fclose(file);
 	}
-	if (calculateMatches) {
+	if (program->calculateMatches) {
 		double type, minimax, best;
 		size_t min, max;
-		calculateIndexBoundariesFromFrequencies(parameters.initialFrequency,
-			parameters.endingFrequency, parameters.samplingFrequency, &min, &max);
+		calculateIndexBoundariesFromFrequencies(parameters->initialFrequency,
+			parameters->endingFrequency, parameters->samplingFrequency, &min, &max);
 		calc_Matches(&signal, min, max, &type, &best, &minimax);
 		printf("%lg %lg %lg\n", minimax, type, best);
 	}
