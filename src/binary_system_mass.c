@@ -37,26 +37,32 @@ static bool isMassBetweenLimits(massParameters *mass, massLimits *limits) {
 	assert(limits);
 	bool between = true;
 	for (short i = 0; i < NUMBER_OF_BLACKHOLES; i++) {
-		if (limits->mass[i][MIN] > mass->mass[i] || mass->mass[i] > limits->mass[i][MAX]) {
+		if (!isnan(limits->mass[i][MIN]*limits->mass[i][MAX])
+			&& (limits->mass[i][MIN] > mass->mass[i] || mass->mass[i] > limits->mass[i][MAX])) {
 			between = false;
 		}
 	}
-	if (limits->eta[MIN] > mass->eta || mass->eta > limits->eta[MAX]) {
+	if (!isnan(limits->eta[MIN]*limits->eta[MAX])
+		&& (limits->eta[MIN] > mass->eta || mass->eta > limits->eta[MAX])) {
 		between = false;
-	} else if (limits->totalMass[MIN] > mass->totalMass
-		|| mass->totalMass > limits->totalMass[MAX]) {
+	} else if (!isnan(limits->totalMass[MIN]*limits->totalMass[MAX])
+		&& (limits->totalMass[MIN] > mass->totalMass || mass->totalMass > limits->totalMass[MAX])) {
 		between = false;
-	} else if (limits->chirpMass[MIN] > mass->chirpMass
-		|| mass->chirpMass > limits->chirpMass[MAX]) {
+	} else if (!isnan(limits->chirpMass[MIN]*limits->chirpMass[MAX])
+		&& (limits->chirpMass[MIN] > mass->chirpMass || mass->chirpMass > limits->chirpMass[MAX])) {
 		between = false;
-	} else if (limits->mu[MIN] > mass->mu || mass->mu > limits->mu[MAX]) {
+	} else if (!isnan(limits->mu[MIN]*limits->mu[MAX])
+		&& (limits->mu[MIN] > mass->mu || mass->mu > limits->mu[MAX])) {
 		between = false;
-	} else if (limits->nu[MIN] > mass->nu || mass->nu > limits->nu[MAX]) {
+	} else if (!isnan(limits->nu[MIN]*limits->nu[MAX])
+		&& (limits->nu[MIN] > mass->nu || mass->nu > limits->nu[MAX])) {
 		between = false;
-	} else if ((limits->m1_m2[MIN] < mass->m1_m2 || mass->m1_m2 < limits->m1_m2[MAX])
-		&& (limits->m1_m2[MAX] < mass->m1_m2 || mass->m1_m2 < limits->m1_m2[MIN])) {
+	} else if (!isnan(limits->m1_m2[MIN]*limits->m1_m2[MAX])
+		&& ((limits->m1_m2[MIN] < mass->m1_m2 || mass->m1_m2 < limits->m1_m2[MAX])
+			&& (limits->m1_m2[MAX] < mass->m1_m2 || mass->m1_m2 < limits->m1_m2[MIN]))) {
 		between = false;
-	}SAVE_FUNCTION_FOR_TESTING();
+	};
+	SAVE_FUNCTION_FOR_TESTING();
 	return between;
 }
 
@@ -150,7 +156,7 @@ static void convertMasses(massParameters *mass, massConversionMode convert) {
 	case MASS_CONVERSIONS:
 	default:
 		break;
-	} //
+	};
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
@@ -184,7 +190,7 @@ void generateMass(massParameters *mass, massLimits *limit) {
 	case MASS_GENERATIONS:
 	default:
 		break;
-	} //
+	};
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
@@ -318,7 +324,7 @@ static bool isOK_convertMassesFromM1M2(void) {
 	return true;
 }
 
-static bool isOK_convertMassesEtaM(void) {
+static bool isOK_convertMassesFromEtaM(void) {
 	if (!isOK_m1m2ToRemainingMass()) {
 		return false;
 	}
@@ -369,7 +375,7 @@ static bool isOK_convertMasses(void) {
 		PRINT_ERROR();
 		return false;
 	}
-	if (!isOK_convertMassesEtaM()) {
+	if (!isOK_convertMassesFromEtaM()) {
 		PRINT_ERROR();
 		return false;
 	}
@@ -407,11 +413,13 @@ static bool isOK_generateMass(void) {
 	}
 	massParameters mass;
 	massLimits limit;
+	for (ushort minimax = ZERO; minimax < MINMAX; minimax++) {
+		limit.chirpMass[minimax] = limit.eta[minimax] = limit.m1_m2[minimax] = limit.mu[minimax] =
+			limit.nu[minimax] = limit.totalMass[minimax] = NAN;
+	}
 	limit.mass[0][MIN] = 3.0 * (limit.mass[1][MIN] = 3.0);
 	limit.mass[0][MAX] = 2.0 * (limit.mass[1][MAX] = 30.0);
 	limit.mode = GEN_M1M2;
-	//convertMassesFromM1M2(&limit[MIN]);
-	//convertMassesFromM1M2(&limit[MAX]);
 	SAVE_FUNCTION_CALLER();
 	generateMass(&mass, &limit);
 	if (!isMassBetweenLimits(&mass, &limit)) {
