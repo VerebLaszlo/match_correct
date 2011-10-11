@@ -86,13 +86,13 @@ double randomBetweenZeroAndOne(void) {
 }
 
 double randomBetweenZeroAnd(double top) {
-	BACKUP_DEFINITION_LINE(); //
+	BACKUP_DEFINITION_LINE();
 	SAVE_FUNCTION_FOR_TESTING();
 	return top * randomBetweenZeroAndOne();
 }
 
 double randomBetween(double bottom, double top) {
-	BACKUP_DEFINITION_LINE(); //
+	BACKUP_DEFINITION_LINE();
 	SAVE_FUNCTION_FOR_TESTING();
 	return (top - bottom) * randomBetweenZeroAndOne() + bottom;
 }
@@ -108,15 +108,39 @@ bool isNear(const double first, const double second, const double epsilon) {
 #ifdef TEST
 
 static bool isOK_randomBetweenZeroAndN(void) {
+	double value;
 	double range = +1.0;
 	SAVE_FUNCTION_CALLER();
-	if (randomBetweenZeroAnd(range) < 0) {
+	value = randomBetweenZeroAnd(range);
+	if (value < 0) {
 		PRINT_ERROR();
 		return false;
 	}
 	range = -1.0;
 	SAVE_FUNCTION_CALLER();
-	if (randomBetweenZeroAnd(range) > 0) {
+	value = randomBetweenZeroAnd(range);
+	if (value > 0) {
+		PRINT_ERROR();
+		return false;
+	}
+	range = NAN;
+	SAVE_FUNCTION_CALLER();
+	value = randomBetweenZeroAnd(range);
+	if (!isnan(value)) {
+		PRINT_ERROR();
+		return false;
+	}
+	range = INFINITY;
+	SAVE_FUNCTION_CALLER();
+	value = randomBetweenZeroAnd(range);
+	if (!isinf(value)) {
+		PRINT_ERROR();
+		return false;
+	}
+	range = -INFINITY;
+	SAVE_FUNCTION_CALLER();
+	value = randomBetweenZeroAnd(range);
+	if (!isinf(value)) {
 		PRINT_ERROR();
 		return false;
 	}
@@ -126,19 +150,52 @@ static bool isOK_randomBetweenZeroAndN(void) {
 
 bool isOK_randomBetween(void) {
 	ushort number = 4;
-	double one[] = {+0.0, +0.0, -1.0, +1.0};
-	double two[] = {-1.0, +1.0, +0.0, +0.0};
-	double x;
-	for (ushort i = ZERO; i < number; i = (ushort)(i+2)) {
+	double one[] = { +0.0, +0.0, -1.0, +1.0 };
+	double two[] = { -1.0, +1.0, +0.0, +0.0 };
+	double value;
+	for (ushort i = ZERO; i < number; i = (ushort) (i + 2)) {
 		SAVE_FUNCTION_CALLER();
-		x = randomBetween(one[i], two[i]);
-		if (x > 0) {
+		value = randomBetween(one[i], two[i]);
+		if (value > 0) {
 			PRINT_ERROR();
 			return false;
 		}
 		SAVE_FUNCTION_CALLER();
-		x = randomBetween(one[i + 1], two[i + 1]);
-		if (x < 0) {
+		value = randomBetween(one[i + 1], two[i + 1]);
+		if (value < 0) {
+			PRINT_ERROR();
+			return false;
+		}
+	}
+	ushort numberInf = 4;
+	double oneInf[] = { INFINITY, -INFINITY, INFINITY, -INFINITY };
+	double twoInf[] = { INFINITY, -INFINITY, -INFINITY, INFINITY };
+	for (ushort i = ZERO; i < numberInf; i = i++) {
+		SAVE_FUNCTION_CALLER();
+		value = randomBetween(oneInf[i], twoInf[i]);
+		if (!isnan(value)) {
+			PRINT_ERROR();
+			return false;
+		}
+	}
+	ushort numberNan = 4;
+	double oneNan[] = { NAN, -NAN, NAN, -NAN };
+	double twoNan[] = { NAN, -NAN, -NAN, NAN };
+	for (ushort i = ZERO; i < numberNan; i = i++) {
+		SAVE_FUNCTION_CALLER();
+		value = randomBetween(oneNan[i], twoNan[i]);
+		if (!isnan(value)) {
+			PRINT_ERROR();
+			return false;
+		}
+	}
+	ushort numberNanInf = 8;
+	double oneNanInf[] = { NAN, INFINITY, -NAN, -INFINITY, INFINITY, -NAN, -INFINITY, NAN };
+	double twoNanInf[] = { INFINITY, NAN, -INFINITY, -NAN, -NAN, INFINITY, NAN, -INFINITY };
+	for (ushort i = ZERO; i < numberNanInf; i = i++) {
+		SAVE_FUNCTION_CALLER();
+		value = randomBetween(oneNanInf[i], twoNanInf[i]);
+		if (!isnan(value)) {
 			PRINT_ERROR();
 			return false;
 		}
