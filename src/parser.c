@@ -8,6 +8,7 @@
 #include <libconfig.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "parser.h"
 #include "util_math.h"
 
@@ -72,10 +73,24 @@ static void getMasses(config_setting_t *binary, massLimits *defaults, massLimits
 		memcpy(limit->mass[1], defaults->mass[1], 2 * sizeof(defaults[0]));
 	}
 	limit->mode = GEN_M1M2;
+	for (ushort minimax = ZERO; minimax < MINMAX; minimax++) {
+		limit->chirpMass[minimax] = limit->eta[minimax] = limit->m1_m2[minimax] =
+			limit->mu[minimax] = limit->nu[minimax] = limit->totalMass[minimax] = NAN;
+	}
 }
 
 static void getSpin(config_setting_t *spin, spinLimits *defaults, spinLimits *limit) {
 	config_setting_t *current;
+	for (ushort minimax = ZERO; minimax < MINMAX; minimax++) {
+		for (ushort convention = ZERO; convention < COORDINATE_CONVENTIONS; convention++) {
+			limit->inclination[convention][minimax] = limit->elevation[convention][minimax] = limit
+				->azimuth[convention][minimax] = NAN;
+			for (ushort dimention = X; dimention < DIMENSION; dimention++) {
+				limit->component[convention][dimention][minimax] =
+					limit->unity[convention][dimention][minimax] = NAN;
+			}
+		}
+	}
 	current = config_setting_get_member(spin, optionName[MAGNITUDE]);
 	if (current) {
 		getLimits(current, limit->magnitude);

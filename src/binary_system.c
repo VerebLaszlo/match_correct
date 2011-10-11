@@ -25,7 +25,7 @@ void generateBinarySystemParameters(BinarySystem *system, binaryLimits *limit) {
 	generateMass(&system->mass, &limit->mass);
 	for (short i = 0; i < NUMBER_OF_BLACKHOLES; i++) {
 		generateSpin(&system->spin[i], &limit->spin[i], system->inclination);
-	} //
+	};
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
@@ -84,7 +84,8 @@ static bool isOK_generateBinarySystemParameters(void) {
 	}
 	for (ushort i = 0; i < 2; i++) {
 		limit.spin[i].magnitude[MAX] = 100.0 * (limit.spin[i].magnitude[MIN] = 1.0);
-		limit.spin[i].azimuth[FIXED][MAX] = 10000.0 * (limit.spin[i].azimuth[FIXED][MIN] = 0.000314);
+		limit.spin[i].azimuth[FIXED][MAX] = 10000.0
+			* (limit.spin[i].azimuth[FIXED][MIN] = 0.000314);
 		limit.spin[i].azimuth[PRECESSING][MAX] = 10000.0 * (limit.spin[i].azimuth[PRECESSING][MIN] =
 			0.000314);
 		limit.spin[i].inclination[FIXED][MAX] = 10000.0 * (limit.spin[i].inclination[FIXED][MIN] =
