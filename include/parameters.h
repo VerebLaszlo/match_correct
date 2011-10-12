@@ -16,6 +16,7 @@ typedef struct {
 	char programFile[FILENAME_MAX];
 	bool plot;
 	bool calculateMatch;
+	bool testing;
 } Options;
 
 typedef enum ParameterConstants_ {

@@ -17,11 +17,11 @@ static void printHelp(void) {
 	puts("m: calculate the match");
 	puts("s: the file containing the parameters");
 	puts("i: the file initialize the program");
+	puts("t: testing");
 }
 
 static void interpretOptions(Options *option, int argc, char *argv[]) {
-	option->plot = false;
-	option->calculateMatch = false;
+	memset(option, 0, sizeof(Options));
 	while (argc) {
 		if ((*argv)[0] == '-') {
 			if ((*argv)[1] == 'h') {
@@ -39,6 +39,8 @@ static void interpretOptions(Options *option, int argc, char *argv[]) {
 				argc--;
 				argv++;
 				strcpy(option->programFile, *argv);
+			} else if ((*argv)[1] == 't') {
+				option->testing = true;
 			}
 		}
 		argc--;
@@ -47,9 +49,6 @@ static void interpretOptions(Options *option, int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-#ifdef TEST
-	//testingFunctions();
-#endif // TEST
 	Options option;
 	if (argc == 1) {
 		printHelp();
@@ -58,7 +57,13 @@ int main(int argc, char *argv[]) {
 	argc--;
 	argv++;
 	interpretOptions(&option, argc, argv);
-	runProgram(option.programFile, option.parameterFile, &option);
+	if (option.testing) {
+#ifdef TEST
+		testingFunctions();
+#endif // TEST
+	} else {
+		runProgram(option.programFile, option.parameterFile, &option);
+	}
 	puts("\nOK");
 	return 0;
 }

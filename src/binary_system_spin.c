@@ -50,31 +50,38 @@ static bool isSpinBetweenLimits(spinParameters *spin, spinLimits *limit) {
 	BACKUP_DEFINITION_LINE();    //
 	assert(spin);
 	assert(limit);
-	if (limit->magnitude[MIN] > spin->magnitude || spin->magnitude > limit->magnitude[MAX]) {
+	if ((!isnan(limit->magnitude[MIN]*limit->magnitude[MAX]))
+		&& (limit->magnitude[MIN] > spin->magnitude || spin->magnitude > limit->magnitude[MAX])) {
 		return false;
 	}
 	for (short coordinate = 0; coordinate < COORDINATE_CONVENTIONS; coordinate++) {
-		if (limit->azimuth[coordinate][MIN] > spin->azimuth[coordinate]
-			|| spin->azimuth[coordinate] > limit->azimuth[coordinate][MAX]) {
+		if ((!isnan(limit->azimuth[coordinate][MIN]*limit->azimuth[coordinate][MAX]))
+			&& (limit->azimuth[coordinate][MIN] > spin->azimuth[coordinate]
+				|| spin->azimuth[coordinate] > limit->azimuth[coordinate][MAX])) {
 			return false;
 		}
-		if (limit->inclination[coordinate][MIN] > spin->inclination[coordinate]
-			|| spin->inclination[coordinate] > limit->inclination[coordinate][MAX]) {
+		if ((!isnan(limit->inclination[coordinate][MIN]*limit->inclination[coordinate][MAX]))
+			&& (limit->inclination[coordinate][MIN] > spin->inclination[coordinate]
+				|| spin->inclination[coordinate] > limit->inclination[coordinate][MAX])) {
 			return false;
 		}
-		if (limit->elevation[coordinate][MIN] > spin->elevation[coordinate]
-			|| spin->elevation[coordinate] > limit->elevation[coordinate][MAX]) {
+		if ((!isnan(limit->elevation[coordinate][MIN]*limit->elevation[coordinate][MAX]))
+			&& (limit->elevation[coordinate][MIN] > spin->elevation[coordinate]
+				|| spin->elevation[coordinate] > limit->elevation[coordinate][MAX])) {
 			return false;
 		}
 		for (short dimension = 0; dimension < DIMENSION; dimension++) {
-			if (limit->component[coordinate][dimension][MIN]
-				> spin->component[coordinate][dimension]
-				|| spin->component[coordinate][dimension]
-					> limit->component[coordinate][dimension][MAX]) {
+			if ((!
+				isnan(limit->component[coordinate][dimension][MIN]*limit->component[coordinate][dimension][MAX]))
+				&& (limit->component[coordinate][dimension][MIN]
+					> spin->component[coordinate][dimension]
+					|| spin->component[coordinate][dimension]
+						> limit->component[coordinate][dimension][MAX])) {
 				return false;
 			}
 		}
-	}SAVE_FUNCTION_FOR_TESTING();
+	};
+	SAVE_FUNCTION_FOR_TESTING();
 	return true;
 }
 
