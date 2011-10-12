@@ -239,7 +239,7 @@ size_t getSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *con
 	Limits **waveformLimit) {
 	config_t cfg;
 	memset(&cfg, 0, sizeof(cfg));
-	if (!config_read_file(&cfg, "parser.conf")) {
+	if (!config_read_file(&cfg, fileName)) {
 		fprintf(stderr, "Error in %s config file: %d - %s\n", fileName, config_error_line(&cfg),
 			config_error_text(&cfg));
 		config_destroy(&cfg);
