@@ -25,7 +25,7 @@
  * @param best
  * @param minimax
  */
-void calc_Matches(SignalStruct *in, long min_Index, long max_Index, double *typ, double *best,
+void calc_Matches(SignalStruct *in, size_t min_Index, size_t max_Index, double *typ, double *best,
 	double *minimax);
 
 /**	Calculates the index boundaries from the frequency boundaries.
