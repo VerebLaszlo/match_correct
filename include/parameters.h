@@ -81,14 +81,14 @@ typedef struct ProgramParameter_ {
 
 void printLimits(FILE *file, Limits *limit);
 
-void readExactParameters(FILE *file, SystemParameter *params);
-
-void readSystemParameters(FILE *file, SystemParameter *params);
-
-void readProgramParameters(FILE *file, ProgramParameter *params);
-
 void printProgramParameters(FILE *file, ProgramParameter *params);
 
 void printSystemParameters(FILE *file, SystemParameter *params, OutputFormat *format);
+
+typedef enum {
+	WORST, TYPICAL, BEST, NUMBER_OF_MATCHES,
+} MATCHES;
+
+void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double match[], OutputFormat *format);
 
 #endif /* PARAMETERS_H_ */

@@ -58,6 +58,13 @@ void run(ProgramParameter *program, SystemParameter *parameters) {
 	setSignalExistanceFunctions(program->calculateMatches);
 	SignalStruct signal;
 	generateWaveformPair(parameters, &signal, program->calculateMatches);
+	double match[NUMBER_OF_MATCHES] = { 0.0, 0.0, 0.0 };
+	if (program->calculateMatches) {
+		size_t min, max;
+		calculateIndexBoundariesFromFrequencies(parameters->initialFrequency,
+			parameters->endingFrequency, parameters->samplingFrequency, &min, &max);
+		calc_Matches(&signal, min, max, &match[TYPICAL], &match[BEST], &match[WORST]);
+	}
 	if (program->plot) {
 		for (size_t i = 0; i < signal.size; i++) {
 			signal.inTime[H1][i] = M_SQRT1_2
@@ -68,16 +75,9 @@ void run(ProgramParameter *program, SystemParameter *parameters) {
 		char fileName[1000];
 		sprintf(fileName, "%s/%s", program->outputDirectory, "proba.dat");
 		FILE *file = safelyOpenForWriting(fileName);
+		printParametersForSignalPlotting(file, parameters, match, defaultFormat);
 		printTwoSignals(file, &signal, defaultFormat);
 		fclose(file);
-	}
-	if (program->calculateMatches) {
-		double type, minimax, best;
-		size_t min, max;
-		calculateIndexBoundariesFromFrequencies(parameters->initialFrequency,
-			parameters->endingFrequency, parameters->samplingFrequency, &min, &max);
-		calc_Matches(&signal, min, max, &type, &best, &minimax);
-		printf("%lg %lg %lg\n", minimax, type, best);
 	}
 	destroySignal(&signal);
 }

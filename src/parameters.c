@@ -73,89 +73,6 @@ void printLimits(FILE *file, Limits *limit) {
 	fprintf(file, "name: %s\n", limit->name);
 }
 
-void readExactParameters(FILE *file, SystemParameter *params) {
-	memset(params, 0, sizeof(SystemParameter));
-	char stringFormat[] = "%25s ";
-	for (ushort i = 0; i < NUMBER_OF_SYSTEMS; i++) {
-		fscanf(file, stringFormat, params->name[i]);
-		fscanf(file, "%lg ", &params->system[i].mass.mass[0]);
-		fscanf(file, "%lg ", &params->system[i].mass.mass[1]);
-		fscanf(file, "%lg ", &params->system[i].spin[0].magnitude);
-		fscanf(file, "%lg ", &params->system[i].spin[0].inclination[FIXED]);
-		params->system[i].spin[0].inclination[FIXED] = radianFromDegree(
-			params->system[i].spin[0].inclination[FIXED]);
-		fscanf(file, "%lg ", &params->system[i].spin[0].azimuth[FIXED]);
-		params->system[i].spin[0].azimuth[FIXED] = radianFromDegree(
-			params->system[i].spin[0].azimuth[FIXED]);
-		fscanf(file, "%lg ", &params->system[i].spin[1].magnitude);
-		fscanf(file, "%lg ", &params->system[i].spin[1].inclination[FIXED]);
-		params->system[i].spin[1].inclination[FIXED] = radianFromDegree(
-			params->system[i].spin[1].inclination[FIXED]);
-		fscanf(file, "%lg ", &params->system[i].spin[1].azimuth[FIXED]);
-		params->system[i].spin[1].azimuth[FIXED] = radianFromDegree(
-			params->system[i].spin[1].azimuth[FIXED]);
-		fscanf(file, "%lg ", &params->system[i].distance);
-		fscanf(file, "%lg ", &params->system[i].inclination);
-		params->system[i].inclination = radianFromDegree(params->system[i].inclination);
-		fscanf(file, "%lg ", &params->samplingFrequency);
-		params->samplingTime = 1.0 / params->samplingFrequency;
-		fscanf(file, "%lg ", &params->initialFrequency);
-		fscanf(file, "%lg ", &params->endingFrequency);
-		fscanf(file, stringFormat, params->approximant[i]);
-		fscanf(file, stringFormat, params->phase[i]);
-		fscanf(file, stringFormat, params->spin[i]);
-		fscanf(file, stringFormat, &params->amplitude[i]);
-		params->detector[i].declination = params->detector[i].greenwichMeanSiderealTime = params
-			->detector[i].greenwichHourAngle = params->detector[i].polarization =
-			params->detector[i].rightAscention = 0.0;
-	}
-}
-
-void readSystemParameters(FILE *file, SystemParameter *params) {
-	memset(params, 0, sizeof(SystemParameter));
-	short length = 100;
-	char line[length];
-	fgets(line, length, file);
-	sscanf(line, "%lg\n", &params->initialFrequency);
-	fgets(line, length, file);
-	sscanf(line, "%lg\n", &params->endingFrequency);
-	fgets(line, length, file);
-	sscanf(line, "%lg\n", &params->samplingFrequency);
-	params->samplingTime = 1. / params->samplingFrequency;
-	fgets(line, length, file);
-	fgets(line, length, file);
-	fgets(line, length, file);
-	sscanf(line, "%25s %25s\n", params->approximant[0], params->approximant[1]);
-	fgets(line, length, file);
-	sscanf(line, "%25s %25s %*s\n", params->phase[0], params->phase[1]);
-	fgets(line, length, file);
-	sscanf(line, "%25s %25s %*s\n", params->spin[0], params->spin[1]);
-	fgets(line, length, file);
-	sscanf(line, "%25s %25s %*s\n", params->amplitude[0], params->amplitude[1]);
-	fgets(line, length, file);
-	//read_Binary_Parameter_Limits(file, params->system);
-}
-
-void readProgramParameters(FILE *file, ProgramParameter *params) {
-	assert(file);
-	assert(params);
-	memset(params, 0, sizeof(ProgramParameter));
-	short length = 100;
-	char line[length];
-	fgets(line, length, file);
-	sscanf(line, "%ld\n", &params->numberOfRuns);
-	fgets(line, length, file);
-	sscanf(line, "%hd\n", &params->format.precision[TO_PLOT]);
-	fgets(line, length, file);
-	sscanf(line, "%hd\n", &params->format.width[TO_PLOT]);
-	fgets(line, length, file);
-	sscanf(line, "%hd\n", &params->format.precision[TO_BACKUP]);
-	fgets(line, length, file);
-	sscanf(line, "%hd\n", &params->format.width[TO_BACKUP]);
-	fgets(line, length, file);
-	sscanf(line, "%4096s\n", params->outputDirectory);
-}
-
 void printProgramParameters(FILE *file, ProgramParameter *params) {
 	fprintf(file, "%10s %10ld\n", "numOfRuns", params->numberOfRuns);
 	fprintf(file, "%10s %10hd\n", "prec", params->format.precision[TO_PLOT]);
@@ -178,4 +95,36 @@ void printSystemParameters(FILE *file, SystemParameter *params, OutputFormat *fo
 		fprintf(file, "%10s %10s\n", "amp", params->amplitude[0]);
 		printBinarySystemParameters(file, &params->system[i], format);
 	}
+}
+
+void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double match[], OutputFormat *format) {
+	ushort number = 4;
+	ushort length = (ushort) (number * format->widthWithSeparator);
+	char formatString[length];
+	setFormatEnd(formatString, number, format);
+	for (ushort i = ZERO; i < NUMBER_OF_SYSTEMS; i++) {
+		fprintf(file, "#system_%d - m_0, m_1, totalMass, eta:     ", i);
+		fprintf(file, formatString, param->system[i].mass.mass[0], param->system[i].mass.mass[1],
+			param->system[i].mass.totalMass, param->system[i].mass.eta);
+	}
+	number = 6;
+	length = (ushort) (number * format->widthWithSeparator);
+	setFormatEnd(formatString, number, format);
+	for (ushort i = ZERO; i < NUMBER_OF_SYSTEMS; i++) {
+		fprintf(file, "#system_%d - c_0, k_0, p_0, c_1, k_1, p_1: ", i);
+		fprintf(file, formatString, param->system[i].spin[0].magnitude,
+			param->system[i].spin[0].inclination, param->system[i].spin[0].azimuth,
+			param->system[i].spin[1].magnitude, param->system[i].spin[1].inclination,
+			param->system[i].spin[1].azimuth);
+	}
+	for (ushort i = ZERO; i < NUMBER_OF_SYSTEMS; i++) {
+		fprintf(file, "#system_%d -    approx, phase, spin, ampl: ", i);
+		fprintf(file, "%s %s %s %s\n", param->approximant[i], param->phase[i], param->spin[i],
+			param->amplitude[i]);
+	}
+	number = 3;
+	length = (ushort) (number * format->widthWithSeparator);
+	setFormatEnd(formatString, number, format);
+	fprintf(file, "#matches -             minimax, typical, best: ");
+	fprintf(file, formatString, match[WORST], match[TYPICAL], match[BEST]);
 }
