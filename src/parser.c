@@ -189,7 +189,11 @@ static void getWaveformParameters(config_setting_t *waveform, Limits *defaults, 
 	getGenerationParameters(waveform, defaults, limit);
 	cstring name;
 	config_setting_lookup_string(waveform, optionName[NAME], &name);
-	strcpy(limit->name, name);
+	if (name) {
+		strcpy(limit->name, name);
+	} else {
+		strcpy(limit->name, "");
+	}
 }
 
 static void getWavePairParameters(config_setting_t *pair, Limits *defaults, Limits limit[]) {
@@ -201,12 +205,19 @@ static void getWavePairParameters(config_setting_t *pair, Limits *defaults, Limi
 	}
 }
 
-static void getConstantParameters(ConstantParameters *constants, config_t *cfg) {
+static bool getConstantParameters(ConstantParameters *constants, config_t *cfg) {
+	bool succes = false;
 	config_setting_t *frequency = config_lookup(cfg, optionName[BOUNDARY_FREQUENCY]);
-	constants->initialFrequency = config_setting_get_float_elem(frequency, MIN);
-	constants->endingFrequency = config_setting_get_float_elem(frequency, MAX);
-	frequency = config_lookup(cfg, optionName[SAMPLING_FREQUENCY]);
-	constants->samplingFrequency = config_setting_get_float(frequency);
+	if (frequency) {
+		constants->initialFrequency = config_setting_get_float_elem(frequency, MIN);
+		constants->endingFrequency = config_setting_get_float_elem(frequency, MAX);
+		frequency = config_lookup(cfg, optionName[SAMPLING_FREQUENCY]);
+		if (frequency) {
+			constants->samplingFrequency = config_setting_get_float(frequency);
+			succes = true;
+		}
+	}
+	return succes;
 }
 
 size_t getWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants,
@@ -219,17 +230,22 @@ size_t getWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
-	getConstantParameters(constants, &cfg);
+	bool succes = getConstantParameters(constants, &cfg);
 	config_setting_t *defaultWave = config_lookup(&cfg, optionName[DEFAULT]);
-	Limits limit;
-	getWaveformParameters(defaultWave, NULL, &limit);
-	config_setting_t *current;
-	config_setting_t *pairs = config_lookup(&cfg, optionName[PAIRS]);
-	size_t numberOfPairs = (size_t) config_setting_length(pairs);
-	(*pairsLimit) = calloc(2 * numberOfPairs, sizeof(Limits));
-	for (size_t i = 0; i < numberOfPairs; i++) {
-		current = config_setting_get_elem(pairs, i);
-		getWavePairParameters(current, &limit, &(*pairsLimit)[2 * i]);
+	size_t numberOfPairs = 0;
+	if (defaultWave && succes) {
+		Limits limit;
+		getWaveformParameters(defaultWave, NULL, &limit);
+		config_setting_t *current;
+		config_setting_t *pairs = config_lookup(&cfg, optionName[PAIRS]);
+		if (pairs) {
+			numberOfPairs = (size_t) config_setting_length(pairs);
+			(*pairsLimit) = calloc(2 * numberOfPairs, sizeof(Limits));
+			for (size_t i = 0; i < numberOfPairs; i++) {
+				current = config_setting_get_elem(pairs, i);
+				getWavePairParameters(current, &limit, &(*pairsLimit)[2 * i]);
+			}
+		}
 	}
 	config_destroy(&cfg);
 	return numberOfPairs;
@@ -245,23 +261,30 @@ size_t getSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *con
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
-	getConstantParameters(constants, &cfg);
+	bool succes = getConstantParameters(constants, &cfg);
 	config_setting_t *defaultWave = config_lookup(&cfg, optionName[DEFAULT]);
 	Limits limit;
-	getWaveformParameters(defaultWave, NULL, &limit);
-	// signal + templates
-	config_setting_t *signal = config_lookup(&cfg, optionName[SIGNAL]);
-	config_setting_t *templates = config_lookup(&cfg, optionName[TEMPLATES]);
-	size_t numberOfTemplates = (size_t) config_setting_length(templates);
-	(*waveformLimit) = calloc(numberOfTemplates + 1, sizeof(Limits));
-	getWaveformParameters(signal, &limit, &(*waveformLimit)[0]);
-	config_setting_t *current;
-	for (size_t i = 0; i < numberOfTemplates; i++) {
-		current = config_setting_get_elem(templates, i);
-		getWaveformParameters(current, &limit, &(*waveformLimit)[i + 1]);
+	size_t numberOfTemplates = 0;
+	size_t size = 0;
+	if (defaultWave && succes) {
+		getWaveformParameters(defaultWave, NULL, &limit);
+		// signal + templates
+		config_setting_t *signal = config_lookup(&cfg, optionName[SIGNAL]);
+		config_setting_t *templates = config_lookup(&cfg, optionName[TEMPLATES]);
+		if (signal && templates) {
+			numberOfTemplates = (size_t) config_setting_length(templates);
+			size = numberOfTemplates + 1;
+			(*waveformLimit) = calloc(size, sizeof(Limits));
+			getWaveformParameters(signal, &limit, &(*waveformLimit)[0]);
+			config_setting_t *current;
+			for (size_t i = 0; i < numberOfTemplates; i++) {
+				current = config_setting_get_elem(templates, i);
+				getWaveformParameters(current, &limit, &(*waveformLimit)[i + 1]);
+			}
+		}
 	}
 	config_destroy(&cfg);
-	return numberOfTemplates + 1;
+	return size;
 }
 
 typedef enum {

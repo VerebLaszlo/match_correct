@@ -33,7 +33,9 @@ void runForSignalAndTemplates(cstring fileName, ProgramParameter *program) {
 			run(program, &parameter);
 		}
 	}
-	free(template);
+	if (template) {
+		free(template);
+	}
 }
 
 void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
@@ -47,7 +49,9 @@ void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
 			run(program, &parameter);
 		}
 	}
-	free(pair);
+	if (pair) {
+		free(pair);
+	}
 }
 
 /**	Runs the program.
