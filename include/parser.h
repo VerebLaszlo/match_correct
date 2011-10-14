@@ -10,11 +10,15 @@
 
 #include "parameters.h"
 
-size_t getWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants,
-	Limits **pairsLimit);
+Limits *createWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants,
+	size_t *numberOfPairs);
 
-size_t getSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *constants,
-	Limits **waveformLimit);
+void destroyWaveformPairLimits(Limits *limits);
+
+Limits *createSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *constants,
+	size_t *size);
+
+void destroySignalAndTemplatesLimits(Limits *limits);
 
 void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters, Options *option);
 

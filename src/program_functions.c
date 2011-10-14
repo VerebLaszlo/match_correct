@@ -21,10 +21,10 @@ void runProgram(cstring programFileName, cstring parameterFileName, Options *opt
 
 void runForSignalAndTemplates(cstring fileName, ProgramParameter *program) {
 	ConstantParameters constants;
-	Limits *template;
 	SystemParameter parameter;
-	size_t numberOfTemplatesWithSignal = getSignalAndTemplatesLimitsFrom(fileName, &constants,
-		&template);
+	size_t numberOfTemplatesWithSignal;
+	Limits *template = createSignalAndTemplatesLimitsFrom(fileName, &constants,
+		&numberOfTemplatesWithSignal);
 	if (numberOfTemplatesWithSignal) {
 		getSysemParametersFromLimit(template, &constants, &parameter, 0);
 		for (ushort currentTemplate = 1; currentTemplate < numberOfTemplatesWithSignal;
@@ -33,15 +33,13 @@ void runForSignalAndTemplates(cstring fileName, ProgramParameter *program) {
 			run(program, &parameter);
 		}
 	}
-	if (template) {
-		free(template);
-	}
+	destroySignalAndTemplatesLimits(template);
 }
 
 void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
 	ConstantParameters constants;
-	Limits *pair;
-	size_t numberOfPairs = getWaveformPairLimitsFrom(fileName, &constants, &pair);
+	size_t numberOfPairs;
+	Limits *pair = createWaveformPairLimitsFrom(fileName, &constants, &numberOfPairs);
 	if (numberOfPairs) {
 		for (ushort currentPair = 0; currentPair < numberOfPairs; currentPair++) {
 			SystemParameter parameter;
@@ -49,9 +47,7 @@ void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
 			run(program, &parameter);
 		}
 	}
-	if (pair) {
-		free(pair);
-	}
+	destroyWaveformPairLimits(pair);
 }
 
 /**	Runs the program.

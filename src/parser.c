@@ -187,7 +187,7 @@ static void getGenerationParameters(config_setting_t *waveform, Limits *defaults
 static void getWaveformParameters(config_setting_t *waveform, Limits *defaults, Limits *limit) {
 	getSourceParameters(waveform, &defaults->binary, &limit->binary);
 	getGenerationParameters(waveform, defaults, limit);
-	cstring name;
+	cstring name = NULL;
 	config_setting_lookup_string(waveform, optionName[NAME], &name);
 	if (name) {
 		strcpy(limit->name, name);
@@ -220,8 +220,8 @@ static bool getConstantParameters(ConstantParameters *constants, config_t *cfg) 
 	return succes;
 }
 
-size_t getWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants,
-	Limits **pairsLimit) {
+Limits *createWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants,
+	size_t *numberOfPairs) {
 	config_t cfg;
 	memset(&cfg, 0, sizeof(cfg));
 	if (!config_read_file(&cfg, fileName)) {
@@ -232,27 +232,35 @@ size_t getWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants
 	}
 	bool succes = getConstantParameters(constants, &cfg);
 	config_setting_t *defaultWave = config_lookup(&cfg, optionName[DEFAULT]);
-	size_t numberOfPairs = 0;
+	Limits *pairLimits = NULL;
+	*numberOfPairs = 0;
 	if (defaultWave && succes) {
 		Limits limit;
 		getWaveformParameters(defaultWave, NULL, &limit);
 		config_setting_t *current;
 		config_setting_t *pairs = config_lookup(&cfg, optionName[PAIRS]);
 		if (pairs) {
-			numberOfPairs = (size_t) config_setting_length(pairs);
-			(*pairsLimit) = calloc(2 * numberOfPairs, sizeof(Limits));
-			for (size_t i = 0; i < numberOfPairs; i++) {
+			*numberOfPairs = (size_t) config_setting_length(pairs);
+			pairLimits = calloc(2 * *numberOfPairs, sizeof(Limits));
+			printf("%d\n", *numberOfPairs);
+			for (size_t i = 0; i < *numberOfPairs; i++) {
 				current = config_setting_get_elem(pairs, i);
-				getWavePairParameters(current, &limit, &(*pairsLimit)[2 * i]);
+				getWavePairParameters(current, &limit, &pairLimits[2 * i]);
 			}
 		}
 	}
 	config_destroy(&cfg);
-	return numberOfPairs;
+	return pairLimits;
 }
 
-size_t getSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *constants,
-	Limits **waveformLimit) {
+void destroyWaveformPairLimits(Limits *limits) {
+	if (limits) {
+		free(limits);
+	}
+}
+
+Limits *createSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *constants,
+	size_t *size) {
 	config_t cfg;
 	memset(&cfg, 0, sizeof(cfg));
 	if (!config_read_file(&cfg, fileName)) {
@@ -265,7 +273,8 @@ size_t getSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *con
 	config_setting_t *defaultWave = config_lookup(&cfg, optionName[DEFAULT]);
 	Limits limit;
 	size_t numberOfTemplates = 0;
-	size_t size = 0;
+	*size = 0;
+	Limits *waveformLimit = NULL;
 	if (defaultWave && succes) {
 		getWaveformParameters(defaultWave, NULL, &limit);
 		// signal + templates
@@ -273,20 +282,25 @@ size_t getSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *con
 		config_setting_t *templates = config_lookup(&cfg, optionName[TEMPLATES]);
 		if (signal && templates) {
 			numberOfTemplates = (size_t) config_setting_length(templates);
-			size = numberOfTemplates + 1;
-			(*waveformLimit) = calloc(size, sizeof(Limits));
-			getWaveformParameters(signal, &limit, &(*waveformLimit)[0]);
+			*size = numberOfTemplates + 1;
+			waveformLimit = calloc(*size, sizeof(Limits));
+			getWaveformParameters(signal, &limit, &waveformLimit[0]);
 			config_setting_t *current;
 			for (size_t i = 0; i < numberOfTemplates; i++) {
 				current = config_setting_get_elem(templates, i);
-				getWaveformParameters(current, &limit, &(*waveformLimit)[i + 1]);
+				getWaveformParameters(current, &limit, &waveformLimit[i + 1]);
 			}
 		}
 	}
 	config_destroy(&cfg);
-	return size;
+	return waveformLimit;
 }
 
+void destroySignalAndTemplatesLimits(Limits *limits) {
+	if (limits) {
+		free(limits);
+	}
+}
 typedef enum {
 	OUTPUT_DIRECTORY,
 	NUMBER_OF_RUNS,
