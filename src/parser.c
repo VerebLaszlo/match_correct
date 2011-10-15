@@ -242,7 +242,6 @@ Limits *createWaveformPairLimitsFrom(cstring fileName, ConstantParameters *const
 		if (pairs) {
 			*numberOfPairs = (size_t) config_setting_length(pairs);
 			pairLimits = calloc(2 * *numberOfPairs, sizeof(Limits));
-			printf("%d\n", *numberOfPairs);
 			for (size_t i = 0; i < *numberOfPairs; i++) {
 				current = config_setting_get_elem(pairs, i);
 				getWavePairParameters(current, &limit, &pairLimits[2 * i]);
@@ -304,15 +303,32 @@ void destroySignalAndTemplatesLimits(Limits *limits) {
 typedef enum {
 	OUTPUT_DIRECTORY,
 	NUMBER_OF_RUNS,
-	FORMATS,
-	FORMAT_NAME,
+	SIGNAL_DATA_FORMAT,
+	SIGNAL_FORMAT,
+	DATA_FORMAT,
 	PRECISION,
 	WIDTH,
+	SEPARATOR,
+	LEFT_JUSTIFIED,
 	NUMBER_OF_PROGRAM_OPTIONS,
 } ProgramOptionCode;
 
-char const * programOptionName[] = { "outputDirectory", "numberOfRuns", "formats", "name",
-										"precision", "width", };
+char const * programOptionName[] = { "outputDirectory", "numberOfRuns", "signalDataFormat",
+										"signalFormat", "dataFormat", "precision", "width",
+										"separator", "leftJustified", };
+
+static void getFormat(OutputFormats code, config_setting_t *format) {
+	if (format) {
+		long precision, width;
+		cstring separator;
+		int leftJustified;
+		config_setting_lookup_int(format, programOptionName[PRECISION], &precision);
+		config_setting_lookup_int(format, programOptionName[WIDTH], &width);
+		config_setting_lookup_string(format, programOptionName[SEPARATOR], &separator);
+		config_setting_lookup_bool(format, programOptionName[LEFT_JUSTIFIED], &leftJustified);
+		setOutputFormat(&outputFormat[code], precision, width, separator[0], leftJustified);
+	}
+}
 
 void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters, Options *option) {
 	config_t cfg;
@@ -329,18 +345,10 @@ void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters, Op
 	cstring outputDirectoryName = config_setting_get_string(setting);
 	strcpy(parameters->outputDirectory, outputDirectoryName);
 	config_lookup_int(&cfg, programOptionName[NUMBER_OF_RUNS], &parameters->numberOfRuns);
-	setting = config_lookup(&cfg, programOptionName[FORMATS]);
-	ushort numberOfFormats = (ushort) config_setting_length(setting);
-	createFormats(numberOfFormats, &parameters->format);
-	for (ushort current = 0; current < numberOfFormats; current++) {
-		long value;
-		config_setting_t *format = config_setting_get_elem(setting, current);
-		config_setting_lookup_int(format, programOptionName[PRECISION], &value);
-		parameters->format.precision[current] = (ushort) value;
-		config_setting_lookup_int(format, programOptionName[WIDTH], &value);
-		parameters->format.width[current] = (ushort) value;
-		cstring formatName;
-		config_setting_lookup_string(format, programOptionName[FORMAT_NAME], &formatName);
-		strcpy(parameters->format.name[current], formatName);
-	}
+	config_setting_t *format = config_lookup(&cfg, programOptionName[SIGNAL_DATA_FORMAT]);
+	getFormat(SIGNAL_DATA, format);
+	format = config_lookup(&cfg, programOptionName[SIGNAL_FORMAT]);
+	getFormat(SIGNAL_TO_PLOT, format);
+	format = config_lookup(&cfg, programOptionName[DATA_FORMAT]);
+	getFormat(DATA, format);
 }

@@ -62,6 +62,10 @@ typedef enum OUTPUT_CONSTANTS {
 
 typedef char nameString[NAMES_LENGTH]; ///< shorthand for string containing names
 
+typedef enum {
+	SIGNAL_TO_PLOT, SIGNAL_DATA, DATA, OTHER, NUMBER_OF_OUTPUTFORMATS,
+} OutputFormats;
+
 /**	Contains values to format an output.
  */
 typedef struct tagOutputFormat {
@@ -72,11 +76,9 @@ typedef struct tagOutputFormat {
 	bool leftJustified; ///< it's true if the format is left justified, otherwise false
 	char oneNumber[FORMAT_LENGTH]; ///< format string form one number
 	char empty[FORMAT_LENGTH];
-	nameString name; ///< string representation of the format, e.g.: plot, data
-	ushort code; ///< numerical representation of the format
 } OutputFormat;
 
-extern OutputFormat *defaultFormat;
+extern OutputFormat outputFormat[NUMBER_OF_OUTPUTFORMATS];
 
 /**	Sets the format variables.
  * @param[out]	format			: format specific variables
@@ -84,11 +86,9 @@ extern OutputFormat *defaultFormat;
  * @param[in]	width			: user supplied width of the format, its has a minimal value
  * @param[in]	separator		: user defined separator character
  * @param[in]	leftJustified	: left (true) or right (false) justified text
- * @param[in]	name			: user defined name of the format
- * @param[in]	code			: user defined code of the format
  */
 void setOutputFormat(OutputFormat *format, const ushort precision, const ushort width,
-	const char separator, bool leftJustified, const nameString name, const ushort code);
+	const char separator, bool leftJustified);
 
 /**	Set the format for given number of floating pint data to display.
  * @param[out] formatString	: the generated format string
