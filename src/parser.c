@@ -95,19 +95,20 @@ static void getSpin(config_setting_t *spin, spinLimits *defaults, spinLimits *li
 	if (current) {
 		getLimits(current, limit->magnitude);
 	} else {
-		memcpy(limit->magnitude, defaults->magnitude, MINMAX * sizeof(double));
+		memcpy(limit->magnitude, defaults->magnitude, MINMAX * sizeof(defaults->magnitude));
 	}
+	ushort size = COORDINATE_CONVENTIONS * MINMAX;
 	current = config_setting_get_member(spin, optionName[INCLINATION]);
 	if (current) {
 		getLimits(current, limit->inclination[PRECESSING]);
 	} else {
-		memcpy(limit->inclination, defaults->inclination, MINMAX * sizeof(double));
+		memcpy(limit->inclination, defaults->inclination, size * sizeof(defaults->inclination));
 	}
 	current = config_setting_get_member(spin, optionName[AZIMUTH]);
 	if (current) {
 		getLimits(current, limit->azimuth[PRECESSING]);
 	} else {
-		memcpy(limit->azimuth, defaults->azimuth, MINMAX * sizeof(double));
+		memcpy(limit->azimuth, defaults->azimuth, size * sizeof(defaults->azimuth));
 	}
 	limit->mode = GEN_PRECESSING_ANGLES;
 }

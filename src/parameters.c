@@ -104,7 +104,7 @@ void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double
 	char formatString[length];
 	setFormatEnd(formatString, number, format);
 	for (ushort i = ZERO; i < NUMBER_OF_SYSTEMS; i++) {
-		fprintf(file, "#system_%d - m_0, m_1, totalMass, eta:     ", i);
+		fprintf(file, "#system_%d -     m_0, m_1, totalMass, eta: ", i);
 		fprintf(file, formatString, param->system[i].mass.mass[0], param->system[i].mass.mass[1],
 			param->system[i].mass.totalMass, param->system[i].mass.eta);
 	}
@@ -126,6 +126,6 @@ void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double
 	number = 3;
 	length = (ushort) (number * format->widthWithSeparator);
 	setFormatEnd(formatString, number, format);
-	fprintf(file, "#matches -             minimax, typical, best: ");
+	fprintf(file,     "#matches -         minimax, typical, best: ");
 	fprintf(file, formatString, match[WORST], match[TYPICAL], match[BEST]);
 }
