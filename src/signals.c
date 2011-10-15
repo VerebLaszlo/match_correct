@@ -95,10 +95,10 @@ void setSignalExistanceFunctions(bool calculateMatch) {
 	}
 }
 
-void printTwoSignals(FILE *file, SignalStruct *signal, OutputFormat *format) {
+void printTwoSignals(FILE *file, SignalStruct *signal) {
 	assert(file);
 	assert(signal);
-	assert(format);
+	OutputFormat *format = &outputFormat[SIGNAL_TO_PLOT];
 	ushort firstShorter = signal->length[0] < signal->length[1] ? 1 : 0;
 	ushort number = 3;
 	ushort length = (ushort) (number * format->widthWithSeparator);
@@ -126,10 +126,10 @@ void printTwoSignals(FILE *file, SignalStruct *signal, OutputFormat *format) {
 	}
 }
 
-void printTwoSignalsAndDifference(FILE *file, SignalStruct *signal, OutputFormat *format) {
+void printTwoSignalsAndDifference(FILE *file, SignalStruct *signal) {
 	assert(file);
 	assert(signal);
-	assert(format);
+	OutputFormat *format = &outputFormat[SIGNAL_TO_PLOT];
 	ushort firstShorter = signal->length[0] < signal->length[1] ? 1 : 0;
 	ushort number = 4;
 	ushort length = (ushort) (number * format->widthWithSeparator);
@@ -159,10 +159,10 @@ void printTwoSignalsAndDifference(FILE *file, SignalStruct *signal, OutputFormat
 	}
 }
 
-void printTwoSignalsWithHPHC(FILE* file, SignalStruct *signal, OutputFormat *format) {
+void printTwoSignalsWithHPHC(FILE* file, SignalStruct *signal) {
 	assert(file);
 	assert(signal);
-	assert(format);
+	OutputFormat *format = &outputFormat[SIGNAL_TO_PLOT];
 	short firstShorter = signal->length[0] < signal->length[1] ? 1 : 0;
 	ushort number = 7;
 	ushort length = (ushort) (number * format->widthWithSeparator);

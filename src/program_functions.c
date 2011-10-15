@@ -75,8 +75,8 @@ void run(ProgramParameter *program, SystemParameter *parameters) {
 		char fileName[1000];
 		sprintf(fileName, "%s/%s", program->outputDirectory, "proba.dat");
 		FILE *file = safelyOpenForWriting(fileName);
-		printParametersForSignalPlotting(file, parameters, match, defaultFormat);
-		printTwoSignals(file, &signal, defaultFormat);
+		printParametersForSignalPlotting(file, parameters, match);
+		printTwoSignals(file, &signal);
 		fclose(file);
 	}
 	destroySignal(&signal);

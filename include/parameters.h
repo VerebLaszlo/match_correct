@@ -20,7 +20,7 @@ typedef struct {
 } Options;
 
 typedef enum ParameterConstants_ {
-	TO_PLOT, TO_BACKUP, NUMBER_OF_FORMATS, NUMBER_OF_SYSTEMS = 2, LENGTH_OF_STRING = 100,
+	NUMBER_OF_SYSTEMS = 2, LENGTH_OF_STRING = 100,
 } ParameterConstants;
 
 typedef struct {
@@ -89,6 +89,6 @@ typedef enum {
 	WORST, TYPICAL, BEST, NUMBER_OF_MATCHES,
 } MATCHES;
 
-void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double match[], OutputFormat *format);
+void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double match[]);
 
 #endif /* PARAMETERS_H_ */

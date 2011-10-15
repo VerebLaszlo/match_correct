@@ -66,21 +66,21 @@ void setSignalExistanceFunctions(bool calculateMatch);
  * @param[in] signal : the printable signal
  * @param[in] format :
  */
-void printTwoSignals(FILE*file, SignalStruct *signal, OutputFormat *format);
+void printTwoSignals(FILE*file, SignalStruct *signal);
 
 /**	Prints two signals with difference.
  * @param[in] file	 :
  * @param[in] signal :
  * @param[in] format :
  */
-void printTwoSignalsAndDifference(FILE *file, SignalStruct *signal, OutputFormat *format);
+void printTwoSignalsAndDifference(FILE *file, SignalStruct *signal);
 
 /** Prints the two signal with their \f$+,\times\f$ polarizations.
  * @param[in] file	 :
  * @param[in] signal :
  * @param[in] format :
  */
-void printTwoSignalsWithHPHC(FILE* file, SignalStruct *signal, OutputFormat *format);
+void printTwoSignalsWithHPHC(FILE* file, SignalStruct *signal);
 
 #include <assert.h>
 #include <string.h>

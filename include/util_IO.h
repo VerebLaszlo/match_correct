@@ -62,6 +62,10 @@ typedef enum OUTPUT_CONSTANTS {
 
 typedef char nameString[NAMES_LENGTH]; ///< shorthand for string containing names
 
+typedef enum {
+	SIGNAL_TO_PLOT, SIGNAL_DATA, DATA, OTHER, NUMBER_OF_OUTPUTFORMATS,
+} OutputFormats;
+
 /**	Contains values to format an output.
  */
 typedef struct tagOutputFormat {
@@ -75,6 +79,8 @@ typedef struct tagOutputFormat {
 	nameString name; ///< string representation of the format, e.g.: plot, data
 	ushort code; ///< numerical representation of the format
 } OutputFormat;
+
+extern OutputFormat outputFormat[NUMBER_OF_OUTPUTFORMATS];
 
 extern OutputFormat *defaultFormat;
 

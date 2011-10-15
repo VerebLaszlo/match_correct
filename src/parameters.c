@@ -75,10 +75,10 @@ void printLimits(FILE *file, Limits *limit) {
 
 void printProgramParameters(FILE *file, ProgramParameter *params) {
 	fprintf(file, "%10s %10ld\n", "numOfRuns", params->numberOfRuns);
-	fprintf(file, "%10s %10hd\n", "prec", params->format.precision[TO_PLOT]);
-	fprintf(file, "%10s %10d\n", "width", params->format.width[TO_PLOT]);
-	fprintf(file, "%10s %10hd\n", "precPlot", params->format.precision[TO_BACKUP]);
-	fprintf(file, "%10s %10d\n", "widthPlot", params->format.width[TO_BACKUP]);
+	fprintf(file, "%10s %10hd\n", "prec", params->format.precision[SIGNAL_DATA]);
+	fprintf(file, "%10s %10d\n", "width", params->format.width[SIGNAL_DATA]);
+	fprintf(file, "%10s %10hd\n", "precPlot", params->format.precision[SIGNAL_DATA]);
+	fprintf(file, "%10s %10d\n", "widthPlot", params->format.width[SIGNAL_DATA]);
 	fprintf(file, "%10s %10s\n", "folder", params->outputDirectory);
 }
 
@@ -97,7 +97,8 @@ void printSystemParameters(FILE *file, SystemParameter *params, OutputFormat *fo
 	}
 }
 
-void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double match[], OutputFormat *format) {
+void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double match[]) {
+	OutputFormat *format = &outputFormat[SIGNAL_DATA];
 	ushort number = 4;
 	ushort length = (ushort) (number * format->widthWithSeparator);
 	char formatString[length];

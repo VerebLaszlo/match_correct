@@ -70,6 +70,8 @@ FILE *safelyOpenForAppend(const char *fileName) {
 OutputFormat _defaultFormat = { 5, 6, 11, '%', true, "%- 11.5lg", "%11s", "default", 0 };
 OutputFormat *defaultFormat = &_defaultFormat;
 
+OutputFormat outputFormat[NUMBER_OF_OUTPUTFORMATS];
+
 /**	Sets the format string for one number.
  * @param[in,out]	format	: the format
  */
@@ -82,7 +84,7 @@ static void setFormatForOneNumber(OutputFormat *format) {
 		sprintf(format->oneNumber, "%%- %d.%dlg", format->width, format->precision);
 	} else {
 		sprintf(format->oneNumber, "%% %d.%dlg", format->width, format->precision);
-	} //
+	};
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
@@ -125,7 +127,7 @@ static void setFormats(char formatString[], const ushort number, OutputFormat *f
 			sprintf(temp, "%s %c %s", formatString, format->separator, format->oneNumber);
 			strcpy(formatString, temp);
 		}
-	} //
+	};
 	SAVE_FUNCTION_FOR_TESTING();
 }
 

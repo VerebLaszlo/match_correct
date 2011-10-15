@@ -170,7 +170,7 @@ bool isOK_randomBetween(void) {
 	ushort numberInf = 4;
 	double oneInf[] = { INFINITY, -INFINITY, INFINITY, -INFINITY };
 	double twoInf[] = { INFINITY, -INFINITY, -INFINITY, INFINITY };
-	for (ushort i = ZERO; i < numberInf; i = i++) {
+	for (ushort i = ZERO; i < numberInf; i++) {
 		SAVE_FUNCTION_CALLER();
 		value = randomBetween(oneInf[i], twoInf[i]);
 		if (!isnan(value)) {
@@ -181,7 +181,7 @@ bool isOK_randomBetween(void) {
 	ushort numberNan = 4;
 	double oneNan[] = { NAN, -NAN, NAN, -NAN };
 	double twoNan[] = { NAN, -NAN, -NAN, NAN };
-	for (ushort i = ZERO; i < numberNan; i = i++) {
+	for (ushort i = ZERO; i < numberNan; i++) {
 		SAVE_FUNCTION_CALLER();
 		value = randomBetween(oneNan[i], twoNan[i]);
 		if (!isnan(value)) {
@@ -192,7 +192,7 @@ bool isOK_randomBetween(void) {
 	ushort numberNanInf = 8;
 	double oneNanInf[] = { NAN, INFINITY, -NAN, -INFINITY, INFINITY, -NAN, -INFINITY, NAN };
 	double twoNanInf[] = { INFINITY, NAN, -INFINITY, -NAN, -NAN, INFINITY, NAN, -INFINITY };
-	for (ushort i = ZERO; i < numberNanInf; i = i++) {
+	for (ushort i = ZERO; i < numberNanInf; i++) {
 		SAVE_FUNCTION_CALLER();
 		value = randomBetween(oneNanInf[i], twoNanInf[i]);
 		if (!isnan(value)) {
