@@ -10,9 +10,11 @@
 #include <string.h>
 #include <math.h>
 #include "parser.h"
-#include "util_math.h"
 
 typedef enum {
+	UNITS,
+	ANGLE,
+	MASS,
 	BOUNDARY_FREQUENCY,
 	SAMPLING_FREQUENCY,
 	DEFAULT,
@@ -38,10 +40,41 @@ typedef enum {
 	NUMBER_OF_OPTIONS,
 } OptionCode;
 
-char const * optionName[] =
-	{ "boundaryFrequency", "samplingFrequency", "default", "binary", "mass1", "mass2", "spin1",
-		"spin2", "magnitude", "inclination", "azimuth", "distance", "detector", "generation",
-		"approximant", "phase", "spin", "amplitude", "name", "pairs", "signal", "templates", };
+char const * optionName[] = { "units", "angle", "mass", "boundaryFrequency", "samplingFrequency",
+								"default", "binary", "mass1", "mass2", "spin1", "spin2",
+								"magnitude", "inclination", "azimuth", "distance", "detector",
+								"generation", "approximant", "phase", "spin", "amplitude", "name",
+								"pairs", "signal", "templates", };
+
+typedef enum {
+	UNIT_ERROR, RAD, DEGREE = RAD << 1, TURN = DEGREE << 1, SOLAR = TURN << 1, KILOGRAM = SOLAR << 1,
+} Units;
+
+Units units;
+
+static void getUnitsCodeFromStrings(cstring angle, cstring mass) {
+	units = UNIT_ERROR;
+	if (!strcmp(angle, "rad")) {
+		units |= RAD;
+	} else if (!strcmp(angle, "degree")) {
+		units |= DEGREE;
+	} else if (!strcmp(angle, "turn")) {
+		units |= TURN;
+	}
+	if (!strcmp(mass, "solar")) {
+		units |= SOLAR;
+	} else if (!strcmp(angle, "kg")) {
+		units |= KILOGRAM;
+	}
+}
+
+static void convertAngleToRadian(double *angle) {
+	if (units & DEGREE) {
+		*angle = radianFromDegree(*angle);
+	} else if (units & TURN) {
+		*angle = radianFromTurn(*angle);
+	}
+}
 
 static ushort neededElementNumber(ushort number, config_setting_t *elements) {
 	ushort count = (ushort) config_setting_length(elements);
@@ -101,12 +134,16 @@ static void getSpin(config_setting_t *spin, spinLimits *defaults, spinLimits *li
 	current = config_setting_get_member(spin, optionName[INCLINATION]);
 	if (current) {
 		getLimits(current, limit->inclination[PRECESSING]);
+		convertAngleToRadian(&limit->inclination[PRECESSING][MIN]);
+		convertAngleToRadian(&limit->inclination[PRECESSING][MAX]);
 	} else {
 		memcpy(limit->inclination, defaults->inclination, size * sizeof(defaults->inclination));
 	}
 	current = config_setting_get_member(spin, optionName[AZIMUTH]);
 	if (current) {
 		getLimits(current, limit->azimuth[PRECESSING]);
+		convertAngleToRadian(&limit->azimuth[PRECESSING][MIN]);
+		convertAngleToRadian(&limit->azimuth[PRECESSING][MAX]);
 	} else {
 		memcpy(limit->azimuth, defaults->azimuth, size * sizeof(defaults->azimuth));
 	}
@@ -135,14 +172,17 @@ static void getSourceParameters(config_setting_t *waveform, binaryLimits *defaul
 		current = config_setting_get_member(binary, optionName[INCLINATION]);
 		if (current) {
 			getLimits(current, limit->inclination);
+			convertAngleToRadian(&limit->inclination[MIN]);
+			convertAngleToRadian(&limit->inclination[MAX]);
 		} else {
-			memcpy(defaults->inclination, limit->inclination, MINMAX * sizeof(double));
+			memcpy(limit->inclination, defaults->inclination,
+				sizeof(defaults->inclination));
 		}
 		current = config_setting_get_member(binary, optionName[DISTANCE]);
 		if (current) {
 			getLimits(current, limit->distance);
 		} else {
-			memcpy(defaults->distance, limit->distance, MINMAX * sizeof(double));
+			memcpy(limit->distance, defaults->distance, MINMAX * sizeof(limit->distance));
 		}
 	} else {
 		memcpy(limit, defaults, sizeof(binaryLimits));
@@ -208,14 +248,21 @@ static void getWavePairParameters(config_setting_t *pair, Limits *defaults, Limi
 
 static bool getConstantParameters(ConstantParameters *constants, config_t *cfg) {
 	bool succes = false;
-	config_setting_t *frequency = config_lookup(cfg, optionName[BOUNDARY_FREQUENCY]);
-	if (frequency) {
-		constants->initialFrequency = config_setting_get_float_elem(frequency, MIN);
-		constants->endingFrequency = config_setting_get_float_elem(frequency, MAX);
-		frequency = config_lookup(cfg, optionName[SAMPLING_FREQUENCY]);
+	config_setting_t *unit = config_lookup(cfg, optionName[UNITS]);
+	if (unit) {
+		cstring angleCode, massCode;
+		config_setting_lookup_string(unit, optionName[ANGLE], &angleCode);
+		config_setting_lookup_string(unit, optionName[MASS], &massCode);
+		getUnitsCodeFromStrings(angleCode, massCode);
+		config_setting_t *frequency = config_lookup(cfg, optionName[BOUNDARY_FREQUENCY]);
 		if (frequency) {
-			constants->samplingFrequency = config_setting_get_float(frequency);
-			succes = true;
+			constants->initialFrequency = config_setting_get_float_elem(frequency, MIN);
+			constants->endingFrequency = config_setting_get_float_elem(frequency, MAX);
+			frequency = config_lookup(cfg, optionName[SAMPLING_FREQUENCY]);
+			if (frequency) {
+				constants->samplingFrequency = config_setting_get_float(frequency);
+				succes = true;
+			}
 		}
 	}
 	return succes;

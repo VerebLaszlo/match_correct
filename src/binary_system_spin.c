@@ -15,6 +15,7 @@
 #include <string.h>
 #include <assert.h>
 #include "binary_system.h"
+#include "util_math.h"
 
 /** Returns the magnitude of the spins.
  * @param[in,out] spin	: spin components
@@ -263,7 +264,7 @@ void generateSpin(spinParameters *spin, spinLimits *limit, double inclination) {
 	case SPIN_GENERATIONS:
 	default:
 		break;
-	}    //
+	};
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
@@ -273,14 +274,21 @@ void printSpinParameters(FILE *file, spinParameters *spin, OutputFormat *format)
 	ushort formatLength = (ushort) (number * format->widthWithSeparator);
 	char formatString[formatLength];
 	for (ushort i = FIXED; i < COORDINATE_CONVENTIONS; i++) {
+		if (i == PRECESSING) {
+			fprintf(file, "precessing: ");
+		} else {
+			fprintf(file, "fixed:      ");
+		}
 		setFormat(formatString, number, format);
 		fprintf(file, formatString, spin->component[i][X], spin->component[i][Y],
 			spin->component[i][Z]);
 		fprintf(file, formatString, spin->unity[i][X], spin->unity[i][Y], spin->unity[i][Z]);
-		fprintf(file, formatString, spin->azimuth[i], spin->inclination[i], spin->elevation[i]);
+		fprintf(file, formatString, degreeFromRadian(spin->azimuth[i]),
+			degreeFromRadian(spin->inclination[i]), degreeFromRadian(spin->elevation[i]));
 		setFormatEnd(formatString, 1, format);
 		fprintf(file, formatString, spin->magnitude);
-	}SAVE_FUNCTION_FOR_TESTING();
+	};
+	SAVE_FUNCTION_FOR_TESTING();
 }
 
 #ifdef TEST

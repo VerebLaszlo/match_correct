@@ -11,21 +11,22 @@
 #include "parameters.h"
 
 void getSysemParametersFromLimit(Limits *limit, ConstantParameters *constants,
-	SystemParameter *parameter, ushort blackhole) {
-	generateBinarySystemParameters(&parameter->system[blackhole], &limit->binary);
-	strcpy(parameter->approximant[blackhole], limit->approximant);
-	strcpy(parameter->phase[blackhole], limit->phase);
-	strcpy(parameter->spin[blackhole], limit->spin);
-	strcpy(parameter->amplitude[blackhole], limit->amplitude);
+	SystemParameter *parameter, ushort systems) {
+	generateBinarySystemParameters(&parameter->system[systems], &limit->binary);
+	strcpy(parameter->approximant[systems], limit->approximant);
+	strcpy(parameter->phase[systems], limit->phase);
+	strcpy(parameter->spin[systems], limit->spin);
+	strcpy(parameter->amplitude[systems], limit->amplitude);
 	parameter->initialFrequency = constants->initialFrequency;
-	parameter->samplingFrequency = constants->samplingFrequency;
 	parameter->endingFrequency = constants->endingFrequency;
+	parameter->samplingFrequency = constants->samplingFrequency;
+	parameter->samplingTime = 1.0 / parameter->samplingFrequency;
 }
 
 void getSysemParametersFromLimits(Limits limit[], ConstantParameters *constants,
 	SystemParameter *parameter) {
-	for (ushort blackhole = 0; blackhole < NUMBER_OF_BLACKHOLES; blackhole++) {
-		getSysemParametersFromLimit(&limit[blackhole], constants, parameter, blackhole);
+	for (ushort systems = 0; systems < NUMBER_OF_SYSTEMS; systems++) {
+		getSysemParametersFromLimit(&limit[systems], constants, parameter, systems);
 	}
 }
 
@@ -50,17 +51,18 @@ static void printMassLimits(FILE *file, massLimits* mass) {
 
 static void printSpinLimits(FILE *file, spinLimits *spin) {
 	fprintf(file, "magnitude: %lg %lg\n", spin->magnitude[MIN], spin->magnitude[MAX]);
-	fprintf(file, "inclination: %lg %lg\n", spin->inclination[PRECESSING][MIN],
-		spin->inclination[PRECESSING][MAX]);
-	fprintf(file, "azimuth: %lg %lg\n", spin->azimuth[PRECESSING][MIN],
-		spin->azimuth[PRECESSING][MAX]);
+	fprintf(file, "inclination: %lg %lg\n", degreeFromRadian(spin->inclination[PRECESSING][MIN]),
+		degreeFromRadian(spin->inclination[PRECESSING][MAX]));
+	fprintf(file, "azimuth: %lg %lg\n", degreeFromRadian(spin->azimuth[PRECESSING][MIN]),
+		degreeFromRadian(spin->azimuth[PRECESSING][MAX]));
 }
 
 static void printBinaryLimits(FILE *file, binaryLimits *binary) {
 	printMassLimits(file, &binary->mass);
 	printSpinLimits(file, &binary->spin[0]);
 	printSpinLimits(file, &binary->spin[1]);
-	fprintf(file, "incl: %lg %lg\n", binary->inclination[MIN], binary->inclination[MAX]);
+	fprintf(file, "incl: %lg %lg\n", degreeFromRadian(binary->inclination[MIN]),
+		degreeFromRadian(binary->inclination[MAX]));
 	fprintf(file, "dist: %lg %lg\n", binary->distance[MIN], binary->distance[MAX]);
 }
 
@@ -114,9 +116,11 @@ void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double
 	for (ushort i = ZERO; i < NUMBER_OF_SYSTEMS; i++) {
 		fprintf(file, "#system_%d - c_0, k_0, p_0, c_1, k_1, p_1: ", i);
 		fprintf(file, formatString, param->system[i].spin[0].magnitude,
-			param->system[i].spin[0].inclination, param->system[i].spin[0].azimuth,
-			param->system[i].spin[1].magnitude, param->system[i].spin[1].inclination,
-			param->system[i].spin[1].azimuth);
+			degreeFromRadian(param->system[i].spin[0].inclination[PRECESSING]),
+			degreeFromRadian(param->system[i].spin[0].azimuth[PRECESSING]),
+			param->system[i].spin[1].magnitude,
+			degreeFromRadian(param->system[i].spin[1].inclination[PRECESSING]),
+			degreeFromRadian(param->system[i].spin[1].azimuth[PRECESSING]));
 	}
 	for (ushort i = ZERO; i < NUMBER_OF_SYSTEMS; i++) {
 		fprintf(file, "#system_%d -    approx, phase, spin, ampl: ", i);
@@ -126,6 +130,6 @@ void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double
 	number = 3;
 	length = (ushort) (number * format->widthWithSeparator);
 	setFormatEnd(formatString, number, format);
-	fprintf(file,     "#matches -         minimax, typical, best: ");
+	fprintf(file, "#matches -         minimax, typical, best: ");
 	fprintf(file, formatString, match[WORST], match[TYPICAL], match[BEST]);
 }

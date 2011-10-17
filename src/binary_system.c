@@ -42,7 +42,7 @@ void printBinarySystemParameters(FILE *file, BinarySystem *system, OutputFormat 
 	ushort length = (ushort) (number * format->widthWithSeparator);
 	char formatString[length];
 	setFormat(formatString, number, format);
-	fprintf(file, formatString, system->flatness[0], system->flatness[1], system->inclination);
+	fprintf(file, formatString, system->flatness[0], system->flatness[1], degreeFromRadian(system->inclination));
 	setFormatEnd(formatString, number, format);
 	fprintf(file, formatString, system->distance, system->coalescencePhase,
 		system->coalescenceTime);
