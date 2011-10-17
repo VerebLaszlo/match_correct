@@ -29,8 +29,11 @@ void runForSignalAndTemplates(cstring fileName, ProgramParameter *program) {
 		getSysemParametersFromLimit(template, &constants, &parameter, 0);
 		for (ushort currentTemplate = 1; currentTemplate < numberOfTemplatesWithSignal;
 			currentTemplate++) {
-			getSysemParametersFromLimit(template, &constants, &parameter, 1);
-			run(program, &parameter);
+			for (size_t templateMultiply = 0; templateMultiply < template[currentTemplate].number;
+				templateMultiply++) {
+				getSysemParametersFromLimit(template, &constants, &parameter, 1);
+				run(program, &parameter, templateMultiply);
+			}
 		}
 	}
 	destroySignalAndTemplatesLimits(template);
@@ -41,10 +44,12 @@ void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
 	size_t numberOfPairs;
 	Limits *pair = createWaveformPairLimitsFrom(fileName, &constants, &numberOfPairs);
 	if (numberOfPairs) {
-		for (ushort currentPair = 0; currentPair < numberOfPairs; currentPair++) {
-			SystemParameter parameter;
-			getSysemParametersFromLimits(&pair[currentPair], &constants, &parameter);
-			run(program, &parameter);
+		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
+			for (size_t pairMultiply = 0; pairMultiply < pair[currentPair].number; pairMultiply++) {
+				SystemParameter parameter;
+				getSysemParametersFromLimits(&pair[currentPair], &constants, &parameter);
+				run(program, &parameter, pairMultiply);
+			}
 		}
 	}
 	destroyWaveformPairLimits(pair);
@@ -54,7 +59,7 @@ void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
  * @param[in] program	   :
  * @param[in] parameters   :
  */
-void run(ProgramParameter *program, SystemParameter *parameters) {
+void run(ProgramParameter *program, SystemParameter *parameters, size_t number) {
 	setSignalExistanceFunctions(program->calculateMatches);
 	SignalStruct signal;
 	generateWaveformPair(parameters, &signal, program->calculateMatches);
@@ -73,7 +78,7 @@ void run(ProgramParameter *program, SystemParameter *parameters) {
 				* (signal.componentsInTime[H2P][i] + signal.componentsInTime[H2C][i]);
 		}
 		char fileName[1000];
-		sprintf(fileName, "%s/%s", program->outputDirectory, "proba.dat");
+		sprintf(fileName, "%s/%s.%02d.dat", program->outputDirectory, "proba", number);
 		FILE *file = safelyOpenForWriting(fileName);
 		printParametersForSignalPlotting(file, parameters, match);
 		printTwoSignals(file, &signal);

@@ -16,7 +16,7 @@ void runForSignalAndTemplates(cstring fileName, ProgramParameter *program);
 
 void runForWaveformPairs(cstring fileName, ProgramParameter *program);
 
-void run(ProgramParameter *program, SystemParameter *parameters);
+void run(ProgramParameter *program, SystemParameter *parameters, size_t number);
 
 bool testingFunctions(void);
 

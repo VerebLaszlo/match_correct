@@ -30,6 +30,7 @@ typedef struct {
 } ConstantParameters;
 
 typedef struct {
+	size_t number;
 	binaryLimits binary;
 	char approximant[LENGTH_OF_STRING];
 	char phase[LENGTH_OF_STRING];

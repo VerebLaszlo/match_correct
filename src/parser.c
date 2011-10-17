@@ -175,8 +175,7 @@ static void getSourceParameters(config_setting_t *waveform, binaryLimits *defaul
 			convertAngleToRadian(&limit->inclination[MIN]);
 			convertAngleToRadian(&limit->inclination[MAX]);
 		} else {
-			memcpy(limit->inclination, defaults->inclination,
-				sizeof(defaults->inclination));
+			memcpy(limit->inclination, defaults->inclination, sizeof(defaults->inclination));
 		}
 		current = config_setting_get_member(binary, optionName[DISTANCE]);
 		if (current) {
@@ -239,11 +238,12 @@ static void getWaveformParameters(config_setting_t *waveform, Limits *defaults, 
 
 static void getWavePairParameters(config_setting_t *pair, Limits *defaults, Limits limit[]) {
 	config_setting_t *current;
-	ushort count = (ushort) neededElementNumber(2, pair);
-	for (ushort i = 0; i < count; i++) {
+	ushort count = (ushort) neededElementNumber(3, pair);
+	for (ushort i = 0; i < count - 1; i++) {
 		current = config_setting_get_elem(pair, i);
 		getWaveformParameters(current, defaults, &limit[i]);
 	}
+	limit[MIN].number = limit[MAX].number = (size_t) config_setting_get_int_elem(pair, count - 1);
 }
 
 static bool getConstantParameters(ConstantParameters *constants, config_t *cfg) {
