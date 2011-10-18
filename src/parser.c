@@ -46,6 +46,26 @@ char const * optionName[] = { "units", "angle", "mass", "boundaryFrequency", "sa
 								"generation", "approximant", "phase", "spin", "amplitude", "name",
 								"pairs", "signal", "templates", };
 
+static void getNameAndNumberOfRunsFrom(cstring code, string *name, size_t *numberOfRuns) {
+	stringPointer other = NULL;
+	cstring number = NULL;
+	strcpy(*name, "");
+	*numberOfRuns = 1;
+	if (code[0] == '*') {
+		number = &code[1];
+	} else if (strlen(code) > 3) {
+		string temp1;
+		stringPointer temp2;
+		strcpy(temp1, code);
+		temp2 = strtok(temp1, "*");
+		strcpy(*name, temp2);
+		number = strtok(NULL, "*");
+	}
+	if (number) {
+		*numberOfRuns = (size_t) strtol(number, &other, 10);
+	}
+}
+
 typedef enum {
 	UNIT_ERROR, RAD, DEGREE = RAD << 1, TURN = DEGREE << 1, SOLAR = TURN << 1, KILOGRAM = SOLAR << 1,
 } Units;
@@ -230,9 +250,18 @@ static void getWaveformParameters(config_setting_t *waveform, Limits *defaults, 
 	cstring name = NULL;
 	config_setting_lookup_string(waveform, optionName[NAME], &name);
 	if (name) {
-		strcpy(limit->name, name);
+		getNameAndNumberOfRunsFrom(name, &limit->name, &limit->numberOfRuns);
+		if (defaults) {
+			limit->numberOfRuns =
+				limit->numberOfRuns < defaults->numberOfRuns ? limit->numberOfRuns :
+					defaults->numberOfRuns;
+		}
+		if (strlen(limit->name) == 0) {
+			strcpy(limit->name, defaults->name);
+		}
 	} else {
-		strcpy(limit->name, "");
+		strcpy(limit->name, defaults->name);
+		limit->numberOfRuns = defaults->numberOfRuns;
 	}
 }
 
@@ -243,7 +272,21 @@ static void getWavePairParameters(config_setting_t *pair, Limits *defaults, Limi
 		current = config_setting_get_elem(pair, i);
 		getWaveformParameters(current, defaults, &limit[i]);
 	}
-	limit[MIN].number = limit[MAX].number = (size_t) config_setting_get_int_elem(pair, count - 1);
+	cstring code = config_setting_get_string_elem(pair, count - 1);
+	string name;
+	size_t numberOfRuns;
+	getNameAndNumberOfRunsFrom(code, &name, &numberOfRuns);
+	if (defaults) {
+		limit[MIN].numberOfRuns = limit[MAX].numberOfRuns =
+			numberOfRuns < defaults->numberOfRuns ? numberOfRuns : defaults->numberOfRuns;
+	}
+	if (strlen(name) != 0) {
+		strcpy(limit[MIN].name, name);
+		strcpy(limit[MAX].name, name);
+	} else {
+		strcpy(limit[MIN].name, defaults->name);
+		strcpy(limit[MAX].name, defaults->name);
+	}
 }
 
 static bool getConstantParameters(ConstantParameters *constants, config_t *cfg) {
@@ -324,7 +367,6 @@ Limits *createSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters 
 	Limits *waveformLimit = NULL;
 	if (defaultWave && succes) {
 		getWaveformParameters(defaultWave, NULL, &limit);
-		// signal + templates
 		config_setting_t *signal = config_lookup(&cfg, optionName[SIGNAL]);
 		config_setting_t *templates = config_lookup(&cfg, optionName[TEMPLATES]);
 		if (signal && templates) {
@@ -399,4 +441,5 @@ void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters, Op
 	getFormat(SIGNAL_TO_PLOT, format);
 	format = config_lookup(&cfg, programOptionName[DATA_FORMAT]);
 	getFormat(DATA, format);
+	config_destroy(&cfg);
 }

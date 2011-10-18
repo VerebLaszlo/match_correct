@@ -29,9 +29,9 @@ void runForSignalAndTemplates(cstring fileName, ProgramParameter *program) {
 		getSysemParametersFromLimit(template, &constants, &parameter, 0);
 		for (ushort currentTemplate = 1; currentTemplate < numberOfTemplatesWithSignal;
 			currentTemplate++) {
-			for (size_t templateMultiply = 0; templateMultiply < template[currentTemplate].number;
-				templateMultiply++) {
-				getSysemParametersFromLimit(template, &constants, &parameter, 1);
+			for (size_t templateMultiply = 0;
+				templateMultiply < template[currentTemplate].numberOfRuns; templateMultiply++) {
+				getSysemParametersFromLimit(&template[currentTemplate], &constants, &parameter, 1);
 				run(program, &parameter, templateMultiply);
 			}
 		}
@@ -45,9 +45,10 @@ void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
 	Limits *pair = createWaveformPairLimitsFrom(fileName, &constants, &numberOfPairs);
 	if (numberOfPairs) {
 		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
-			for (size_t pairMultiply = 0; pairMultiply < pair[currentPair].number; pairMultiply++) {
+			for (size_t pairMultiply = 0; pairMultiply < pair[2 * currentPair + 1].numberOfRuns;
+				pairMultiply++) {
 				SystemParameter parameter;
-				getSysemParametersFromLimits(&pair[currentPair], &constants, &parameter);
+				getSysemParametersFromLimits(&pair[2 * currentPair], &constants, &parameter);
 				run(program, &parameter, pairMultiply);
 			}
 		}
@@ -78,7 +79,7 @@ void run(ProgramParameter *program, SystemParameter *parameters, size_t number) 
 				* (signal.componentsInTime[H2P][i] + signal.componentsInTime[H2C][i]);
 		}
 		char fileName[1000];
-		sprintf(fileName, "%s/%s.%02d.dat", program->outputDirectory, "proba", number);
+		sprintf(fileName, "%s/%s.%02d.dat", program->outputDirectory, parameters->name[1], number);
 		FILE *file = safelyOpenForWriting(fileName);
 		printParametersForSignalPlotting(file, parameters, match);
 		printTwoSignals(file, &signal);

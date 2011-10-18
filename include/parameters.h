@@ -24,13 +24,14 @@ typedef enum ParameterConstants_ {
 } ParameterConstants;
 
 typedef struct {
+	size_t maxNumberOfRuns;
 	double initialFrequency;
 	double samplingFrequency;
 	double endingFrequency;
 } ConstantParameters;
 
 typedef struct {
-	size_t number;
+	size_t numberOfRuns;
 	binaryLimits binary;
 	char approximant[LENGTH_OF_STRING];
 	char phase[LENGTH_OF_STRING];
@@ -53,6 +54,7 @@ typedef struct SystemParameter_ {
 	char phase[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	char spin[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	char amplitude[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
+	size_t numberOfRuns;
 } SystemParameter;
 
 void getSysemParametersFromLimit(Limits *limit, ConstantParameters *constants,

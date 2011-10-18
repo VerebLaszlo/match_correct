@@ -17,6 +17,8 @@ void getSysemParametersFromLimit(Limits *limit, ConstantParameters *constants,
 	strcpy(parameter->phase[systems], limit->phase);
 	strcpy(parameter->spin[systems], limit->spin);
 	strcpy(parameter->amplitude[systems], limit->amplitude);
+	strcpy(parameter->name[systems], limit->name);
+	parameter->numberOfRuns = limit->numberOfRuns;
 	parameter->initialFrequency = constants->initialFrequency;
 	parameter->endingFrequency = constants->endingFrequency;
 	parameter->samplingFrequency = constants->samplingFrequency;
