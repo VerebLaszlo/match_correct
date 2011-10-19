@@ -31,6 +31,12 @@ typedef struct LALParameters {
 	Approximant approx[NUMBER_OF_SYSTEMS];
 } LALParameters;
 
+static void printLALError(LALStatus *status) {
+	puts(status->statusDescription);
+	printf("in %s in %s at line %d\n", status->file, status->function, status->line);
+	printf("other: %s, level:%d\n", status->Id, status->level);
+}
+
 /**	Prints the parameters in the lal structures.
  * @param[in] params
  */
@@ -53,18 +59,18 @@ static void printLALParameters(LALParameters *params) {
  * @return
  */
 static INT4 convertAmplitudeOrderFromString(const char *amplitudeOrder) {
-	INT4 amplitudeCode = LAL_PNORDER_NEWTONIAN;
+	INT4 amplitudeCode = LALSQTPN_0_0;
 	if (strstr(amplitudeOrder, "100") || strstr(amplitudeOrder, "110")
 		|| strstr(amplitudeOrder, "101") || strstr(amplitudeOrder, "111")) {
-		amplitudeCode |= LAL_PNORDER_NEWTONIAN;
+		amplitudeCode |= LALSQTPN_0_0;
 	}
 	if (strstr(amplitudeOrder, "010") || strstr(amplitudeOrder, "110")
 		|| strstr(amplitudeOrder, "011") || strstr(amplitudeOrder, "111")) {
-		amplitudeCode |= LAL_PNORDER_HALF;
+		amplitudeCode |= LALSQTPN_0_5;
 	}
 	if (strstr(amplitudeOrder, "001") || strstr(amplitudeOrder, "101")
 		|| strstr(amplitudeOrder, "011") || strstr(amplitudeOrder, "111")) {
-		amplitudeCode |= LAL_PNORDER_ONE;
+		amplitudeCode |= LALSQTPN_1_0;
 	}
 	return amplitudeCode;
 }
@@ -206,8 +212,6 @@ static void createSignalStructFromLAL(SignalStruct *signal, LALParameters *lal) 
 		case NumRel:
 		case Eccentricity:
 		case EOBNR:
-		case EOBNRv2:
-		case EOBNRv2HM:
 		case IMRPhenomA:
 		case IMRPhenomB:
 		case IMRPhenomFA:
@@ -233,6 +237,7 @@ int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool
 			&lalparams.ppnParams[i]);
 		if (lalparams.status.statusCode) {
 			fprintf(stderr, "Error generating %d waveform\n", i);
+			printLALError(&lalparams.status);
 			XLALSQTPNDestroyCoherentGW(&lalparams.waveform[0]);
 			return NOT_FOUND;
 		}
