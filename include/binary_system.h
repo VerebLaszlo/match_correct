@@ -143,6 +143,12 @@ typedef struct tagBinaryLimits {
  */
 void generateMass(massParameters *mass, massLimits *limit);
 
+void printMassToConfigFile(FILE *file, massParameters *mass, OutputFormat *format);
+
+void printSpinToConfigFile(FILE *file, spinParameters *spin, ushort number, OutputFormat *format);
+
+void printBinarySystemToConfig(FILE *file, BinarySystem *system, OutputFormat *format);
+
 /**
  * @param file
  * @param mass

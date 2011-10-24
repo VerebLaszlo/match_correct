@@ -86,6 +86,47 @@ void printProgramParameters(FILE *file, ProgramParameter *params) {
 	fprintf(file, "%10s %10s\n", "folder", params->outputDirectory);
 }
 
+static void printWaveParametersToConfigFile(FILE *file, SystemParameter *param,
+	ushort currentSystem, OutputFormat *format) {
+	printBinarySystemToConfig(file, &param->system[currentSystem], format);
+	fputs("\t\t\tgeneration = {", file);
+	fprintf(file, " approximant = \"%s\";", param->approximant[currentSystem]);
+	fprintf(file, " phase = \"%s\"; ", param->phase[currentSystem]);
+	fprintf(file, " spin = \"%s\"; ", param->spin[currentSystem]);
+	fprintf(file, " amplitude = \"%s\"; ", param->amplitude[currentSystem]);
+	fputs("};\n", file);
+}
+
+static void printConstantsToConfigFile(FILE *file, ConstantParameters *constant) {
+	fputs("units = { angle = \"degree\"; mass = \"solar\"; };\n", file);
+	fprintf(file, "boundaryFrequency = [%lg, %lg]; samplingFrequency = %lg;\n\n",
+		constant->initialFrequency, constant->endingFrequency, constant->samplingFrequency);
+}
+
+void printStartOfConfigFile(FILE *file, ConstantParameters *constant) {
+	printConstantsToConfigFile(file, constant);
+	fputs("pairs = (\n", file);
+	fputs("\t(\n", file);
+}
+
+void printMiddleOfConfigFile(FILE *file) {
+	fputs("\t),(\n", file);
+}
+
+void printEndOfConfigFile(FILE *file) {
+	fputs("\t)\n", file);
+	fputs(");", file);
+}
+
+void printWaveformPairsToConfigFile(FILE *file, SystemParameter *param, OutputFormat *format) {
+	fputs("\t\t{\n", file);
+	printWaveParametersToConfigFile(file, param, 0, format);
+	fputs("\t\t}, {\n", file);
+	printWaveParametersToConfigFile(file, param, 1, format);
+	fputs("\t\t},\n", file);
+	fprintf(file, "\t\t\"%s\"\n", param->name[1]);
+}
+
 void printSystemParameters(FILE *file, SystemParameter *params, OutputFormat *format) {
 	fprintf(file, "%10s %10.4lg\n", "freq_I", params->initialFrequency);
 	fprintf(file, "%10s %10.4lg\n", "freq_E", params->endingFrequency);

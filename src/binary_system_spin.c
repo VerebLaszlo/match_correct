@@ -268,6 +268,20 @@ void generateSpin(spinParameters *spin, spinLimits *limit, double inclination) {
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
+void printSpinToConfigFile(FILE *file, spinParameters *spin, ushort number, OutputFormat *format) {
+	BACKUP_DEFINITION_LINE();
+	string formatString;
+	fprintf(file, "\t\t\t\tspin%d = {", number + 1);
+	sprintf(formatString, " magnitude = %s;", format->oneNumber);
+	fprintf(file, formatString, spin->magnitude);
+	sprintf(formatString, " inclination = %s;", format->oneNumber);
+	fprintf(file, formatString, degreeFromRadian(spin->inclination[PRECESSING]));
+	sprintf(formatString, " azimuth = %s;", format->oneNumber);
+	fprintf(file, formatString, degreeFromRadian(spin->azimuth[PRECESSING]));
+	fprintf(file, " };\n");
+	SAVE_FUNCTION_FOR_TESTING();
+}
+
 void printSpinParameters(FILE *file, spinParameters *spin, OutputFormat *format) {
 	BACKUP_DEFINITION_LINE();
 	ushort number = 3;

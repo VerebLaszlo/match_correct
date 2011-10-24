@@ -86,6 +86,14 @@ void printLimits(FILE *file, Limits *limit);
 
 void printProgramParameters(FILE *file, ProgramParameter *params);
 
+void printStartOfConfigFile(FILE *file, ConstantParameters *constant);
+
+void printMiddleOfConfigFile(FILE *file);
+
+void printEndOfConfigFile(FILE *file);
+
+void printWaveformPairsToConfigFile(FILE *file, SystemParameter *param, OutputFormat *format);
+
 void printSystemParameters(FILE *file, SystemParameter *params, OutputFormat *format);
 
 typedef enum {

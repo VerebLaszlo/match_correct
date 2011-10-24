@@ -33,6 +33,20 @@ void generateBinarySystemParameters(BinarySystem *system, binaryLimits *limit) {
 /// @name Printing functions
 ///@{
 
+void printBinarySystemToConfig(FILE *file, BinarySystem *system, OutputFormat *format) {
+	fprintf(file, "\t\t\tbinary = {\n");
+	printMassToConfigFile(file, &system->mass, format);
+	for (ushort blackhole = 0; blackhole < NUMBER_OF_BLACKHOLES; blackhole++) {
+		printSpinToConfigFile(file, &system->spin[blackhole], blackhole, format);
+	}
+	string formatString;
+	sprintf(formatString, "\t\t\t\tinclination = %s;", format->oneNumber);
+	fprintf(file, formatString, degreeFromRadian(system->inclination));
+	sprintf(formatString, " distance = %s;\n", format->oneNumber);
+	fprintf(file, formatString, system->distance);
+	fprintf(file, "\t\t\t};\n");
+}
+
 void printBinarySystemParameters(FILE *file, BinarySystem *system, OutputFormat *format) {
 	BACKUP_DEFINITION_LINE();
 	printMassParameters(file, &system->mass, format);
@@ -42,7 +56,8 @@ void printBinarySystemParameters(FILE *file, BinarySystem *system, OutputFormat 
 	ushort length = (ushort) (number * format->widthWithSeparator);
 	char formatString[length];
 	setFormat(formatString, number, format);
-	fprintf(file, formatString, system->flatness[0], system->flatness[1], degreeFromRadian(system->inclination));
+	fprintf(file, formatString, system->flatness[0], system->flatness[1],
+		degreeFromRadian(system->inclination));
 	setFormatEnd(formatString, number, format);
 	fprintf(file, formatString, system->distance, system->coalescencePhase,
 		system->coalescenceTime);

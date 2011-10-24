@@ -194,6 +194,16 @@ void generateMass(massParameters *mass, massLimits *limit) {
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
+void printMassToConfigFile(FILE *file, massParameters *mass, OutputFormat *format) {
+	BACKUP_DEFINITION_LINE();
+	string formatString;
+	sprintf(formatString, "\t\t\t\tmass1 = %s;", format->oneNumber);
+	fprintf(file, formatString, mass->mass[0]);
+	sprintf(formatString, " mass2 = %s;\n", format->oneNumber);
+	fprintf(file, formatString, mass->mass[1]);
+	SAVE_FUNCTION_FOR_TESTING();
+}
+
 /**
  * @param file
  * @param mass
