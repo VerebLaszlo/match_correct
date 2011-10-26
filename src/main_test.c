@@ -17,6 +17,7 @@ static void printHelp(void) {
 	puts("m: calculate the match");
 	puts("s: the file containing the parameters");
 	puts("i: the file initialize the program");
+	puts("e: read exact parameters");
 	puts("t: testing");
 }
 
@@ -31,6 +32,8 @@ static void interpretOptions(Options *option, int argc, char *argv[]) {
 				option->plot = true;
 			} else if ((*argv)[1] == 'm') {
 				option->calculateMatch = true;
+			} else if ((*argv)[1] == 'e') {
+				option->exact = true;
 			} else if ((*argv)[1] == 's') {
 				argc--;
 				argv++;

@@ -17,6 +17,7 @@ typedef struct {
 	bool plot;
 	bool calculateMatch;
 	bool testing;
+	bool exact;
 } Options;
 
 typedef enum ParameterConstants_ {

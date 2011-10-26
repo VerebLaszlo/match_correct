@@ -12,67 +12,11 @@
 #include "parser.h"
 #include "lal_wrapper.h"
 
-void runProgram(cstring programFileName, cstring parameterFileName, Options *option) {
-	ProgramParameter program;
-	getProgramParametersFrom(programFileName, &program, option);
-	runForWaveformPairs(parameterFileName, &program);
-	runForSignalAndTemplates(parameterFileName, &program);
-}
-
-void runForSignalAndTemplates(cstring fileName, ProgramParameter *program) {
-	ConstantParameters constants;
-	SystemParameter parameter;
-	size_t numberOfTemplatesWithSignal;
-	Limits *template = createSignalAndTemplatesLimitsFrom(fileName, &constants,
-		&numberOfTemplatesWithSignal);
-	if (numberOfTemplatesWithSignal) {
-		getSysemParametersFromLimit(template, &constants, &parameter, 0);
-		for (ushort currentTemplate = 1; currentTemplate < numberOfTemplatesWithSignal;
-			currentTemplate++) {
-			for (size_t templateMultiply = 0;
-				templateMultiply < template[currentTemplate].numberOfRuns; templateMultiply++) {
-				getSysemParametersFromLimit(&template[currentTemplate], &constants, &parameter, 1);
-				run(program, &parameter, templateMultiply);
-			}
-		}
-	}
-	destroySignalAndTemplatesLimits(template);
-}
-
-void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
-	ConstantParameters constants;
-	size_t numberOfPairs;
-	Limits *pair = createWaveformPairLimitsFrom(fileName, &constants, &numberOfPairs);
-	string configName;
-	sprintf(configName, "%s/data_%s", program->outputDirectory, fileName);
-	FILE *file = safelyOpenForWriting(configName);
-	printStartOfConfigFile(file, &constants);
-	if (numberOfPairs) {
-		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
-			for (size_t pairMultiply = 0; pairMultiply < pair[2 * currentPair + 1].numberOfRuns;
-				pairMultiply++) {
-				SystemParameter parameter;
-				getSysemParametersFromLimits(&pair[2 * currentPair], &constants, &parameter);
-				run(program, &parameter, pairMultiply);
-				printWaveformPairsToConfigFile(file, &parameter,
-					&outputFormat[DATA]);
-				if ((currentPair != numberOfPairs - 1)
-					|| pairMultiply != pair[2 * currentPair + 1].numberOfRuns - 1) {
-					printMiddleOfConfigFile(file);
-				}
-			}
-		}
-	}
-	printEndOfConfigFile(file);
-	fclose(file);
-	destroyWaveformPairLimits(pair);
-}
-
 /**	Runs the program.
  * @param[in] program	   :
  * @param[in] parameters   :
  */
-void run(ProgramParameter *program, SystemParameter *parameters, size_t number) {
+static void run(ProgramParameter *program, SystemParameter *parameters, size_t number) {
 	setSignalExistanceFunctions(program->calculateMatches);
 	SignalStruct signal;
 	generateWaveformPair(parameters, &signal, program->calculateMatches);
@@ -98,6 +42,77 @@ void run(ProgramParameter *program, SystemParameter *parameters, size_t number) 
 		fclose(file);
 	}
 	destroySignal(&signal);
+}
+
+static void runForSignalAndTemplates(cstring fileName, ProgramParameter *program) {
+	ConstantParameters constants;
+	SystemParameter parameter;
+	size_t numberOfTemplatesWithSignal;
+	Limits *template = createSignalAndTemplatesLimitsFrom(fileName, &constants,
+		&numberOfTemplatesWithSignal);
+	if (numberOfTemplatesWithSignal) {
+		getSysemParametersFromLimit(template, &constants, &parameter, 0);
+		for (ushort currentTemplate = 1; currentTemplate < numberOfTemplatesWithSignal;
+			currentTemplate++) {
+			for (size_t templateMultiply = 0;
+				templateMultiply < template[currentTemplate].numberOfRuns; templateMultiply++) {
+				getSysemParametersFromLimit(&template[currentTemplate], &constants, &parameter, 1);
+				run(program, &parameter, templateMultiply);
+			}
+		}
+	}
+	destroySignalAndTemplatesLimits(template);
+}
+
+static void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
+	ConstantParameters constants;
+	size_t numberOfPairs;
+	Limits *pair = createWaveformPairLimitsFrom(fileName, &constants, &numberOfPairs);
+	string configName;
+	sprintf(configName, "%s/data_%s", program->outputDirectory, fileName);
+	FILE *file = safelyOpenForWriting(configName);
+	printStartOfConfigFile(file, &constants);
+	if (numberOfPairs) {
+		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
+			for (size_t pairMultiply = 0; pairMultiply < pair[2 * currentPair + 1].numberOfRuns;
+				pairMultiply++) {
+				SystemParameter parameter;
+				getSysemParametersFromLimits(&pair[2 * currentPair], &constants, &parameter);
+				run(program, &parameter, pairMultiply);
+				printWaveformPairsToConfigFile(file, &parameter, &outputFormat[DATA]);
+				if ((currentPair != numberOfPairs - 1)
+					|| pairMultiply != pair[2 * currentPair + 1].numberOfRuns - 1) {
+					printMiddleOfConfigFile(file);
+				}
+			}
+		}
+	}
+	printEndOfConfigFile(file);
+	fclose(file);
+	destroyWaveformPairLimits(pair);
+}
+
+static void runForExactWaveformPairs(cstring fileName, ProgramParameter *program) {
+	ConstantParameters constants;
+	size_t numberOfPairs;
+	SystemParameter *pair = createExactWaveformPairFrom(fileName, &constants, &numberOfPairs);
+	if (numberOfPairs) {
+		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
+			run(program, pair, 0);
+		}
+	}
+	destroyExactWaveformPairs(pair);
+}
+
+void runProgram(cstring programFileName, cstring parameterFileName, Options *option) {
+	ProgramParameter program;
+	getProgramParametersFrom(programFileName, &program, option);
+	if (option->exact) {
+		runForExactWaveformPairs(parameterFileName, &program);
+	} else {
+		runForWaveformPairs(parameterFileName, &program);
+		runForSignalAndTemplates(parameterFileName, &program);
+	}
 }
 
 /**	Calls the testing functions.

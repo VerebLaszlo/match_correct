@@ -343,9 +343,9 @@ Limits *createWaveformPairLimitsFrom(cstring fileName, ConstantParameters *const
 	return pairLimits;
 }
 
-void destroyWaveformPairLimits(Limits *limits) {
-	if (limits) {
-		free(limits);
+void destroyWaveformPairLimits(Limits *pairs) {
+	if (pairs) {
+		free(pairs);
 	}
 }
 
@@ -390,6 +390,109 @@ void destroySignalAndTemplatesLimits(Limits *limits) {
 		free(limits);
 	}
 }
+
+static void getExactMasses(config_setting_t *binary, massParameters *mass) {
+	config_setting_lookup_float(binary, optionName[MASS1], &mass->mass[0]);
+	config_setting_lookup_float(binary, optionName[MASS2], &mass->mass[1]);
+}
+
+static void getExactSpin(config_setting_t *currentSpin, spinParameters *spin) {
+	config_setting_lookup_float(currentSpin, optionName[MAGNITUDE], &spin->magnitude);
+	config_setting_lookup_float(currentSpin, optionName[INCLINATION],
+		&spin->inclination[PRECESSING]);
+	config_setting_lookup_float(currentSpin, optionName[AZIMUTH], &spin->azimuth[PRECESSING]);
+}
+
+static void getExactSpins(config_setting_t *currentBinary, BinarySystem *binary) {
+	for (ushort blackhole = 0; blackhole < NUMBER_OF_BLACKHOLES; blackhole++) {
+		config_setting_t *currentSpin = config_setting_get_member(currentBinary,
+			optionName[SPIN1 + blackhole]);
+		getExactSpin(currentSpin, &binary->spin[blackhole]);
+	}
+}
+
+static void getExactSourceParameters(config_setting_t *waveform, BinarySystem *binary) {
+	config_setting_t *currentBinary = config_setting_get_member(waveform, optionName[BINARY]);
+	if (currentBinary) {
+		getExactMasses(currentBinary, &binary->mass);
+		getExactSpins(currentBinary, binary);
+		config_setting_lookup_float(currentBinary, optionName[INCLINATION], &binary->inclination);
+		config_setting_lookup_float(currentBinary, optionName[DISTANCE], &binary->distance);
+	}
+}
+
+static void getExactGenerationParameters(config_setting_t *waveform, ushort i,
+	SystemParameter *systems) {
+	config_setting_t *generation = config_setting_get_member(waveform, optionName[GENERATION]);
+	if (generation) {
+		cstring approximant = NULL, phase = NULL, spin = NULL, amplitude = NULL;
+		config_setting_lookup_string(generation, optionName[APPROXIMANT], &approximant);
+		strcpy(systems->approximant[i], approximant);
+		config_setting_lookup_string(generation, optionName[PHASE], &phase);
+		strcpy(systems->phase[i], phase);
+		config_setting_lookup_string(generation, optionName[SPIN], &spin);
+		strcpy(systems->spin[i], spin);
+		config_setting_lookup_string(generation, optionName[AMPLITUDE], &amplitude);
+		strcpy(systems->amplitude[i], amplitude);
+	}
+}
+
+static void getExactWaveformParameters(config_setting_t *waveform, ushort i,
+	SystemParameter *systems) {
+	getExactSourceParameters(waveform, &systems->system[i]);
+	getExactGenerationParameters(waveform, i, systems);
+}
+
+static void getExactWavePairParameters(config_setting_t *pair, SystemParameter *currentSystem) {
+	config_setting_t *current;
+	ushort count = (ushort) neededElementNumber(3, pair);
+	for (ushort i = 0; i < count - 1; i++) {
+		current = config_setting_get_elem(pair, i);
+		getExactWaveformParameters(current, i, currentSystem);
+	}
+	cstring code = config_setting_get_string_elem(pair, count - 1);
+	string name;
+	size_t numberOfRuns;
+	getNameAndNumberOfRunsFrom(code, &name, &numberOfRuns);
+	strcpy(currentSystem->name[0], name);
+	strcpy(currentSystem->name[1], name);
+}
+
+SystemParameter *createExactWaveformPairFrom(cstring fileName, ConstantParameters *constants,
+	size_t *numberOfPairs) {
+	config_t cfg;
+	memset(&cfg, 0, sizeof(cfg));
+	if (!config_read_file(&cfg, fileName)) {
+		fprintf(stderr, "Error in %s config file: %d - %s\n", fileName, config_error_line(&cfg),
+			config_error_text(&cfg));
+		config_destroy(&cfg);
+		exit(EXIT_FAILURE);
+	}
+	bool succes = getConstantParameters(constants, &cfg);
+	SystemParameter *parameters = NULL;
+	*numberOfPairs = 0;
+	if (succes) {
+		config_setting_t *current;
+		config_setting_t *pairs = config_lookup(&cfg, optionName[PAIRS]);
+		if (pairs) {
+			*numberOfPairs = (size_t) config_setting_length(pairs);
+			parameters = calloc(2 * *numberOfPairs, sizeof(SystemParameter));
+			for (size_t i = 0; i < *numberOfPairs; i++) {
+				current = config_setting_get_elem(pairs, i);
+				getExactWavePairParameters(current, &parameters[i]);
+			}
+		}
+	}
+	config_destroy(&cfg);
+	return parameters;
+}
+
+void destroyExactWaveformPairs(SystemParameter *pairs) {
+	if (pairs) {
+		free(pairs);
+	}
+}
+
 typedef enum {
 	OUTPUT_DIRECTORY,
 	NUMBER_OF_RUNS,
