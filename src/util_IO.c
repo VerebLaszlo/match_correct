@@ -78,15 +78,17 @@ static void setFormatForOneNumber(OutputFormat *format) {
 	assert(format->width > 0);
 	sprintf(format->empty, "%%%ds", format->width);
 	if (format->leftJustified) {
-		sprintf(format->oneNumber, "%%- %d.%dlg", format->width, format->precision);
+		sprintf(format->oneNumber, "%%- %d.%dl%c", format->width, format->precision,
+			format->specifier);
 	} else {
-		sprintf(format->oneNumber, "%% %d.%dlg", format->width, format->precision);
+		sprintf(format->oneNumber, "%% %d.%dl%c", format->width, format->precision,
+			format->specifier);
 	};
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
 void setOutputFormat(OutputFormat *format, const ushort precision, const ushort width,
-	const char separator, bool leftJustified) {
+	const char specifier, const char separator, bool leftJustified) {
 	BACKUP_DEFINITION_LINE(); //
 	assert(format);
 	assert(width < MAXIMUM_WIDTH);
@@ -97,6 +99,7 @@ void setOutputFormat(OutputFormat *format, const ushort precision, const ushort 
 		width > format->precision + SPECIAL_CHARACTER_LENGTH ? width :
 			format->precision + SPECIAL_CHARACTER_LENGTH);
 	format->widthWithSeparator = (ushort) (format->width + SEPARATOR_LENGTH);
+	format->specifier = specifier;
 	format->separator = separator;
 	format->leftJustified = leftJustified;
 	setFormatForOneNumber(format);
@@ -204,6 +207,7 @@ static bool isOK_setOutputFormat(void) {
 		return false;
 	}
 	OutputFormat format;
+	char specifier = 'g';
 	char separator = '%';
 	ushort code = 0;
 	ushort precision = 2 * SPECIAL_CHARACTER_LENGTH;
@@ -213,7 +217,7 @@ static bool isOK_setOutputFormat(void) {
 		width = (ushort) (precision - 2 * SPECIAL_CHARACTER_LENGTH);
 		for (ushort j = 0; j < 3; j++, code++) {
 			SAVE_FUNCTION_CALLER();
-			setOutputFormat(&format, precision, width, separator, leftJusfified);
+			setOutputFormat(&format, precision, width, specifier, separator, leftJusfified);
 			if (format.precision != precision) {
 				PRINT_ERROR();
 				return false;
@@ -240,6 +244,7 @@ static bool isOK_setFormat(void) {
 	}
 	OutputFormat format;
 	char separator[] = { '%', 'X' };
+	char specifier = 'g';
 	ushort precision = 5;
 	bool leftJusfified = false;
 	ushort width = 12;
@@ -247,7 +252,7 @@ static bool isOK_setFormat(void) {
 	nameString result[2][2] = { { "% 12.5lg", "% 12.5lg %% % 12.5lg" }, //
 		{ "% 12.5lg", "% 12.5lg X % 12.5lg" } };
 	for (ushort i = 0; i < 2; i++) {
-		setOutputFormat(&format, precision, width, separator[i], leftJusfified);
+		setOutputFormat(&format, precision, width, specifier, separator[i], leftJusfified);
 		SAVE_FUNCTION_CALLER();
 		setFormats(output, 1, &format);
 		if (strcmp(result[i][0], output)) {

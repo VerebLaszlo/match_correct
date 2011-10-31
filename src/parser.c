@@ -299,11 +299,11 @@ static bool getConstantParameters(ConstantParameters *constants, config_t *cfg) 
 		getUnitsCodeFromStrings(angleCode, massCode);
 		config_setting_t *frequency = config_lookup(cfg, optionName[BOUNDARY_FREQUENCY]);
 		if (frequency) {
-			constants->initialFrequency = config_setting_get_float_elem(frequency, MIN);
-			constants->endingFrequency = config_setting_get_float_elem(frequency, MAX);
+			constants->initialFrequency = config_setting_get_int_elem(frequency, MIN);
+			constants->endingFrequency = config_setting_get_int_elem(frequency, MAX);
 			frequency = config_lookup(cfg, optionName[SAMPLING_FREQUENCY]);
 			if (frequency) {
-				constants->samplingFrequency = config_setting_get_float(frequency);
+				constants->samplingFrequency = config_setting_get_int(frequency);
 				succes = true;
 			}
 		}
@@ -501,6 +501,7 @@ typedef enum {
 	DATA_FORMAT,
 	PRECISION,
 	WIDTH,
+	SPECIFIER,
 	SEPARATOR,
 	LEFT_JUSTIFIED,
 	NUMBER_OF_PROGRAM_OPTIONS,
@@ -508,18 +509,21 @@ typedef enum {
 
 char const * programOptionName[] = { "outputDirectory", "numberOfRuns", "signalDataFormat",
 										"signalFormat", "dataFormat", "precision", "width",
-										"separator", "leftJustified", };
+										"specifier", "separator", "leftJustified", };
 
 static void getFormat(OutputFormats code, config_setting_t *format) {
 	if (format) {
 		long precision, width;
+		cstring specifier;
 		cstring separator;
 		int leftJustified;
 		config_setting_lookup_int(format, programOptionName[PRECISION], &precision);
 		config_setting_lookup_int(format, programOptionName[WIDTH], &width);
+		config_setting_lookup_string(format, programOptionName[SPECIFIER], &specifier);
 		config_setting_lookup_string(format, programOptionName[SEPARATOR], &separator);
 		config_setting_lookup_bool(format, programOptionName[LEFT_JUSTIFIED], &leftJustified);
-		setOutputFormat(&outputFormat[code], precision, width, separator[0], leftJustified);
+		setOutputFormat(&outputFormat[code], precision, width, specifier[0], separator[0],
+			leftJustified);
 	}
 }
 
