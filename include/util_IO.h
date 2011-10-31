@@ -72,6 +72,7 @@ typedef struct tagOutputFormat {
 	ushort precision; ///< how many digits are after the decimal point
 	ushort width; ///< width of the format including the sign and exponent
 	ushort widthWithSeparator; ///< width of the format including the sign, exponent and separator character
+	char specifier;	///< specifies withc convention to use: 'e' - scientific, 'f' - floating point, 'g' - the shorter
 	char separator; ///< column separator for gnuplot
 	bool leftJustified; ///< it's true if the format is left justified, otherwise false
 	char oneNumber[FORMAT_LENGTH]; ///< format string form one number
@@ -88,7 +89,7 @@ extern OutputFormat outputFormat[NUMBER_OF_OUTPUTFORMATS];
  * @param[in]	leftJustified	: left (true) or right (false) justified text
  */
 void setOutputFormat(OutputFormat *format, const ushort precision, const ushort width,
-	const char separator, bool leftJustified);
+	const char specifier, const char separator, bool leftJustified);
 
 /**	Set the format for given number of floating pint data to display.
  * @param[out] formatString	: the generated format string
@@ -106,8 +107,7 @@ void setFormatEnd(char formatString[], const ushort number, OutputFormat *format
 
 /**	Tests if the input/output functions are correctly written.
  * @return true or false
- */
-bool areIOFunctionsGood(void);
+ */bool areIOFunctionsGood(void);
 
 ///@}
 
