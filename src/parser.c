@@ -463,8 +463,7 @@ static void getExactWavePairParameters(config_setting_t *pair, SystemParameter *
 	strcpy(currentSystem->name[1], name);
 }
 
-SystemParameter *createExactWaveformPairFrom(cstring fileName, ConstantParameters *constants,
-	size_t *numberOfPairs) {
+SystemParameter *createExactWaveformPairFrom(cstring fileName, size_t *numberOfPairs) {
 	config_t cfg;
 	memset(&cfg, 0, sizeof(cfg));
 	if (!config_read_file(&cfg, fileName)) {
@@ -473,7 +472,8 @@ SystemParameter *createExactWaveformPairFrom(cstring fileName, ConstantParameter
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
-	bool succes = getConstantParameters(constants, &cfg);
+	ConstantParameters constants;
+	bool succes = getConstantParameters(&constants, &cfg);
 	SystemParameter *parameters = NULL;
 	*numberOfPairs = 0;
 	if (succes) {
@@ -485,6 +485,10 @@ SystemParameter *createExactWaveformPairFrom(cstring fileName, ConstantParameter
 			for (size_t i = 0; i < *numberOfPairs; i++) {
 				current = config_setting_get_elem(pairs, i);
 				getExactWavePairParameters(current, &parameters[i]);
+				parameters[i].initialFrequency = constants.initialFrequency;
+				parameters[i].endingFrequency = constants.endingFrequency;
+				parameters[i].samplingFrequency = constants.samplingFrequency;
+				parameters[i].samplingTime = 1.0 / parameters[i].samplingFrequency;
 			}
 		}
 	}

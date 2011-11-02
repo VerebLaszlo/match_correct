@@ -93,9 +93,8 @@ static void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
 }
 
 static void runForExactWaveformPairs(cstring fileName, ProgramParameter *program) {
-	ConstantParameters constants;
 	size_t numberOfPairs;
-	SystemParameter *pair = createExactWaveformPairFrom(fileName, &constants, &numberOfPairs);
+	SystemParameter *pair = createExactWaveformPairFrom(fileName, &numberOfPairs);
 	if (numberOfPairs) {
 		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
 			for (ushort i = 0; i < NUMBER_OF_SYSTEMS; i++) {
