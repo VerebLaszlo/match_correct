@@ -159,6 +159,13 @@ static void setSignalsFromH(double *signal[], size_t length, CoherentGW *wavefor
 	}
 }
 
+static void setSignalsFromHH(double *signal[], size_t length, CoherentGW *waveform) {
+	for (ulong j = 0; j < length; j++) {
+		signal[0][j] = waveform->h->data->data[j];
+		signal[1][j] = waveform->h->data->data[length + j];
+	}
+}
+
 /**	Creates a signal structure and populates it from the generated waveforms.
  * @param signal
  * @param lal
@@ -183,7 +190,7 @@ static void createSignalStructFromLAL(SignalStruct *signal, LALParameters *lal) 
 				signal->length[i], &lal->waveform[i]);
 			break;
 		case SpinTaylorFrameless:
-			setSignalsFromH(&signal->componentsInTime[H1P + NUMBER_OF_SIGNALS * i],
+			setSignalsFromHH(&signal->componentsInTime[H1P + NUMBER_OF_SIGNALS * i],
 				signal->length[i], &lal->waveform[i]);
 			break;
 		case SpinTaylor:
