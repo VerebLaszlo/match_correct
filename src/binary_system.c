@@ -29,6 +29,13 @@ void generateBinarySystemParameters(BinarySystem *system, binaryLimits *limit) {
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
+void convertBinarySystemParameters(BinarySystem *system) {
+	convertMasses(&system->mass);
+	for (short i = 0; i < NUMBER_OF_BLACKHOLES; i++) {
+		convertSpin(&system->spin[i], system->inclination);
+	};
+}
+
 ///@}
 /// @name Printing functions
 ///@{
@@ -124,7 +131,7 @@ static bool isOK_generateBinarySystemParameters(void) {
 		limit.spin[i].component[PRECESSING][Z][MAX] = 40.0
 			+ (limit.spin[i].component[PRECESSING][Z][MIN] = -20.0);
 	}
-	limit.spin[0].mode = limit.spin[1].mode = GEN_FIXED_XYZ;
+	limit.spin[0].mode = limit.spin[1].mode = FROM_FIXED_XYZ;
 	generateBinarySystemParameters(&system, &limit);
 	if (!isOK) {
 		return isOK;

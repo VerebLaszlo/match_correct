@@ -18,7 +18,7 @@ typedef enum massConversionModes {
 	FROM_M1M2 = 0, ///< convert from \f$m_1, m_2\f$
 	FROM_ETAM, ///< convert from \f$\eta, M\f$
 	FROM_ETACHIRP, ///< convert from \f$\eta, \mathcal{M}\f$
-	MASS_CONVERSIONS,
+	MASS_CONVERTED,
 ///< number of mass conversion modes
 } massConversionMode;
 
@@ -27,32 +27,11 @@ typedef enum massConversionModes {
 typedef enum spinConversionModes {
 	FROM_FIXED_XYZ = 0, ///< convert from \f$x, y, z\f$ in fixed convention
 	FROM_FIXED_ANGLES, ///< convert from inclination and azimuth in fixed convention
-	FROM_PRECESSION_XZY, ///< convert from \f$x, y, z\f$ in precessing convention
-	FROM_PRECESSION_ANGLES, ///< convert from inclination and azimuth in precessing convention
-	SPIN_CONVERSIONS,
+	FROM_PRECESSING_XYZ, ///< convert from \f$x, y, z\f$ in precessing convention
+	FROM_PRECESSING_ANGLES, ///< convert from inclination and azimuth in precessing convention
+	SPIN_CONVERTED,
 ///< number of spin conversion modes
 } spinConversionMode;
-
-/** Generation mode codes.
- */
-typedef enum massGenerationMode {
-	GEN_M1M2 = FROM_M1M2, ///< generate in \f$m_1, m_2\f$
-	GEN_ETAM = FROM_ETAM, ///< generate in \f$\eta, M\f$
-	GEN_ETACHIRP = FROM_ETACHIRP, ///< generate in \f$\eta, \mathcal{M}\f$
-	MASS_GENERATIONS = MASS_CONVERSIONS,
-///< number of mass generation modes
-} massGenerationMode;
-
-/** Generation mode codes.
- */
-typedef enum spinGenerationMode {
-	GEN_FIXED_XYZ = FROM_FIXED_XYZ, ///< generate in \f$x, y, z\f$ in fixed convention
-	GEN_FIXED_ANGLES = FROM_FIXED_ANGLES, ///< generate in inclination and azimuth in fixed convention
-	GEN_PRECESSING_XYZ = FROM_PRECESSION_XZY, ///< generate in \f$x, y, z\f$ in precessing convention
-	GEN_PRECESSING_ANGLES = FROM_PRECESSION_ANGLES, ///< generate in inclination and azimuth in precessing convention
-	SPIN_GENERATIONS = SPIN_CONVERSIONS,
-///< number of spin generation modes
-} spinGenerationMode;
 
 /**	Various constants for the binary system.
  */
@@ -75,6 +54,7 @@ typedef struct tagMassParameters {
 	double chirpMass; ///< \f$\mathcal{M}=M\eta^{3/5}\f$ in \f$M_\odot\f$
 	double nu; ///< \f$\min(m_1,m_2)/\max(m_1,m_2)\f$
 	double m1_m2; ///< \f$m_1/m_2\f$
+	massConversionMode convert;
 } massParameters;
 
 /**	Contains the limits of the mass parameters.
@@ -87,7 +67,7 @@ typedef struct tagMassLimits {
 	double chirpMass[MINMAX]; ///< \f$\mathcal{M}=M\eta^{3/5}\f$ in \f$M_\odot\f$
 	double nu[MINMAX]; ///< \f$\min(m_1,m_2)/\max(m_1,m_2)\f$
 	double m1_m2[MINMAX]; ///< \f$m_1/m_2\f$
-	massGenerationMode mode;
+	massConversionMode mode;
 } massLimits;
 
 /**	Contains the spin parameters.
@@ -99,6 +79,7 @@ typedef struct tagSpinParameters {
 	double azimuth[COORDINATE_CONVENTIONS]; ///< azimuth in the corresponding convention, \f$\in[0,2\pi)\f$
 	double inclination[COORDINATE_CONVENTIONS]; ///< inclination in the corresponding convention, \f$[0,\pi]\f$
 	double elevation[COORDINATE_CONVENTIONS]; ///< elevation in the corresponding convention, \f$[-\pi/2,\pi/2]\f$
+	spinConversionMode convert;
 } spinParameters;
 
 /**	Contains the limits of the spin parameters.
@@ -110,7 +91,7 @@ typedef struct tagSpinLimits {
 	double azimuth[COORDINATE_CONVENTIONS][MINMAX]; ///< azimuth in the corresponding convention, \f$\in[0,2\pi)\f$
 	double inclination[COORDINATE_CONVENTIONS][MINMAX]; ///< inclination in the corresponding convention, \f$[0,\pi]\f$
 	double elevation[COORDINATE_CONVENTIONS][MINMAX]; ///< elevation in the corresponding convention, \f$[-\pi/2,\pi/2]\f$
-	spinGenerationMode mode;
+	spinConversionMode mode;
 } spinLimits;
 
 /**	Contains the parameters of the binary system.
@@ -137,6 +118,12 @@ typedef struct tagBinaryLimits {
 	double coalescenceTime[MINMAX]; ///< the length of the gravitational wave at the coalescence in \f$s\f$
 } binaryLimits;
 
+/** Converts mass parameters according
+ * @param[in,out] mass		: initial and calculated mass parameters
+ * @param[in]	  convert	: specifies the initial parameters
+ */
+void convertMasses(massParameters *mass);
+
 /**	Generates the mass parameters according the generation mode.
  * @param[out]	mass	: generated mass parameters
  * @param[in]	limit	: limits of the mass parameters
@@ -156,6 +143,13 @@ void printBinarySystemToConfig(FILE *file, BinarySystem *system, OutputFormat *f
  */
 void printMassParameters(FILE *file, massParameters *mass, OutputFormat *format);
 
+/**	Converts spin parameters according the conversion parameter.
+ * @param[in,out]	spin		: spin parameters
+ * @param[in]		inclination	: inclination fo the precessing frame
+ * @param[in]		convert		: conversion mode
+ */
+void convertSpin(spinParameters *spin, const double inclination);
+
 /** Generates the spin parameters according the generation mode.
  * @param[out]	spin		: generated spin parameters
  * @param[in]	limits		: limits of the spin parameters
@@ -169,6 +163,8 @@ void generateSpin(spinParameters *spin, spinLimits *limit, double inclination);
  * @param format
  */
 void printSpinParameters(FILE *file, spinParameters *spin, OutputFormat *format);
+
+void convertBinarySystemParameters(BinarySystem *system);
 
 /**	Generates the binary systems parameters according the generation modes.
  * @param[out]	system	: generated system parameters

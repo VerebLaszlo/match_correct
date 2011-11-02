@@ -98,6 +98,9 @@ static void runForExactWaveformPairs(cstring fileName, ProgramParameter *program
 	SystemParameter *pair = createExactWaveformPairFrom(fileName, &constants, &numberOfPairs);
 	if (numberOfPairs) {
 		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
+			for (ushort i = 0; i < NUMBER_OF_SYSTEMS; i++) {
+				convertBinarySystemParameters(&pair->system[i]);
+			}
 			run(program, pair, 0);
 		}
 	}

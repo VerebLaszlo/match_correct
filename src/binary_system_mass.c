@@ -136,14 +136,10 @@ static void convertMassesFromEtaChirp(massParameters *mass) {
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
-/** Converts mass parameters according
- * @param[in,out] mass		: initial and calculated mass parameters
- * @param[in]	  convert	: specifies the initial parameters
- */
-static void convertMasses(massParameters *mass, massConversionMode convert) {
+void convertMasses(massParameters *mass) {
 	BACKUP_DEFINITION_LINE(); //
 	assert(mass);
-	switch (convert) {
+	switch (mass->convert) {
 	case FROM_M1M2:
 		convertMassesFromM1M2(mass);
 		break;
@@ -153,7 +149,7 @@ static void convertMasses(massParameters *mass, massConversionMode convert) {
 	case FROM_ETACHIRP:
 		convertMassesFromEtaChirp(mass);
 		break;
-	case MASS_CONVERSIONS:
+	case MASS_CONVERTED:
 	default:
 		break;
 	};
@@ -164,33 +160,35 @@ void generateMass(massParameters *mass, massLimits *limit) {
 	BACKUP_DEFINITION_LINE(); //
 	assert(mass);
 	assert(limit);
+	mass->convert = limit->mode;
 	switch (limit->mode) {
-	case GEN_ETAM:
+	case FROM_ETAM:
 		do {
 			mass->totalMass = randomBetween(limit->totalMass[MIN], limit->totalMass[MAX]);
 			mass->eta = randomBetween(limit->eta[MIN], limit->eta[MAX]);
-			convertMasses(mass, FROM_ETAM);
+			convertMasses(mass);
 		} while (!isMassBetweenLimits(mass, limit));
 		break;
-	case GEN_M1M2:
+	case FROM_M1M2:
 		do {
 			for (short i = 0; i < NUMBER_OF_BLACKHOLES; i++) {
 				mass->mass[i] = randomBetween(limit->mass[i][MIN], limit->mass[i][MAX]);
 			}
-			convertMasses(mass, FROM_M1M2);
+			convertMasses(mass);
 		} while (!isMassBetweenLimits(mass, limit));
 		break;
-	case GEN_ETACHIRP:
+	case FROM_ETACHIRP:
 		do {
 			mass->chirpMass = randomBetween(limit->chirpMass[MIN], limit->chirpMass[MAX]);
 			mass->eta = randomBetween(limit->eta[MIN], limit->eta[MAX]);
-			convertMasses(mass, FROM_ETACHIRP);
+			convertMasses(mass);
 		} while (!isMassBetweenLimits(mass, limit));
 		break;
-	case MASS_GENERATIONS:
+	case MASS_CONVERTED:
 	default:
 		break;
 	};
+	mass->convert = MASS_CONVERTED;
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
@@ -402,7 +400,8 @@ static bool isOK_convertMasses(void) {
 	result.chirpMass = calcChirpMass(result.totalMass, result.eta);
 	m1m2ToRemainingMass(&result);
 	SAVE_FUNCTION_CALLER();
-	convertMasses(&mass, FROM_ETAM);
+	mass.convert = FROM_ETAM;
+	convertMasses(&mass);
 	if (!areMassParametersNear(&mass, &result)) {
 		PRINT_ERROR();
 		return false;
@@ -429,7 +428,7 @@ static bool isOK_generateMass(void) {
 	}
 	limit.mass[0][MIN] = 3.0 * (limit.mass[1][MIN] = 3.0);
 	limit.mass[0][MAX] = 2.0 * (limit.mass[1][MAX] = 30.0);
-	limit.mode = GEN_M1M2;
+	limit.mode = FROM_M1M2;
 	SAVE_FUNCTION_CALLER();
 	generateMass(&mass, &limit);
 	if (!isMassBetweenLimits(&mass, &limit)) {

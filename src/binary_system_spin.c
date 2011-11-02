@@ -178,16 +178,10 @@ static void convertSpinFromPrecessingFrame(spinParameters *spin, const double in
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
-/**	Converts spin parameters according the conversion parameter.
- * @param[in,out]	spin		: spin parameters
- * @param[in]		inclination	: inclination fo the precessing frame
- * @param[in]		convert		: conversion mode
- */
-static void convertSpin(spinParameters spin[NUMBER_OF_BLACKHOLES], const double inclination,
-	spinConversionMode convert) {
+void convertSpin(spinParameters *spin, const double inclination) {
 	BACKUP_DEFINITION_LINE();    //
 	assert(spin);
-	switch (convert) {
+	switch (spin->convert) {
 	case FROM_FIXED_XYZ:
 		magnitudeOfSpin(spin);
 		convertSpinFromFixedFrame(spin, inclination);
@@ -199,18 +193,18 @@ static void convertSpin(spinParameters spin[NUMBER_OF_BLACKHOLES], const double 
 		convertSpinFromFixedFrame(spin, inclination);
 		convertSpinFromXyzToAngles(spin, PRECESSING);
 		break;
-	case FROM_PRECESSION_XZY:
+	case FROM_PRECESSING_XYZ:
 		magnitudeOfSpin(spin);
 		convertSpinFromXyzToAngles(spin, FIXED);
 		convertSpinFromPrecessingFrame(spin, inclination);
 		convertSpinFromXyzToAngles(spin, PRECESSING);
 		break;
-	case FROM_PRECESSION_ANGLES:
+	case FROM_PRECESSING_ANGLES:
 		convertSpinFromAnglesToXyz(spin, PRECESSING);
 		convertSpinFromPrecessingFrame(spin, inclination);
 		convertSpinFromXyzToAngles(spin, FIXED);
 		break;
-	case SPIN_CONVERSIONS:
+	case SPIN_CONVERTED:
 	default:
 		break;
 	}
@@ -222,49 +216,51 @@ void generateSpin(spinParameters *spin, spinLimits *limit, double inclination) {
 	BACKUP_DEFINITION_LINE();    //
 	assert(spin);
 	assert(limit);
+	spin->convert = limit->mode;
 	switch (limit->mode) {
-	case GEN_FIXED_XYZ:
+	case FROM_FIXED_XYZ:
 		do {
 			for (short j = 0; j < DIMENSION; j++) {
 				spin->component[FIXED][j] = randomBetween(limit->component[FIXED][j][MIN],
 					limit->component[FIXED][j][MAX]);
 			}
-			convertSpin(spin, inclination, limit->mode);
+			convertSpin(spin, inclination);
 		} while (!isSpinBetweenLimits(spin, limit));
 		break;
-	case GEN_FIXED_ANGLES:
+	case FROM_FIXED_ANGLES:
 		do {
 			spin->magnitude = randomBetween(limit->magnitude[MIN], limit->magnitude[MAX]);
 			spin->azimuth[FIXED] = randomBetween(limit->azimuth[FIXED][MIN],
 				limit->azimuth[FIXED][MAX]);
 			spin->inclination[FIXED] = randomBetween(limit->inclination[FIXED][MIN],
 				limit->inclination[FIXED][MAX]);
-			convertSpin(spin, inclination, limit->mode);
+			convertSpin(spin, inclination);
 		} while (!isSpinBetweenLimits(spin, limit));
 		break;
-	case GEN_PRECESSING_XYZ:
+	case FROM_PRECESSING_XYZ:
 		do {
 			for (short j = 0; j < DIMENSION; j++) {
 				spin->component[FIXED][j] = randomBetween(limit->component[FIXED][j][MIN],
 					limit->component[FIXED][j][MAX]);
 			}
-			convertSpin(spin, inclination, limit->mode);
+			convertSpin(spin, inclination);
 		} while (!isSpinBetweenLimits(spin, limit));
 		break;
-	case GEN_PRECESSING_ANGLES:
+	case FROM_PRECESSING_ANGLES:
 		do {
 			spin->magnitude = randomBetween(limit->magnitude[MIN], limit->magnitude[MAX]);
 			spin->azimuth[PRECESSING] = randomBetween(limit->azimuth[PRECESSING][MIN],
 				limit->azimuth[PRECESSING][MAX]);
 			spin->inclination[PRECESSING] = randomBetween(limit->inclination[PRECESSING][MIN],
 				limit->inclination[PRECESSING][MAX]);
-			convertSpin(spin, inclination, limit->mode);
+			convertSpin(spin, inclination);
 		} while (!isSpinBetweenLimits(spin, limit));
 		break;
-	case SPIN_GENERATIONS:
+	case SPIN_CONVERTED:
 	default:
 		break;
 	};
+	spin->convert = SPIN_CONVERTED;
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
@@ -653,7 +649,8 @@ static bool isOK_convertSpin(void) {
 	spin.component[FIXED][Z] = -1.0;
 	double inclination = 0.0;
 	SAVE_FUNCTION_CALLER();
-	convertSpin(&spin, inclination, FROM_FIXED_XYZ);
+	spin.convert = FROM_FIXED_XYZ;
+	convertSpin(&spin, inclination);
 	if (memcmp(spin.component[FIXED], spin.component[PRECESSING], sizeof(double) * DIMENSION)) {
 		PRINT_ERROR();
 		return false;
@@ -689,7 +686,7 @@ static bool isOK_generateSpin(void) {
 	limit.component[PRECESSING][X][MAX] = 40.0 + (limit.component[PRECESSING][X][MIN] = -20.0);
 	limit.component[PRECESSING][Y][MAX] = 40.0 + (limit.component[PRECESSING][Y][MIN] = -20.0);
 	limit.component[PRECESSING][Z][MAX] = 40.0 + (limit.component[PRECESSING][Z][MIN] = -20.0);
-	limit.mode = GEN_FIXED_XYZ;
+	limit.mode = FROM_FIXED_XYZ;
 	SAVE_FUNCTION_CALLER();
 	generateSpin(&spin, &limit, inclination);
 	if (!isSpinBetweenLimits(&spin, &limit)) {

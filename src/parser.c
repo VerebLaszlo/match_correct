@@ -125,7 +125,7 @@ static void getMasses(config_setting_t *binary, massLimits *defaults, massLimits
 	} else {
 		memcpy(limit->mass[1], defaults->mass[1], 2 * sizeof(defaults[0]));
 	}
-	limit->mode = GEN_M1M2;
+	limit->mode = FROM_M1M2;
 	for (ushort minimax = ZERO; minimax < MINMAX; minimax++) {
 		limit->chirpMass[minimax] = limit->eta[minimax] = limit->m1_m2[minimax] =
 			limit->mu[minimax] = limit->nu[minimax] = limit->totalMass[minimax] = NAN;
@@ -167,7 +167,7 @@ static void getSpin(config_setting_t *spin, spinLimits *defaults, spinLimits *li
 	} else {
 		memcpy(limit->azimuth, defaults->azimuth, size * sizeof(defaults->azimuth));
 	}
-	limit->mode = GEN_PRECESSING_ANGLES;
+	limit->mode = FROM_PRECESSING_ANGLES;
 }
 
 static void getSpins(config_setting_t *binary, binaryLimits *defaults, binaryLimits *limit) {
@@ -394,13 +394,17 @@ void destroySignalAndTemplatesLimits(Limits *limits) {
 static void getExactMasses(config_setting_t *binary, massParameters *mass) {
 	config_setting_lookup_float(binary, optionName[MASS1], &mass->mass[0]);
 	config_setting_lookup_float(binary, optionName[MASS2], &mass->mass[1]);
+	mass->convert = FROM_M1M2;
 }
 
 static void getExactSpin(config_setting_t *currentSpin, spinParameters *spin) {
 	config_setting_lookup_float(currentSpin, optionName[MAGNITUDE], &spin->magnitude);
 	config_setting_lookup_float(currentSpin, optionName[INCLINATION],
 		&spin->inclination[PRECESSING]);
+	convertAngleToRadian(&spin->inclination[PRECESSING]);
 	config_setting_lookup_float(currentSpin, optionName[AZIMUTH], &spin->azimuth[PRECESSING]);
+	convertAngleToRadian(&spin->azimuth[PRECESSING]);
+	spin->convert = FROM_PRECESSING_ANGLES;
 }
 
 static void getExactSpins(config_setting_t *currentBinary, BinarySystem *binary) {
@@ -417,6 +421,7 @@ static void getExactSourceParameters(config_setting_t *waveform, BinarySystem *b
 		getExactMasses(currentBinary, &binary->mass);
 		getExactSpins(currentBinary, binary);
 		config_setting_lookup_float(currentBinary, optionName[INCLINATION], &binary->inclination);
+		convertAngleToRadian(&binary->inclination);
 		config_setting_lookup_float(currentBinary, optionName[DISTANCE], &binary->distance);
 	}
 }
