@@ -59,7 +59,7 @@ static void printLALParameters(LALParameters *params) {
  * @return
  */
 static INT4 convertAmplitudeOrderFromString(const char *amplitudeOrder) {
-	INT4 amplitudeCode = LALSQTPN_0_0;
+	INT4 amplitudeCode = 0;
 	if (strstr(amplitudeOrder, "100") || strstr(amplitudeOrder, "110")
 		|| strstr(amplitudeOrder, "101") || strstr(amplitudeOrder, "111")) {
 		amplitudeCode |= LALSQTPN_0_0;
@@ -240,6 +240,11 @@ int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool
 	initLALParameters(&lalparams, parameters);
 	for (ushort i = 0; i < NUMBER_OF_SYSTEMS; i++) {
 		memset(&lalparams.status, 0, sizeof(LALStatus));
+		/*if (i) {
+			switchMode = LALSQTPN_ADAPTIVE;
+		} else {*/
+			switchMode = LALSQTPN_PRECESSING;
+		/*}*/
 		LALGenerateInspiral(&lalparams.status, &lalparams.waveform[i], &lalparams.injParams[i],
 			&lalparams.ppnParams[i]);
 		if (lalparams.status.statusCode) {
