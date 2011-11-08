@@ -44,6 +44,8 @@ FILE *safelyOpenForWriting(const char *fileName);
  */
 FILE *safelyOpenForAppend(const char *fileName);
 
+bool makeDir(const char *name);
+
 ///@}
 /// @name Output formatting functions and types
 ///@{

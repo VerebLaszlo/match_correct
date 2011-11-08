@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "util_IO.h"
 #ifndef NDEBUG
 #include <assert.h>
@@ -61,6 +62,14 @@ FILE *safelyOpenForWriting(const char *fileName) {
 FILE *safelyOpenForAppend(const char *fileName) {
 	assert(strcmp(fileName, ""));
 	return safelyOpenFile(fileName, "a");
+}
+
+bool makeDir(const char *name) {
+	int status = mkdir(name, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH  | S_IXOTH);
+	if (status != EEXIST) {
+		return false;
+	}
+	return true;
 }
 
 ///@}

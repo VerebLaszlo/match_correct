@@ -35,7 +35,7 @@ static void run(ProgramParameter *program, SystemParameter *parameters, size_t n
 				* (signal.componentsInTime[H2P][i] + signal.componentsInTime[H2C][i]);
 		}
 		char fileName[1000];
-		sprintf(fileName, "%s/%s.%02d.dat", program->outputDirectory, parameters->name[1], number);
+		sprintf(fileName, "%s/%s%02d.dat", program->outputDirectory, parameters->name[1], number);
 		FILE *file = safelyOpenForWriting(fileName);
 		printParametersForSignalPlotting(file, parameters, match);
 		printTwoSignals(file, &signal);
@@ -109,6 +109,11 @@ static void runForExactWaveformPairs(cstring fileName, ProgramParameter *program
 void runProgram(cstring programFileName, cstring parameterFileName, Options *option) {
 	ProgramParameter program;
 	getProgramParametersFrom(programFileName, &program, option);
+	strcat(program.outputDirectory, "/");
+	string temp;
+	strcpy(temp, parameterFileName);
+	strcat(program.outputDirectory, strtok(temp, "."));
+	makeDir(program.outputDirectory);
 	if (option->exact) {
 		runForExactWaveformPairs(parameterFileName, &program);
 	} else {
