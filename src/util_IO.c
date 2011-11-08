@@ -65,11 +65,22 @@ FILE *safelyOpenForAppend(const char *fileName) {
 }
 
 bool makeDir(const char *name) {
-	int status = mkdir(name, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH  | S_IXOTH);
+	int status = mkdir(name, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
 	if (status != EEXIST) {
 		return false;
 	}
 	return true;
+}
+
+void getFileName(char *name, const char *path) {
+	string temp;
+	char *token;
+	strcpy(temp, path);
+	token = strtok(temp, "/");
+	do {
+		strcpy(name, token);
+		token = strtok(NULL, "/");
+	} while (token);
 }
 
 ///@}

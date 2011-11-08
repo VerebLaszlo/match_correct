@@ -46,6 +46,8 @@ FILE *safelyOpenForAppend(const char *fileName);
 
 bool makeDir(const char *name);
 
+void getFileName(char *name, const char *path);
+
 ///@}
 /// @name Output formatting functions and types
 ///@{

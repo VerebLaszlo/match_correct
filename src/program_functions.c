@@ -69,7 +69,9 @@ static void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
 	size_t numberOfPairs;
 	Limits *pair = createWaveformPairLimitsFrom(fileName, &constants, &numberOfPairs);
 	string configName;
-	sprintf(configName, "%s/data_%s", program->outputDirectory, fileName);
+	string name;
+	getFileName(name, fileName);
+	sprintf(configName, "%s/data_%s", program->outputDirectory, name);
 	FILE *file = safelyOpenForWriting(configName);
 	printStartOfConfigFile(file, &constants);
 	if (numberOfPairs) {
@@ -110,9 +112,9 @@ void runProgram(cstring programFileName, cstring parameterFileName, Options *opt
 	ProgramParameter program;
 	getProgramParametersFrom(programFileName, &program, option);
 	strcat(program.outputDirectory, "/");
-	string temp;
-	strcpy(temp, parameterFileName);
-	strcat(program.outputDirectory, strtok(temp, "."));
+	string name;
+	getFileName(name, parameterFileName);
+	strcat(program.outputDirectory, strtok(name, "."));
 	makeDir(program.outputDirectory);
 	if (option->exact) {
 		runForExactWaveformPairs(parameterFileName, &program);
