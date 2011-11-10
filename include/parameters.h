@@ -18,6 +18,7 @@ typedef struct {
 	bool calculateMatch;
 	bool testing;
 	bool exact;
+	bool copy;
 } Options;
 
 typedef enum ParameterConstants_ {
@@ -61,7 +62,7 @@ typedef struct SystemParameter_ {
 void getSysemParametersFromLimit(Limits *limit, ConstantParameters *constants,
 	SystemParameter *parameter, ushort blackhole);
 
-void getSysemParametersFromLimits(Limits *limit, ConstantParameters *constants,
+void getSysemParametersFromLimits(Limits *limit, ConstantParameters *constants, bool copy,
 	SystemParameter *parameter);
 
 typedef struct {

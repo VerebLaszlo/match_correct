@@ -64,7 +64,7 @@ static void runForSignalAndTemplates(cstring fileName, ProgramParameter *program
 	destroySignalAndTemplatesLimits(template);
 }
 
-static void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
+static void runForWaveformPairs(cstring fileName, bool copy, ProgramParameter *program) {
 	ConstantParameters constants;
 	size_t numberOfPairs;
 	Limits *pair = createWaveformPairLimitsFrom(fileName, &constants, &numberOfPairs);
@@ -79,7 +79,7 @@ static void runForWaveformPairs(cstring fileName, ProgramParameter *program) {
 			for (size_t pairMultiply = 0; pairMultiply < pair[2 * currentPair + 1].numberOfRuns;
 				pairMultiply++) {
 				SystemParameter parameter;
-				getSysemParametersFromLimits(&pair[2 * currentPair], &constants, &parameter);
+				getSysemParametersFromLimits(&pair[2 * currentPair], &constants, copy, &parameter);
 				run(program, &parameter, pairMultiply);
 				printWaveformPairsToConfigFile(file, &parameter, &outputFormat[DATA]);
 				if ((currentPair != numberOfPairs - 1)
@@ -119,7 +119,7 @@ void runProgram(cstring programFileName, cstring parameterFileName, Options *opt
 	if (option->exact) {
 		runForExactWaveformPairs(parameterFileName, &program);
 	} else {
-		runForWaveformPairs(parameterFileName, &program);
+		runForWaveformPairs(parameterFileName, option->copy, &program);
 		runForSignalAndTemplates(parameterFileName, &program);
 	}
 }

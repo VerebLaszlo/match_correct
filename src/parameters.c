@@ -25,10 +25,13 @@ void getSysemParametersFromLimit(Limits *limit, ConstantParameters *constants,
 	parameter->samplingTime = 1.0 / parameter->samplingFrequency;
 }
 
-void getSysemParametersFromLimits(Limits limit[], ConstantParameters *constants,
+void getSysemParametersFromLimits(Limits limit[], ConstantParameters *constants, bool copy,
 	SystemParameter *parameter) {
 	for (ushort systems = 0; systems < NUMBER_OF_SYSTEMS; systems++) {
 		getSysemParametersFromLimit(&limit[systems], constants, parameter, systems);
+	}
+	if (copy) {
+		memcpy(&parameter->system[1], &parameter->system[0], sizeof(BinarySystem));
 	}
 }
 

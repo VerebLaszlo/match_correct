@@ -18,6 +18,8 @@ static void printHelp(void) {
 	puts("s: the file containing the parameters");
 	puts("i: the file initialize the program");
 	puts("e: read exact parameters");
+	puts("c: copy the generated parameters from the first system to the second.\n"
+		"    It is good to compare various approximants.");
 	puts("t: testing");
 }
 
@@ -34,6 +36,8 @@ static void interpretOptions(Options *option, int argc, char *argv[]) {
 				option->calculateMatch = true;
 			} else if ((*argv)[1] == 'e') {
 				option->exact = true;
+			} else if ((*argv)[1] == 'c') {
+				option->copy = true;
 			} else if ((*argv)[1] == 's') {
 				argc--;
 				argv++;
