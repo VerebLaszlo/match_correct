@@ -42,6 +42,10 @@ typedef struct {
 	char name[LENGTH_OF_STRING];
 } Limits;
 
+typedef enum {
+	WORST, TYPICAL, BEST, NUMBER_OF_MATCHES,
+} MATCHES;
+
 typedef struct SystemParameter_ {
 	BinarySystem system[NUMBER_OF_SYSTEMS];
 	DetectorParameters detector[NUMBER_OF_SYSTEMS];
@@ -56,6 +60,7 @@ typedef struct SystemParameter_ {
 	char phase[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	char spin[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	char amplitude[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
+	double match[NUMBER_OF_MATCHES];
 	size_t numberOfRuns;
 } SystemParameter;
 
@@ -99,9 +104,7 @@ void printWaveformPairsToConfigFile(FILE *file, SystemParameter *param, OutputFo
 
 void printSystemParameters(FILE *file, SystemParameter *params, OutputFormat *format);
 
-typedef enum {
-	WORST, TYPICAL, BEST, NUMBER_OF_MATCHES,
-} MATCHES;
+void printMassAndSpinsForStatistic(FILE *file, BinarySystem *param, double match[]);
 
 void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double match[]);
 

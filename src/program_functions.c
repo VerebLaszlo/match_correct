@@ -20,12 +20,12 @@ static void run(ProgramParameter *program, SystemParameter *parameters, size_t n
 	setSignalExistanceFunctions(program->calculateMatches);
 	SignalStruct signal;
 	generateWaveformPair(parameters, &signal, program->calculateMatches);
-	double match[NUMBER_OF_MATCHES] = { 0.0, 0.0, 0.0 };
 	if (program->calculateMatches) {
 		size_t min, max;
 		calculateIndexBoundariesFromFrequencies(parameters->initialFrequency,
 			parameters->endingFrequency, parameters->samplingFrequency, &min, &max);
-		calc_Matches(&signal, min, max, &match[TYPICAL], &match[BEST], &match[WORST]);
+		calc_Matches(&signal, min, max, &parameters->match[TYPICAL], &parameters->match[BEST],
+			&parameters->match[WORST]);
 	}
 	if (program->plot) {
 		for (size_t i = 0; i < signal.size; i++) {
@@ -37,7 +37,7 @@ static void run(ProgramParameter *program, SystemParameter *parameters, size_t n
 		char fileName[1000];
 		sprintf(fileName, "%s/%s%02d.dat", program->outputDirectory, parameters->name[1], number);
 		FILE *file = safelyOpenForWriting(fileName);
-		printParametersForSignalPlotting(file, parameters, match);
+		printParametersForSignalPlotting(file, parameters, parameters->match);
 		printTwoSignals(file, &signal);
 		fclose(file);
 	}
@@ -69,6 +69,9 @@ static void runForWaveformPairs(cstring fileName, bool copy, ProgramParameter *p
 	size_t numberOfPairs;
 	Limits *pair = createWaveformPairLimitsFrom(fileName, &constants, &numberOfPairs);
 	string configName;
+	string matchName;
+	sprintf(matchName, "%s/%s", program->outputDirectory, "match.dat");
+	FILE *matchFile = safelyOpenForWriting(matchName);
 	string name;
 	getFileName(name, fileName);
 	sprintf(configName, "%s/data_%s", program->outputDirectory, name);
@@ -81,6 +84,9 @@ static void runForWaveformPairs(cstring fileName, bool copy, ProgramParameter *p
 				SystemParameter parameter;
 				getSysemParametersFromLimits(&pair[2 * currentPair], &constants, copy, &parameter);
 				run(program, &parameter, pairMultiply);
+				if (copy) {
+					printMassAndSpinsForStatistic(matchFile, &parameter.system[0], parameter.match);
+				}
 				printWaveformPairsToConfigFile(file, &parameter, &outputFormat[DATA]);
 				if ((currentPair != numberOfPairs - 1)
 					|| pairMultiply != pair[2 * currentPair + 1].numberOfRuns - 1) {
@@ -91,6 +97,7 @@ static void runForWaveformPairs(cstring fileName, bool copy, ProgramParameter *p
 	}
 	printEndOfConfigFile(file);
 	fclose(file);
+	fclose(matchFile);
 	destroyWaveformPairLimits(pair);
 }
 
