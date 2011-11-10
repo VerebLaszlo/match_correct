@@ -111,6 +111,7 @@ static void runForExactWaveformPairs(cstring fileName, ProgramParameter *program
 void runProgram(cstring programFileName, cstring parameterFileName, Options *option) {
 	ProgramParameter program;
 	getProgramParametersFrom(programFileName, &program, option);
+	initializeRandomGenerator(program.seed);
 	strcat(program.outputDirectory, "/");
 	string name;
 	getFileName(name, parameterFileName);

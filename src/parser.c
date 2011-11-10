@@ -505,6 +505,7 @@ void destroyExactWaveformPairs(SystemParameter *pairs) {
 typedef enum {
 	OUTPUT_DIRECTORY,
 	NUMBER_OF_RUNS,
+	SEED,
 	SIGNAL_DATA_FORMAT,
 	SIGNAL_FORMAT,
 	DATA_FORMAT,
@@ -516,7 +517,7 @@ typedef enum {
 	NUMBER_OF_PROGRAM_OPTIONS,
 } ProgramOptionCode;
 
-char const * programOptionName[] = { "outputDirectory", "numberOfRuns", "signalDataFormat",
+char const * programOptionName[] = { "outputDirectory", "numberOfRuns", "seed", "signalDataFormat",
 										"signalFormat", "dataFormat", "precision", "width",
 										"specifier", "separator", "leftJustified", };
 
@@ -551,6 +552,7 @@ void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters, Op
 	cstring outputDirectoryName = config_setting_get_string(setting);
 	strcpy(parameters->outputDirectory, outputDirectoryName);
 	config_lookup_int(&cfg, programOptionName[NUMBER_OF_RUNS], &parameters->numberOfRuns);
+	config_lookup_int(&cfg, programOptionName[SEED], &parameters->seed);
 	config_setting_t *format = config_lookup(&cfg, programOptionName[SIGNAL_DATA_FORMAT]);
 	getFormat(SIGNAL_DATA, format);
 	format = config_lookup(&cfg, programOptionName[SIGNAL_FORMAT]);

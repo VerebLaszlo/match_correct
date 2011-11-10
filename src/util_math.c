@@ -8,6 +8,7 @@
 #include <math.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <time.h>
 #include "test.h"
 #include "util_math.h"
 
@@ -79,6 +80,14 @@ double degreeFromTurn(double turn) {
 ///@}
 /// @name Random numbers
 ///@{
+
+void initializeRandomGenerator(int seed) {
+	if (seed < 0) {
+		srand((unsigned)time(NULL));
+	} else {
+		srand((unsigned)seed);
+	}
+}
 
 double randomBetweenZeroAndOne(void) {
 	int number = rand();
@@ -232,14 +241,12 @@ const TIME_CONVERSION_CONSTANTS TIME_CONVERSION_CONSTANT = { 60.0, 1.0 / 60.0, /
 																24.0 * 60.0 * 60.0, 1.0
 																	/ (24.0 * 60.0 * 60.0), };
 
-const CONVERSION_CONSTANTS CONVERSION_CONSTANT = { 180.0 / M_PI, M_PI / 180.0
-													, //
-													15.0 * M_PI / 180.0, 1.0 / (15.0 * M_PI / 180.0)
-													, //
+const CONVERSION_CONSTANTS CONVERSION_CONSTANT = { 180.0 / M_PI, M_PI / 180.0, //
+													15.0 * M_PI / 180.0, 1.0
+														/ (15.0 * M_PI / 180.0), //
 													15.0, 1.0 / 15.0, //
 													15.0 * M_PI / 180.0 / 60.0, 1.0
-														/ (15.0 * M_PI / 180.0 / 60.0)
-													, //
+														/ (15.0 * M_PI / 180.0 / 60.0), //
 													15.0 * M_PI / 180.0 / 60.0 / 60.0, 1.0
 														/ (15.0 * M_PI / 180.0 / 60.0 / 60.0), };
 

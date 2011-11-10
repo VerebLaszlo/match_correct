@@ -105,6 +105,11 @@ double degreeFromTurn(double turn);
 /// @name Random numbers
 ///@{
 
+/**	Initialize the random number generator with the given seed.
+ * @param[in] seed
+ */
+void initializeRandomGenerator(int seed);
+
 /**  Returns a pseudo-random number in the range [0,1). Use srand() beforehand to initialize the
  * random number generator.
  * @return a random number

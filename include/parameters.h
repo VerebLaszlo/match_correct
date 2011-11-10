@@ -80,6 +80,7 @@ typedef struct ProgramParameter_ {
 	char outputDirectory[FILENAME_MAX];
 	Formats format;
 	ulong numberOfRuns;
+	int seed;
 	bool plot;
 	bool calculateMatches;
 } ProgramParameter;
