@@ -240,10 +240,10 @@ int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool
 	initLALParameters(&lalparams, parameters);
 	for (ushort i = 0; i < NUMBER_OF_SYSTEMS; i++) {
 		memset(&lalparams.status, 0, sizeof(LALStatus));
-		/*if (i) {
-			switchMode = LALSQTPN_ADAPTIVE;
-		} else {*/
-			switchMode = LALSQTPN_PRECESSING;
+		/*if (i) {*/
+		//switchMode = LALSQTPN_ADAPTIVE;
+		/*} else {*/
+		switchMode = LALSQTPN_PRECESSING;
 		/*}*/
 		LALGenerateInspiral(&lalparams.status, &lalparams.waveform[i], &lalparams.injParams[i],
 			&lalparams.ppnParams[i]);

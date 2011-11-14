@@ -166,7 +166,7 @@ void calc_Matches(SignalStruct *in, size_t min_Index, size_t max_Index, double *
 		fftw_execute(in->plan[i]);
 	}
 	orthonormalise(in, min_Index, max_Index, in);
-	fftw_complex *product = fftw_malloc(in->size * sizeof(fftw_complex));
+	fftw_complex *product = secureFFTWCalloc(in->size, sizeof(fftw_complex));
 	fftw_plan iplan;
 	for (short i = 0; i < NUMBER_OF_SIGNALS_COMPONENTS; i++) {
 		iplan = fftw_plan_dft_c2r_1d((int) in->size, product, in->product[i], FFTW_ESTIMATE);
@@ -176,7 +176,7 @@ void calc_Matches(SignalStruct *in, size_t min_Index, size_t max_Index, double *
 		fftw_execute(iplan);
 		fftw_destroy_plan(iplan);
 	}
-	fftw_free(product);
+	secureFFTWFree(product);
 	calc_Timemaximised_Matches(in, typ, best, minimax);
 }
 

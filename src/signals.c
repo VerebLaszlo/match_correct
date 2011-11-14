@@ -6,9 +6,32 @@
  */
 
 #include "signals.h"
+#include <errno.h>
 #include <limits.h>
 
-extern int errno;
+void *secureFFTWMalloc(size_t number, size_t size) {
+	void *result = fftw_malloc(number * size);
+	if (!result) {
+		fprintf(stderr, "%s with size: %dbytes\n", strerror(errno), number * size);
+		exit(EXIT_FAILURE);
+	}
+	return result;
+}
+void *secureFFTWCalloc(size_t number, size_t size) {
+	void *result = fftw_malloc(number * size);
+	if (!result) {
+		fprintf(stderr, "%s with size: %dbytes\n", strerror(errno), number * size);
+		exit(EXIT_FAILURE);
+	}
+	memset(result, 0, number * size);
+	return result;
+}
+
+void secureFFTWFree(void *memory) {
+	if (memory) {
+		fftw_free(memory);
+	}
+}
 
 void createSignalWithoutmatch(SignalStruct *signal, size_t size) {
 	assert(signal);
@@ -34,12 +57,6 @@ void destroySignalWithoutMatch(SignalStruct *signal) {
 	}
 }
 
-static void *fftw_calloc(size_t size) {
-	void *memory = fftw_malloc(size);
-	memset(memory, 0, size);
-	return memory;
-}
-
 void createSignalForMatch(SignalStruct *signal, size_t size) {
 	assert(signal);
 	assert(size);
@@ -47,38 +64,38 @@ void createSignalForMatch(SignalStruct *signal, size_t size) {
 	signal->size = size;
 	size_t length = signal->size * sizeof(double);
 	for (ushort i = 0; i < NUMBER_OF_SIGNALS; i++) {
-		signal->inTime[i] = fftw_calloc(length);
+		signal->inTime[i] = secureFFTWCalloc(signal->size, sizeof(double));
 	}
 	for (ushort i = 0; i < NUMBER_OF_SIGNALS_COMPONENTS; i++) {
-		signal->componentsInFrequency[i] = fftw_calloc(signal->size * sizeof(fftw_complex));
-		signal->componentsInTime[i] = fftw_calloc(length);
-		signal->product[i] = fftw_calloc(length);
+		signal->componentsInFrequency[i] = secureFFTWCalloc(signal->size, sizeof(fftw_complex));
+		signal->componentsInTime[i] = secureFFTWCalloc(signal->size, sizeof(double));
+		signal->product[i] = secureFFTWCalloc(signal->size, sizeof(double));
 		signal->plan[i] = fftw_plan_dft_r2c_1d((int) signal->size, signal->componentsInTime[i],
 			signal->componentsInFrequency[i], FFTW_ESTIMATE);
 	}
-	signal->powerSpectrumDensity = fftw_calloc(length);
+	signal->powerSpectrumDensity = secureFFTWCalloc(signal->size, sizeof(double));
 }
 
 void destroySignalForMatch(SignalStruct *signal) {
 	for (ushort i = 0; i < NUMBER_OF_SIGNALS; i++) {
-		fftw_free(signal->inTime[i]);
+		secureFFTWFree(signal->inTime[i]);
 	}
 	for (ushort i = 0; i < NUMBER_OF_SIGNALS_COMPONENTS; i++) {
 		if (signal->componentsInFrequency[i]) {
-			fftw_free(signal->componentsInFrequency[i]);
+			secureFFTWFree(signal->componentsInFrequency[i]);
 		}
 		if (signal->componentsInTime[i]) {
-			fftw_free(signal->componentsInTime[i]);
+			secureFFTWFree(signal->componentsInTime[i]);
 		}
 		if (signal->product[i]) {
-			fftw_free(signal->product[i]);
+			secureFFTWFree(signal->product[i]);
 		}
 		if (signal->plan[i]) {
 			fftw_destroy_plan(signal->plan[i]);
 		}
 	}
 	if (signal->powerSpectrumDensity) {
-		fftw_free(signal->powerSpectrumDensity);
+		secureFFTWFree(signal->powerSpectrumDensity);
 	}
 }
 

@@ -11,6 +11,12 @@
 #include <fftw3.h>
 #include "util_IO.h"
 
+void *secureFFTWMalloc(size_t number, size_t size);
+
+void *secureFFTWCalloc(size_t number, size_t size);
+
+void secureFFTWFree(void *memory);
+
 /**	Constants indexing the signal components.
  */
 typedef enum {
