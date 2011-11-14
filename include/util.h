@@ -8,8 +8,6 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <stdbool.h>
-
 typedef enum {
 	ZERO = 0, STRING_LENGTH = 100,
 } UtilityConstants;
@@ -20,9 +18,19 @@ typedef const char *cstring;	//< shorthand for constant dynamic string type
 typedef unsigned short ushort; ///< shorthand for unsigned short int type
 typedef unsigned long ulong;
 
+#include <stdbool.h>
+
 /**	Negates the boolean variable.
  * @param[in,out] var	: boolean variable to be negated.
  */
 void neg(bool *var);
+
+#include <stddef.h>
+
+void *secureMalloc(size_t number, size_t size);
+
+void *secureCalloc(size_t number, size_t size);
+
+void secureFree(void *memory);
 
 #endif // UTIL_H

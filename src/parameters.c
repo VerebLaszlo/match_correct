@@ -37,15 +37,15 @@ void getSysemParametersFromLimits(Limits limit[], ConstantParameters *constants,
 
 void createFormats(size_t number, Formats *formats) {
 	formats->number = number;
-	formats->precision = calloc(formats->number, sizeof(ushort));
-	formats->width = calloc(formats->number, sizeof(ushort));
-	formats->name = calloc(formats->number, sizeof(string));
+	formats->precision = secureCalloc(formats->number, sizeof(ushort));
+	formats->width = secureCalloc(formats->number, sizeof(ushort));
+	formats->name = secureCalloc(formats->number, sizeof(string));
 }
 
 void destroyFormats(Formats *formats) {
-	free(formats->precision);
-	free(formats->width);
-	free(formats->name);
+	secureFree(formats->precision);
+	secureFree(formats->width);
+	secureFree(formats->name);
 	formats->number = 0;
 }
 

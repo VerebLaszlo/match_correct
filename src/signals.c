@@ -8,16 +8,18 @@
 #include "signals.h"
 #include <limits.h>
 
+extern int errno;
+
 void createSignalWithoutmatch(SignalStruct *signal, size_t size) {
 	assert(signal);
 	assert(size);
 	memset(signal, 0, sizeof(SignalStruct));
 	signal->size = size;
 	for (ushort i = 0; i < NUMBER_OF_SIGNALS; i++) {
-		signal->inTime[i] = calloc(signal->size, sizeof(double));
+		signal->inTime[i] = secureCalloc(signal->size, sizeof(double));
 	}
 	for (ushort i = 0; i < NUMBER_OF_SIGNALS_COMPONENTS; i++) {
-		signal->componentsInTime[i] = calloc(signal->size, sizeof(double));
+		signal->componentsInTime[i] = secureCalloc(signal->size, sizeof(double));
 	}
 }
 
@@ -25,12 +27,10 @@ void destroySignalWithoutMatch(SignalStruct *signal) {
 	assert(signal);
 	signal->size = 0;
 	for (ushort i = 0; i < NUMBER_OF_SIGNALS; i++) {
-		if (signal->inTime[i]) {
-			free(signal->inTime[i]);
-		}
+		secureFree(signal->inTime[i]);
 	}
 	for (ushort i = 0; i < NUMBER_OF_SIGNALS_COMPONENTS; i++) {
-		free(signal->componentsInTime[i]);
+		secureFree(signal->componentsInTime[i]);
 	}
 }
 
@@ -194,99 +194,6 @@ void printTwoSignalsWithHPHC(FILE* file, SignalStruct *signal) {
 			fprintf(file, formatString, (double) i * signal->samplingTime, signal->inTime[H1][i],
 				"", signal->componentsInTime[H1P][i], signal->componentsInTime[H1C][i], "", "");
 		}
-	}
-}
-
-void create_Signal_Struct(SignalStruct *signal, size_t length) {
-	assert(length>0);
-	size_t size;
-	if (length < INT_MAX) {
-		signal->size = length;
-		size = signal->size * sizeof(double);
-	} else {
-		exit(EXIT_FAILURE);
-	}
-	short i;
-	for (i = 0; i < NUMBER_OF_SIGNALS_COMPONENTS; i++) {
-		signal->componentsInTime[i] = fftw_malloc(size);
-		memset(signal->componentsInTime[i], 0, size);
-		signal->product[i] = fftw_malloc(size);
-		memset(signal->product[i], 0, size);
-		signal->componentsInFrequency[i] = fftw_malloc(signal->size * sizeof(fftw_complex));
-		memset(signal->componentsInFrequency[i], 0, signal->size * sizeof(fftw_complex));
-		signal->plan[i] = fftw_plan_dft_r2c_1d((int) signal->size, signal->componentsInTime[i],
-			signal->componentsInFrequency[i], FFTW_ESTIMATE);
-	}
-	for (; i < NUMBER_OF_SIGNALS; i++) {
-		signal->inTime[i] = fftw_malloc(size);
-		memset(signal->inTime[i], 0, size);
-	}
-	signal->powerSpectrumDensity = fftw_malloc(size);
-	memset(signal->powerSpectrumDensity, 0, size);
-}
-
-void create_Signal_Struct1(SignalStruct *signal, size_t size) {
-	assert(size>0);
-	signal->size = size;
-	short i;
-	for (i = 0; i < NUMBER_OF_SIGNALS_COMPONENTS; i++) {
-		signal->componentsInTime[i] = malloc(signal->size * sizeof(double));
-		memset(signal->componentsInTime[i], 0, signal->size * sizeof(double));
-		signal->product[i] = NULL;
-		signal->componentsInFrequency[i] = NULL;
-		signal->plan[i] = NULL;
-	}
-	for (; i < NUMBER_OF_SIGNALS; i++) {
-		signal->inTime[i] = malloc(signal->size * sizeof(double));
-		memset(signal->inTime[i], 0, signal->size * sizeof(double));
-	}
-	signal->powerSpectrumDensity = NULL;
-}
-
-void destroy_Signal_Struct(SignalStruct *signal) {
-	assert(signal);
-	short i;
-	for (i = 0; i < NUMBER_OF_SIGNALS_COMPONENTS; i++) {
-		if (signal->componentsInTime[i]) {
-			fftw_free(signal->componentsInTime[i]);
-		}
-		if (signal->product[i]) {
-			fftw_free(signal->product[i]);
-		}
-		if (signal->componentsInFrequency[i]) {
-			fftw_free(signal->componentsInFrequency[i]);
-		}
-		if (signal->plan[i]) {
-			fftw_destroy_plan(signal->plan[i]);
-		}
-	}
-	for (; i < NUMBER_OF_SIGNALS; i++) {
-		fftw_free(signal->inTime[i]);
-	}
-	if (signal->powerSpectrumDensity) {
-		fftw_free(signal->powerSpectrumDensity);
-	}
-}
-
-void destroy_Signal_Struct1(SignalStruct *signal) {
-	assert(signal);
-	short i;
-	for (i = 0; i < NUMBER_OF_SIGNALS_COMPONENTS; i++) {
-		if (signal->componentsInTime[i]) {
-			free(signal->componentsInTime[i]);
-		}
-		if (signal->product[i]) {
-			free(signal->product[i]);
-		}
-		if (signal->componentsInFrequency[i]) {
-			free(signal->componentsInFrequency[i]);
-		}
-	}
-	for (; i < NUMBER_OF_SIGNALS; i++) {
-		free(signal->inTime[i]);
-	}
-	if (signal->powerSpectrumDensity) {
-		free(signal->powerSpectrumDensity);
 	}
 }
 

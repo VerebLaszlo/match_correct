@@ -332,7 +332,7 @@ Limits *createWaveformPairLimitsFrom(cstring fileName, ConstantParameters *const
 		config_setting_t *pairs = config_lookup(&cfg, optionName[PAIRS]);
 		if (pairs) {
 			*numberOfPairs = (size_t) config_setting_length(pairs);
-			pairLimits = calloc(2 * *numberOfPairs, sizeof(Limits));
+			pairLimits = secureCalloc(2 * *numberOfPairs, sizeof(Limits));
 			for (size_t i = 0; i < *numberOfPairs; i++) {
 				current = config_setting_get_elem(pairs, i);
 				getWavePairParameters(current, &limit, &pairLimits[2 * i]);
@@ -344,9 +344,7 @@ Limits *createWaveformPairLimitsFrom(cstring fileName, ConstantParameters *const
 }
 
 void destroyWaveformPairLimits(Limits *pairs) {
-	if (pairs) {
-		free(pairs);
-	}
+	secureFree(pairs);
 }
 
 Limits *createSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *constants,
@@ -372,7 +370,7 @@ Limits *createSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters 
 		if (signal && templates) {
 			numberOfTemplates = (size_t) config_setting_length(templates);
 			*size = numberOfTemplates + 1;
-			waveformLimit = calloc(*size, sizeof(Limits));
+			waveformLimit = secureCalloc(*size, sizeof(Limits));
 			getWaveformParameters(signal, &limit, &waveformLimit[0]);
 			config_setting_t *current;
 			for (size_t i = 0; i < numberOfTemplates; i++) {
@@ -386,9 +384,7 @@ Limits *createSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters 
 }
 
 void destroySignalAndTemplatesLimits(Limits *limits) {
-	if (limits) {
-		free(limits);
-	}
+	secureFree(limits);
 }
 
 static void getExactMasses(config_setting_t *binary, massParameters *mass) {
@@ -481,7 +477,7 @@ SystemParameter *createExactWaveformPairFrom(cstring fileName, size_t *numberOfP
 		config_setting_t *pairs = config_lookup(&cfg, optionName[PAIRS]);
 		if (pairs) {
 			*numberOfPairs = (size_t) config_setting_length(pairs);
-			parameters = calloc(2 * *numberOfPairs, sizeof(SystemParameter));
+			parameters = secureCalloc(2 * *numberOfPairs, sizeof(SystemParameter));
 			for (size_t i = 0; i < *numberOfPairs; i++) {
 				current = config_setting_get_elem(pairs, i);
 				getExactWavePairParameters(current, &parameters[i]);
@@ -497,9 +493,7 @@ SystemParameter *createExactWaveformPairFrom(cstring fileName, size_t *numberOfP
 }
 
 void destroyExactWaveformPairs(SystemParameter *pairs) {
-	if (pairs) {
-		free(pairs);
-	}
+	secureFree(pairs);
 }
 
 typedef enum {
