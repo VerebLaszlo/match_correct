@@ -12,6 +12,14 @@
 #include "test.h"
 #include "util_math.h"
 
+double square(double number) {
+	return number * number;
+}
+
+double cube(double number) {
+	return number * number * number;
+}
+
 static const double RADIAN_PER_DEGREE = M_PI / 180.0; ///< degree to radian conversion constant
 static const double RADIAN_PER_TURN = M_PI + M_PI; ///< turn to radian conversion constant
 static const double DEGREE_PER_TURN = 360.0; ///< turn to degree conversion constant
@@ -83,9 +91,9 @@ double degreeFromTurn(double turn) {
 
 void initializeRandomGenerator(int seed) {
 	if (seed < 0) {
-		srand((unsigned)time(NULL));
+		srand((unsigned) time(NULL));
 	} else {
-		srand((unsigned)seed);
+		srand((unsigned) seed);
 	}
 }
 
