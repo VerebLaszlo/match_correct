@@ -12,6 +12,12 @@
 #include "detector.h"
 
 typedef struct {
+	bool set;
+	ushort totalMass;
+	ushort eta;
+} Step;
+
+typedef struct {
 	char parameterFile[FILENAME_MAX];
 	char programFile[FILENAME_MAX];
 	bool plot;
@@ -19,6 +25,7 @@ typedef struct {
 	bool testing;
 	bool exact;
 	bool copy;
+	Step step;
 } Options;
 
 typedef enum ParameterConstants_ {

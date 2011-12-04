@@ -10,6 +10,7 @@
 #include "parser.h"
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 static void printHelp(void) {
 	puts("h: prints this help");
@@ -46,6 +47,26 @@ static void interpretOptions(Options *option, int argc, char *argv[]) {
 				argc--;
 				argv++;
 				strcpy(option->programFile, *argv);
+			} else if ((*argv)[1] == 'd') {
+				argc--;
+				argv++;
+				ushort step = strtoul(*argv, NULL, 10);
+				if (step <= 0.0 || step == fabs(HUGE_VAL)) {
+					fprintf(stderr, "Bad stepping value, need to be positive: %u\n", step);
+					perror ("The following error occurred");
+					exit(-1);
+				}
+				option->step.totalMass = step;
+				argc--;
+				argv++;
+				step = strtoul(*argv, NULL, 10);
+				if (step <= 0.0 || step == fabs(HUGE_VAL)) {
+					fprintf(stderr, "Bad stepping value, need to be positive: %u\n", step);
+					perror ("The following error occurred");
+					exit(-1);
+				}
+				option->step.eta = step;
+				option->step.set = true;
 			} else if ((*argv)[1] == 't') {
 				option->testing = true;
 			}

@@ -64,6 +64,50 @@ static void runForSignalAndTemplates(cstring fileName, ProgramParameter *program
 	destroySignalAndTemplatesLimits(template);
 }
 
+static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParameter *program) {
+	size_t numberOfPairs;
+	ConstantParameters constants;
+	Limits *pair = createWaveformPairLimitsFrom(fileName, &constants, &numberOfPairs);
+	string matchName;
+	sprintf(matchName, "%s/%s", program->outputDirectory, "match.dat");
+	FILE *matchFile = safelyOpenForWriting(matchName);
+	double mass1[MINMAX] = { pair[0].binary.mass.mass[0][MIN], pair[0].binary.mass.mass[0][MAX] };
+	double mass2[MINMAX] = { pair[0].binary.mass.mass[1][MIN], pair[0].binary.mass.mass[1][MAX] };
+	double totalMass[MINMAX] = { mass1[MIN] + mass2[MIN], mass1[MAX] + mass2[MAX] };
+	double eta[MINMAX] = { 0, 0.25 };
+	double step[2] = { (totalMass[MAX] - totalMass[MIN]) / (double) steps->totalMass, (eta[MAX]
+		- eta[MIN]) / (double) steps->eta };
+	size_t current = 0;
+	SystemParameter parameter;
+	getSysemParametersFromLimits(&pair[0], &constants, copy, &parameter);
+	double backup = parameter.samplingFrequency;
+	if (numberOfPairs) {
+		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
+			for (double currentTotalMass = totalMass[MAX]; currentTotalMass >= totalMass[MIN];
+				currentTotalMass -= step[0], current++) {
+				for (double currentEta = 0.25; currentEta > 1e-10;
+					currentEta -= step[1], current++) {
+					parameter.system[0].mass.totalMass = parameter.system[1].mass.totalMass =
+						currentTotalMass;
+					parameter.system[0].mass.eta = parameter.system[1].mass.eta = currentEta;
+					parameter.system[0].mass.mass[0] = parameter.system[1].mass.mass[0] = (1.0
+						+ sqrt(1.0 - 4.0 * currentEta)) * currentTotalMass / 2.0;
+					parameter.system[0].mass.mass[1] = parameter.system[1].mass.mass[1] = (1.0
+						- sqrt(1.0 - 4.0 * currentEta)) * currentTotalMass / 2.0;
+					if (parameter.system[0].mass.mass[0] < 3.0
+						|| parameter.system[0].mass.mass[1] < 3.0) {
+						continue;
+					}
+					run(program, &parameter, current);
+					parameter.samplingFrequency = backup;
+					printMassAndSpinsForStatistic(matchFile, &parameter.system[0], parameter.match);
+				}
+			}
+		}
+	}
+	fclose(matchFile);
+}
+
 static void runForWaveformPairs(cstring fileName, bool copy, ProgramParameter *program) {
 	ConstantParameters constants;
 	size_t numberOfPairs;
@@ -97,7 +141,6 @@ static void runForWaveformPairs(cstring fileName, bool copy, ProgramParameter *p
 	}
 	printEndOfConfigFile(file);
 	fclose(file);
-	fclose(matchFile);
 	destroyWaveformPairLimits(pair);
 }
 
@@ -127,7 +170,11 @@ void runProgram(cstring programFileName, cstring parameterFileName, Options *opt
 	if (option->exact) {
 		runForExactWaveformPairs(parameterFileName, &program);
 	} else {
-		runForWaveformPairs(parameterFileName, option->copy, &program);
+		if (option->step.set) {
+			runWithStep(parameterFileName, &option->step, option->copy, &program);
+		} else {
+			runForWaveformPairs(parameterFileName, option->copy, &program);
+		}
 		runForSignalAndTemplates(parameterFileName, &program);
 	}
 }
