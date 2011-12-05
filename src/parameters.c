@@ -186,7 +186,7 @@ void printMassAndSpinsForStatistic(FILE *file, BinarySystem *param, double match
 	ushort length = number * format->widthWithSeparator;
 	char formatString[length];
 	setFormatEnd(formatString, number, format);
-	fprintf(file, formatString, match[MINMAX], match[TYPICAL], match[BEST], param->mass.totalMass,
+	fprintf(file, formatString, match[WORST], match[TYPICAL], match[BEST], param->mass.totalMass,
 		param->mass.eta, param->spin[0].magnitude, param->spin[1].magnitude,
 		param->spin[0].inclination[PRECESSING], param->spin[1].inclination[PRECESSING],
 		param->spin[0].azimuth[PRECESSING], param->spin[1].azimuth[PRECESSING]);

@@ -139,6 +139,9 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 							.spin[1].azimuth[PRECESSING] = currentInner;
 					}
 					if (steps->chiSet || steps->inclSet || steps->azimSet) {
+						parameter.system[0].spin[0].convert = parameter.system[0].spin[1].convert =
+							parameter.system[1].spin[0].convert = parameter.system[1].spin[1]
+								.convert = FROM_PRECESSING_ANGLES;
 						convertSpin(&parameter.system[0].spin[0], parameter.system[0].inclination);
 						convertSpin(&parameter.system[0].spin[1], parameter.system[0].inclination);
 						convertSpin(&parameter.system[1].spin[0], parameter.system[1].inclination);
