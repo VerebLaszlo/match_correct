@@ -78,29 +78,28 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 		double mass2[MINMAX] =
 			{ pair[0].binary.mass.mass[1][MIN], pair[0].binary.mass.mass[1][MAX] };
 		double totalMass[MINMAX] = { mass1[MIN] + mass2[MIN], mass1[MAX] + mass2[MAX] };
-		double eta[MINMAX] = { 0, 0.25 };
 		max[0] = totalMass[MAX];
 		min[0] = totalMass[MIN];
 		max[1] = 0.25;
 		min[1] = 1e-10;
-		step[0] = (totalMass[MAX] - totalMass[MIN]) / (double) steps->step[0];
-		step[1] = (eta[MAX] - eta[MIN]) / (double) steps->step[1];
 	} else if (steps->chiSet) {
-		max[0] = max[1] = 1.0;
-		min[0] = min[1] = 0.0;
-		step[0] = (max[0] - min[0]) / steps->step[0];
-		step[1] = (max[1] - min[1]) / steps->step[1];
+		max[0] = pair[0].binary.spin[0].magnitude[MAX];
+		min[0] = pair[0].binary.spin[0].magnitude[MIN];
+		max[1] = pair[0].binary.spin[1].magnitude[MAX];
+		min[1] = pair[0].binary.spin[1].magnitude[MIN];
 	} else if (steps->inclSet) {
-		max[0] = max[1] = pair[0].binary.spin[0].inclination[PRECESSING][MAX];
-		min[0] = min[1] = pair[0].binary.spin[1].inclination[PRECESSING][MIN];
-		step[0] = (max[0] - min[0]) / steps->step[0];
-		step[1] = (max[1] - min[1]) / steps->step[1];
+		max[0] = pair[0].binary.spin[0].inclination[PRECESSING][MAX];
+		min[0] = pair[0].binary.spin[0].inclination[PRECESSING][MIN];
+		max[1] = pair[0].binary.spin[1].inclination[PRECESSING][MAX];
+		min[1] = pair[0].binary.spin[1].inclination[PRECESSING][MIN];
 	} else if (steps->inclSet) {
-		max[0] = max[1] = pair[0].binary.spin[0].azimuth[PRECESSING][MAX];
-		min[0] = min[1] = pair[0].binary.spin[1].azimuth[PRECESSING][MIN];
-		step[0] = (max[0] - min[0]) / steps->step[0];
-		step[1] = (max[1] - min[1]) / steps->step[1];
+		max[0] = pair[0].binary.spin[0].azimuth[PRECESSING][MAX];
+		min[0] = pair[0].binary.spin[0].azimuth[PRECESSING][MIN];
+		max[1] = pair[0].binary.spin[1].azimuth[PRECESSING][MAX];
+		min[1] = pair[0].binary.spin[1].azimuth[PRECESSING][MIN];
 	}
+	step[0] = (max[0] - min[0]) / (double) steps->step[0];
+	step[1] = (max[1] - min[1]) / (double) steps->step[1];
 	size_t current = 0;
 	SystemParameter parameter;
 	getSysemParametersFromLimits(&pair[0], &constants, copy, &parameter);
@@ -128,24 +127,18 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 							.magnitude = currentOuter;
 						parameter.system[0].spin[1].magnitude = parameter.system[1].spin[1]
 							.magnitude = currentInner;
-						convertSpin(&parameter.system[0].spin[0], parameter.system[0].inclination);
-						convertSpin(&parameter.system[0].spin[1], parameter.system[0].inclination);
-						convertSpin(&parameter.system[1].spin[0], parameter.system[1].inclination);
-						convertSpin(&parameter.system[1].spin[1], parameter.system[1].inclination);
 					} else if (steps->inclSet) {
 						parameter.system[0].spin[0].inclination[PRECESSING] = parameter.system[1]
 							.spin[0].inclination[PRECESSING] = currentOuter;
 						parameter.system[0].spin[1].inclination[PRECESSING] = parameter.system[1]
 							.spin[1].inclination[PRECESSING] = currentInner;
-						convertSpin(&parameter.system[0].spin[0], parameter.system[0].inclination);
-						convertSpin(&parameter.system[0].spin[1], parameter.system[0].inclination);
-						convertSpin(&parameter.system[1].spin[0], parameter.system[1].inclination);
-						convertSpin(&parameter.system[1].spin[1], parameter.system[1].inclination);
 					} else if (steps->azimSet) {
 						parameter.system[0].spin[0].azimuth[PRECESSING] = parameter.system[1]
 							.spin[0].azimuth[PRECESSING] = currentOuter;
 						parameter.system[0].spin[1].azimuth[PRECESSING] = parameter.system[1]
 							.spin[1].azimuth[PRECESSING] = currentInner;
+					}
+					if (steps->chiSet || steps->inclSet || steps->azimSet) {
 						convertSpin(&parameter.system[0].spin[0], parameter.system[0].inclination);
 						convertSpin(&parameter.system[0].spin[1], parameter.system[0].inclination);
 						convertSpin(&parameter.system[1].spin[0], parameter.system[1].inclination);
