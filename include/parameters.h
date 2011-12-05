@@ -15,6 +15,8 @@ typedef struct {
 	bool set;
 	bool massSet;
 	bool chiSet;
+	bool inclSet;
+	bool azimSet;
 	ushort step[2];
 } Step;
 

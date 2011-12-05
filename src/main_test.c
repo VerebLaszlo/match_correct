@@ -52,6 +52,10 @@ static void interpretOptions(Options *option, int argc, char *argv[]) {
 					option->step.massSet = true;
 				} else if ((*argv)[2] == 's') {
 					option->step.chiSet = true;
+				} else if ((*argv)[2] == 'i') {
+					option->step.inclSet = true;
+				} else if ((*argv)[2] == 'a') {
+					option->step.azimSet = true;
 				} else {
 					fprintf(stderr, "Bad stepping option, parameter could not be stepped: %c\n",
 						(*argv)[2]);
