@@ -13,8 +13,9 @@
 
 typedef struct {
 	bool set;
-	ushort totalMass;
-	ushort eta;
+	bool massSet;
+	bool chiSet;
+	ushort step[2];
 } Step;
 
 typedef struct {
