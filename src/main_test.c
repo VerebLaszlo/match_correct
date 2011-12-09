@@ -13,15 +13,21 @@
 #include <math.h>
 
 static void printHelp(void) {
-	puts("h: prints this help");
-	puts("p: save the generated waveform for plotting");
-	puts("m: calculate the match");
-	puts("s: the file containing the parameters");
-	puts("i: the file initialize the program");
-	puts("e: read exact parameters");
-	puts("c: copy the generated parameters from the first system to the second.\n"
+	puts("h:              prints this help");
+	puts("p:              save the generated waveform for plotting");
+	puts("m:              calculate the match");
+	puts("s:              the file containing the parameters");
+	puts("i:              the file initialize the program");
+	puts("e:              read exact parameters");
+	puts("c:              copy the generated parameters from the first system to the second.\n"
 		"    It is good to compare various approximants.");
-	puts("t: testing");
+	puts("d_ step1 step2: to give the number of the steps. It also sets the copy function.\n"
+		"    The character _ can be one of the following:\n"
+		"      m for total Mass (M) and symmetric mass ratio (eta),"
+		"      s for spin parameter (chi1, chi2),"
+		"      i for inclinations (kappa1, kappa2),"
+		"      a for azimuths (beta1, beta2.");
+	puts("t:              testing");
 }
 
 static void interpretOptions(Options *option, int argc, char *argv[]) {
@@ -48,6 +54,7 @@ static void interpretOptions(Options *option, int argc, char *argv[]) {
 				argv++;
 				strcpy(option->programFile, *argv);
 			} else if ((*argv)[1] == 'd') {
+				option->copy = true;
 				if ((*argv)[2] == 'm') {
 					option->step.massSet = true;
 				} else if ((*argv)[2] == 's') {

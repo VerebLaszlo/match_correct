@@ -92,7 +92,7 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 		min[0] = pair[0].binary.spin[0].inclination[PRECESSING][MIN];
 		max[1] = pair[0].binary.spin[1].inclination[PRECESSING][MAX];
 		min[1] = pair[0].binary.spin[1].inclination[PRECESSING][MIN];
-	} else if (steps->inclSet) {
+	} else if (steps->azimSet) {
 		max[0] = pair[0].binary.spin[0].azimuth[PRECESSING][MAX];
 		min[0] = pair[0].binary.spin[0].azimuth[PRECESSING][MIN];
 		max[1] = pair[0].binary.spin[1].azimuth[PRECESSING][MAX];
