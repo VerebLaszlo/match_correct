@@ -5,17 +5,19 @@
  * @brief 
  */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include "util.h"
 #include "runTime.h"
 
 static struct RunTimeCalculator {
-	static size_t numberOfRuns;
-	static size_t numberOfRunsBetweenMeasures;
-	static size_t numberOfMeasurePoints;
-	static size_t numberOfMeasuredPoints;
-	static size_t numberOfMeasuredTimeDifferences;
+	size_t numberOfRuns;
+	size_t numberOfRunsBetweenMeasures;
+	size_t numberOfMeasurePoints;
+	size_t numberOfMeasuredPoints;
+	size_t numberOfMeasuredTimeDifferences;
 	time_t *timeAt;
 	double timeDifference;
 	double wholeRunTime;
@@ -24,16 +26,14 @@ static struct RunTimeCalculator {
 
 void initializeRunTimeCalculator(size_t numberOfRuns, size_t numberOfRunsBetweenMeasures) {
 	memset(&runTimeCalculator, 0, sizeof(runTimeCalculator));
-	runTimeCalculator.numberOfMeasuredTimeDifferences = -1;
 	runTimeCalculator.numberOfRuns = numberOfRuns;
 	runTimeCalculator.numberOfRunsBetweenMeasures = numberOfRunsBetweenMeasures;
 	runTimeCalculator.numberOfMeasurePoints = numberOfRuns / numberOfRunsBetweenMeasures;
-	runTimeCalculator.timeAt = secureCalloc(runTimeCalculator.numberOfMeasurePoints + 1,
+	runTimeCalculator.timeAt = secureCalloc(runTimeCalculator.numberOfMeasurePoints * 2,
 		sizeof(time_t));
 	runTimeCalculator.timeAt[runTimeCalculator.numberOfMeasuredPoints] = time(NULL);
 	runTimeCalculator.numberOfMeasuredPoints++;
-	runTimeCalculator.numberOfMeasuredTimeDifferences++;
-	atexit(destroyRunTimeCalculator());
+	atexit(destroyRunTimeCalculator);
 }
 
 void destroyRunTimeCalculator(void) {
@@ -51,37 +51,40 @@ static void averageTimeDifference(void) {
 }
 
 typedef struct {
-	ushort second;
-	ushort minute;
-	ushort hour;
+	size_t second;
+	size_t minute;
+	size_t hour;
 } TimeComponent;
 
 static void convertFromDoubleTo(TimeComponent *timeComponent, double seconds) {
-	timeComponent->hour = (ushort) seconds % 24;
-	timeComponent->minute = (seconds - 24.0 * timeComponent->hour) % 60;
-	timeComponent->second = (seconds - 24.0 * timeComponent->hour - 60.0 * timeComponent->minute)
-		% 60;
+	timeComponent->second = (size_t) seconds;	// all seconds
+	timeComponent->minute = timeComponent->second / 60;	// all minutes
+	timeComponent->second = timeComponent->second % 60;	// just seconds
+	timeComponent->hour = timeComponent->minute / 60;	// just hours
+	timeComponent->minute = timeComponent->minute % 60;	// just minutes
 }
 
-static void printRemainingTimeTo(FILE *file) {
+static void printRemainingTimeTo(void) {
 	runTimeCalculator.timeAt[runTimeCalculator.numberOfMeasuredPoints] = time(NULL);
 	runTimeCalculator.numberOfMeasuredPoints++;
 	runTimeCalculator.numberOfMeasuredTimeDifferences++;
 	averageTimeDifference();
-	runTimeCalculator.wholeRunTime = (double) runTimeCalculator.numberOfMeasurePoints
+	runTimeCalculator.wholeRunTime = ((double) runTimeCalculator.numberOfMeasurePoints + 1.0)
 		* runTimeCalculator.timeDifference;
-	runTimeCalculator.currentRunTime = (double) runTimeCalculator.numberOfMeasuredPoints
+	runTimeCalculator.currentRunTime = (double) runTimeCalculator.numberOfMeasuredTimeDifferences
 		* runTimeCalculator.timeDifference;
 	TimeComponent difference, whole;
 	convertFromDoubleTo(&difference,
 		runTimeCalculator.wholeRunTime - runTimeCalculator.currentRunTime);
 	convertFromDoubleTo(&whole, runTimeCalculator.wholeRunTime);
-	fprintf(file, "The remaining time is %dh %dm %s of %dh %dm %ds\n.", difference.hour,
-		difference.minute, difference.second, whole.hour, whole.minute, whole.second);
+	printf("The remaining time is \e[0;36m%dh %dm %ds\e[0m of \e[0;31m%dh %dm %ds\e[0m.\n",
+		difference.hour, difference.minute, difference.second, whole.hour, whole.minute,
+		whole.second);
 }
 
 void printRemainingTime(size_t currentRun) {
 	if ((currentRun + 1) % runTimeCalculator.numberOfRunsBetweenMeasures == 0) {
-		printRemainingTimeTo(stdout);
+		printf("%10d: ", currentRun + 1);
+		printRemainingTimeTo();
 	}
 }

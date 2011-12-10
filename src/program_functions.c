@@ -106,8 +106,9 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 	getSysemParametersFromLimits(&pair[0], &constants, copy, &parameter);
 	double backup = parameter.samplingFrequency;
 	if (numberOfPairs) {
-		size_t step = 10;
-		initializeRunTimeCalculator(numberOfPairs * steps->step[0] * steps->step[1], step);
+		size_t stepSize = 10;
+		initializeRunTimeCalculator(numberOfPairs * (steps->step[0] + 1lu) * (steps->step[1] + 1lu),
+			stepSize);
 		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
 			for (double currentOuter = max[0]; currentOuter >= min[0]; currentOuter -= step[0]) {
 				for (double currentInner = max[1]; currentInner >= min[1];

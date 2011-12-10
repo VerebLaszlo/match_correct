@@ -13,7 +13,7 @@
  * @param[in] numberOfRuns				  : how many times does the code something
  * @param[in] numberOfRunsBetweenMeasures : how many times have to do the code its job
  */
-void initializeRunTimeCalculator(size_t numberOfRuns, numberOfRunsBetweenMeasures);
+void initializeRunTimeCalculator(size_t numberOfRuns, size_t numberOfRunsBetweenMeasures);
 
 /**	Destroys the remaining time calculatign object. It is called at normal exit.
  */
