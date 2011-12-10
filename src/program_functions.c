@@ -105,6 +105,7 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 	SystemParameter parameter;
 	getSysemParametersFromLimits(&pair[0], &constants, copy, &parameter);
 	double backup = parameter.samplingFrequency;
+	bool notSkip = true;
 	if (numberOfPairs) {
 		size_t stepSize = 10;
 		initializeRunTimeCalculator(numberOfPairs * (steps->step[0] + 1lu) * (steps->step[1] + 1lu),
@@ -123,7 +124,7 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 							- sqrt(1.0 - 4.0 * currentInner)) * currentOuter / 2.0;
 						if (parameter.system[0].mass.mass[0] < 3.0
 							|| parameter.system[0].mass.mass[1] < 3.0) {
-							continue;
+							notSkip = false;
 						}
 					} else if (steps->chiSet) {
 						parameter.system[0].spin[0].magnitude = parameter.system[1].spin[0]
@@ -141,23 +142,33 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 						parameter.system[0].spin[1].azimuth[PRECESSING] = parameter.system[1]
 							.spin[1].azimuth[PRECESSING] = currentInner;
 					}
-					if (steps->chiSet || steps->inclSet || steps->azimSet) {
-						parameter.system[0].spin[0].convert = parameter.system[0].spin[1].convert =
-							parameter.system[1].spin[0].convert = parameter.system[1].spin[1]
-								.convert = FROM_PRECESSING_ANGLES;
-						convertSpin(&parameter.system[0].spin[0], parameter.system[0].inclination);
-						convertSpin(&parameter.system[0].spin[1], parameter.system[0].inclination);
-						convertSpin(&parameter.system[1].spin[0], parameter.system[1].inclination);
-						convertSpin(&parameter.system[1].spin[1], parameter.system[1].inclination);
+					if (notSkip) {
+						if (steps->chiSet || steps->inclSet || steps->azimSet) {
+							parameter.system[0].spin[0].convert = parameter.system[0].spin[1]
+								.convert = parameter.system[1].spin[0].convert = parameter.system[1]
+								.spin[1].convert = FROM_PRECESSING_ANGLES;
+							convertSpin(&parameter.system[0].spin[0],
+								parameter.system[0].inclination);
+							convertSpin(&parameter.system[0].spin[1],
+								parameter.system[0].inclination);
+							convertSpin(&parameter.system[1].spin[0],
+								parameter.system[1].inclination);
+							convertSpin(&parameter.system[1].spin[1],
+								parameter.system[1].inclination);
+						}
+						run(program, &parameter, current);
+						parameter.samplingFrequency = backup;
+						printMassAndSpinsForStatistic(matchFile, &parameter.system[0],
+							parameter.match);
+					} else {
+						notSkip = true;
 					}
-					run(program, &parameter, current);
-					parameter.samplingFrequency = backup;
-					printMassAndSpinsForStatistic(matchFile, &parameter.system[0], parameter.match);
 					printRemainingTime(current);
 				}
 			}
 		}
 	}
+	printRemainingTime(current + 9);
 	fclose(matchFile);
 }
 
