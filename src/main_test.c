@@ -23,10 +23,10 @@ static void printHelp(void) {
 		"    It is good to compare various approximants.");
 	puts("d_ step1 step2: to give the number of the steps. It also sets the copy function.\n"
 		"    The character _ can be one of the following:\n"
-		"      m for total Mass (M) and symmetric mass ratio (eta),"
-		"      s for spin parameter (chi1, chi2),"
-		"      i for inclinations (kappa1, kappa2),"
-		"      a for azimuths (beta1, beta2.");
+		"      m for total Mass (M) and symmetric mass ratio (eta),\n"
+		"      s for spin parameter (chi1, chi2),\n"
+		"      i for inclinations (kappa1, kappa2),\n"
+		"      a for azimuths (beta1, beta2.\n");
 	puts("t:              testing");
 }
 
