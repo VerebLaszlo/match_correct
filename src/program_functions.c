@@ -11,6 +11,7 @@
 #include "match.h"
 #include "parser.h"
 #include "lal_wrapper.h"
+#include "runTime.h"
 
 /**	Runs the program.
  * @param[in] program	   :
@@ -105,9 +106,10 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 	getSysemParametersFromLimits(&pair[0], &constants, copy, &parameter);
 	double backup = parameter.samplingFrequency;
 	if (numberOfPairs) {
+		size_t step = 10;
+		initializeRunTimeCalculator(numberOfPairs * steps->step[0] * steps->step[1], step);
 		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
-			for (double currentOuter = max[0]; currentOuter >= min[0];
-				currentOuter -= step[0], current++) {
+			for (double currentOuter = max[0]; currentOuter >= min[0]; currentOuter -= step[0]) {
 				for (double currentInner = max[1]; currentInner >= min[1];
 					currentInner -= step[1], current++) {
 					if (steps->massSet) {
@@ -150,6 +152,7 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 					run(program, &parameter, current);
 					parameter.samplingFrequency = backup;
 					printMassAndSpinsForStatistic(matchFile, &parameter.system[0], parameter.match);
+					printRemainingTime(current);
 				}
 			}
 		}
