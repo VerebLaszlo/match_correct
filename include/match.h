@@ -38,4 +38,6 @@ void calc_Matches(SignalStruct *in, size_t min_Index, size_t max_Index, double *
 void calculateIndexBoundariesFromFrequencies(double min, double max, double step,
 	size_t *startingIndex, size_t *endingIndex);
 
+void countPeriods(SignalStruct *signal, size_t periods[]);
+
 #endif

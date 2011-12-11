@@ -193,3 +193,20 @@ void calculateIndexBoundariesFromFrequencies(double min, double max, double step
 		(*endingIndex)++;
 	}
 }
+
+void countPeriods(SignalStruct *signal, size_t periods[]) {
+	for (ushort current = 0; current < NUMBER_OF_SIGNALS; current++) {
+		periods[current] = 0;
+		for (size_t i = 1; i < signal->length[current]; i++) {
+			double product = signal->inTime[current][i - 1] * signal->inTime[current][i];
+			if (product < 0.0) {
+				periods[current]++;
+			} else if (product == 0.0) {
+				periods[current]++;
+				i++;
+			}
+		}
+		periods[current]--;
+		periods[current] /= 2;
+	}
+}
