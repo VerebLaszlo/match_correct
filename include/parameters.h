@@ -29,6 +29,7 @@ typedef struct {
 	bool exact;
 	bool copy;
 	Step step;
+	size_t stepSize;
 } Options;
 
 typedef enum ParameterConstants_ {
@@ -98,6 +99,7 @@ typedef struct ProgramParameter_ {
 	int seed;
 	bool plot;
 	bool calculateMatches;
+	size_t stepSize;
 } ProgramParameter;
 
 void printLimits(FILE *file, Limits *limit);

@@ -540,6 +540,7 @@ void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters, Op
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
+	parameters->stepSize = option->stepSize;
 	parameters->calculateMatches = option->calculateMatch;
 	parameters->plot = option->plot;
 	config_setting_t *setting = config_lookup(&cfg, programOptionName[OUTPUT_DIRECTORY]);

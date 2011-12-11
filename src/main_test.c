@@ -19,6 +19,7 @@ static void printHelp(void) {
 	puts("s:              the file containing the parameters");
 	puts("i:              the file initialize the program");
 	puts("e:              read exact parameters");
+	puts("n:              number of runs between time measurements");
 	puts("c:              copy the generated parameters from the first system to the second.\n"
 		"    It is good to compare various approximants.");
 	puts("d_ step1 step2: to give the number of the steps. It also sets the copy function.\n"
@@ -45,6 +46,10 @@ static void interpretOptions(Options *option, int argc, char *argv[]) {
 				option->exact = true;
 			} else if ((*argv)[1] == 'c') {
 				option->copy = true;
+			} else if ((*argv)[1] == 'n') {
+				argc--;
+				argv++;
+				option->stepSize = strtoul(*argv, NULL, 10);
 			} else if ((*argv)[1] == 's') {
 				argc--;
 				argv++;
