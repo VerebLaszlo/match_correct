@@ -27,6 +27,7 @@ static void run(ProgramParameter *program, SystemParameter *parameters, size_t n
 			parameters->endingFrequency, parameters->samplingFrequency, &min, &max);
 		calc_Matches(&signal, min, max, &parameters->match[TYPICAL], &parameters->match[BEST],
 			&parameters->match[WORST]);
+		countPeriods(&signal, parameters->periods);
 	}
 	if (program->plot) {
 		for (size_t i = 0; i < signal.size; i++) {
@@ -136,10 +137,10 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 						parameter.system[0].spin[1].inclination[PRECESSING] = parameter.system[1]
 							.spin[1].inclination[PRECESSING] = currentInner;
 					} else if (steps->azimSet) {
-						parameter.system[0].spin[0].azimuth[PRECESSING] = parameter.system[1]
-							.spin[0].azimuth[PRECESSING] = currentOuter;
-						parameter.system[0].spin[1].azimuth[PRECESSING] = parameter.system[1]
-							.spin[1].azimuth[PRECESSING] = currentInner;
+						parameter.system[0].spin[0].azimuth[PRECESSING] =
+							parameter.system[1].spin[0].azimuth[PRECESSING] = currentOuter;
+						parameter.system[0].spin[1].azimuth[PRECESSING] =
+							parameter.system[1].spin[1].azimuth[PRECESSING] = currentInner;
 					}
 					if (notSkip) {
 						if (steps->chiSet || steps->inclSet || steps->azimSet) {
@@ -158,7 +159,7 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 						run(program, &parameter, current);
 						parameter.samplingFrequency = backup;
 						printMassAndSpinsForStatistic(matchFile, &parameter.system[0],
-							parameter.match);
+							parameter.match, parameter.periods);
 					} else {
 						notSkip = true;
 					}
@@ -192,7 +193,8 @@ static void runForWaveformPairs(cstring fileName, bool copy, ProgramParameter *p
 				getSysemParametersFromLimits(&pair[2 * currentPair], &constants, copy, &parameter);
 				run(program, &parameter, pairMultiply);
 				if (copy) {
-					printMassAndSpinsForStatistic(matchFile, &parameter.system[0], parameter.match);
+					printMassAndSpinsForStatistic(matchFile, &parameter.system[0], parameter.match,
+						parameter.periods);
 				}
 				printWaveformPairsToConfigFile(file, &parameter, &outputFormat[DATA]);
 				if ((currentPair != numberOfPairs - 1)

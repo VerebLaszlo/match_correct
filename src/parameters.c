@@ -176,18 +176,24 @@ void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double
 	number = 3;
 	length = (ushort) (number * format->widthWithSeparator);
 	setFormatEnd(formatString, number, format);
-	fprintf(file, "#matches -         minimax, typical, best: ");
+	fprintf(file, "#matches  -       minimax, typical, best: ");
 	fprintf(file, formatString, match[WORST], match[TYPICAL], match[BEST]);
+	number = 2;
+	length = (ushort) (number * format->widthWithSeparator);
+	setFormatEnd(formatString, number, format);
+	fprintf(file, "#periods  -                             : %d %d\n", param->periods[0], param->periods[1]);
 }
 
-void printMassAndSpinsForStatistic(FILE *file, BinarySystem *param, double match[]) {
+void printMassAndSpinsForStatistic(FILE *file, BinarySystem *param, double match[],
+	size_t periods[]) {
 	OutputFormat *format = &outputFormat[SIGNAL_TO_PLOT];
-	ushort number = 3 + 2 + 2 * 3;
+	ushort number = 3 + 2 + 2 * 3 + 2;
 	ushort length = number * format->widthWithSeparator;
 	char formatString[length];
 	setFormatEnd(formatString, number, format);
 	fprintf(file, formatString, match[WORST], match[TYPICAL], match[BEST], param->mass.totalMass,
 		param->mass.eta, param->spin[0].magnitude, param->spin[1].magnitude,
 		param->spin[0].inclination[PRECESSING], param->spin[1].inclination[PRECESSING],
-		param->spin[0].azimuth[PRECESSING], param->spin[1].azimuth[PRECESSING]);
+		param->spin[0].azimuth[PRECESSING], param->spin[1].azimuth[PRECESSING], periods[0],
+		periods[1]);
 }

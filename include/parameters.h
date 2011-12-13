@@ -72,6 +72,7 @@ typedef struct SystemParameter_ {
 	char spin[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	char amplitude[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	double match[NUMBER_OF_MATCHES];
+	size_t periods[2];
 	size_t numberOfRuns;
 } SystemParameter;
 
@@ -116,7 +117,8 @@ void printWaveformPairsToConfigFile(FILE *file, SystemParameter *param, OutputFo
 
 void printSystemParameters(FILE *file, SystemParameter *params, OutputFormat *format);
 
-void printMassAndSpinsForStatistic(FILE *file, BinarySystem *param, double match[]);
+void printMassAndSpinsForStatistic(FILE *file, BinarySystem *param, double match[],
+	size_t periods[]);
 
 void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double match[]);
 
