@@ -13,41 +13,16 @@
 #include "runTime.h"
 
 static struct RunTimeCalculator {
+	time_t start;
 	size_t numberOfRuns;
-	size_t numberOfRunsBetweenMeasures;
-	size_t numberOfMeasurePoints;
-	size_t numberOfMeasuredPoints;
-	size_t numberOfMeasuredTimeDifferences;
-	time_t *timeAt;
-	double timeDifference;
-	double wholeRunTime;
-	double currentRunTime;
+	size_t numberOfRunsBetweenSteps;
 } runTimeCalculator;
 
-void initializeRunTimeCalculator(size_t numberOfRuns, size_t numberOfRunsBetweenMeasures) {
+void initializeRunTimeCalculator(size_t numberOfRuns, size_t numberOfRunsBetweenSteps) {
 	memset(&runTimeCalculator, 0, sizeof(runTimeCalculator));
 	runTimeCalculator.numberOfRuns = numberOfRuns;
-	runTimeCalculator.numberOfRunsBetweenMeasures = numberOfRunsBetweenMeasures;
-	runTimeCalculator.numberOfMeasurePoints = numberOfRuns / numberOfRunsBetweenMeasures;
-	runTimeCalculator.timeAt = secureCalloc(runTimeCalculator.numberOfMeasurePoints * 2,
-		sizeof(time_t));
-	runTimeCalculator.timeAt[runTimeCalculator.numberOfMeasuredPoints] = time(NULL);
-	runTimeCalculator.numberOfMeasuredPoints++;
-	atexit(destroyRunTimeCalculator);
-}
-
-void destroyRunTimeCalculator(void) {
-	secureFree(runTimeCalculator.timeAt);
-}
-
-static void averageTimeDifference(void) {
-	double timeSum = 0.0;
-	for (size_t current = 0; current < runTimeCalculator.numberOfMeasuredPoints - 1; current++) {
-		timeSum += difftime(runTimeCalculator.timeAt[current + 1],
-			runTimeCalculator.timeAt[current]);
-	}
-	runTimeCalculator.timeDifference = timeSum
-		/ (double) runTimeCalculator.numberOfMeasuredTimeDifferences;
+	runTimeCalculator.numberOfRunsBetweenSteps = numberOfRunsBetweenSteps;
+	runTimeCalculator.start = time(NULL);
 }
 
 typedef struct {
@@ -64,27 +39,24 @@ static void convertFromDoubleTo(TimeComponent *timeComponent, double seconds) {
 	timeComponent->minute = timeComponent->minute % 60;	// just minutes
 }
 
-static void printRemainingTimeTo(void) {
-	runTimeCalculator.timeAt[runTimeCalculator.numberOfMeasuredPoints] = time(NULL);
-	runTimeCalculator.numberOfMeasuredPoints++;
-	runTimeCalculator.numberOfMeasuredTimeDifferences++;
-	averageTimeDifference();
-	runTimeCalculator.wholeRunTime = ((double) runTimeCalculator.numberOfMeasurePoints + 1.0)
-		* runTimeCalculator.timeDifference;
-	runTimeCalculator.currentRunTime = (double) runTimeCalculator.numberOfMeasuredTimeDifferences
-		* runTimeCalculator.timeDifference;
-	TimeComponent difference, whole;
-	convertFromDoubleTo(&difference,
-		runTimeCalculator.wholeRunTime - runTimeCalculator.currentRunTime);
-	convertFromDoubleTo(&whole, runTimeCalculator.wholeRunTime);
-	printf("The remaining time is \e[0;36m%dh %dm %ds\e[0m of \e[0;31m%dh %dm %ds\e[0m.\n",
-		difference.hour, difference.minute, difference.second, whole.hour, whole.minute,
-		whole.second);
+static void printRemainingTimeAt(size_t current) {
+	time_t now = time(NULL);
+	double elapsedSeconds = difftime(now, runTimeCalculator.start);
+	double step = elapsedSeconds / (double) current;
+	double wholeSeconds = step * runTimeCalculator.numberOfRuns;
+	TimeComponent whole, remaining;
+	convertFromDoubleTo(&whole, wholeSeconds);
+	convertFromDoubleTo(&remaining, wholeSeconds - elapsedSeconds);
+	printf("%d, %g: Remains \e[0;36m%dh %dm %ds\e[0m of \e[0;31m%dh %dm %ds\e[0m.\n", current, step,
+		remaining.hour, remaining.minute, remaining.second, whole.hour, whole.minute, whole.second);
 }
 
-void printRemainingTime(size_t currentRun) {
-	if ((currentRun + 1) % runTimeCalculator.numberOfRunsBetweenMeasures == 0) {
-		printf("%10d: ", currentRun + 1);
-		printRemainingTimeTo();
+void printRemainingTime(size_t current) {
+	current++;
+	if (!((current) % runTimeCalculator.numberOfRunsBetweenSteps)) {
+		printRemainingTimeAt(current);
+	} else if (current <= runTimeCalculator.numberOfRunsBetweenSteps
+		&& !((current) % (runTimeCalculator.numberOfRunsBetweenSteps / 10))) {
+		printRemainingTimeAt(current);
 	}
 }

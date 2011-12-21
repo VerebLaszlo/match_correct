@@ -20,9 +20,8 @@ void initializeRunTimeCalculator(size_t numberOfRuns, size_t numberOfRunsBetween
 void destroyRunTimeCalculator(void);
 
 /**	Prints the remaining time according to the initialization.
- * @param file
- * @param currentRun
+ * @param[in] current :
  */
-void printRemainingTime(size_t currentRun);
+void printRemainingTime(size_t current);
 
 #endif /* RUNTIME_H_ */
