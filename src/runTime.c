@@ -42,21 +42,22 @@ static void convertFromDoubleTo(TimeComponent *timeComponent, double seconds) {
 static void printRemainingTimeAt(size_t current) {
 	time_t now = time(NULL);
 	double elapsedSeconds = difftime(now, runTimeCalculator.start);
-	double step = elapsedSeconds / (double) current;
-	double wholeSeconds = step * runTimeCalculator.numberOfRuns;
-	TimeComponent whole, remaining;
-	convertFromDoubleTo(&whole, wholeSeconds);
-	convertFromDoubleTo(&remaining, wholeSeconds - elapsedSeconds);
-	printf("%d, %g: Remains \e[0;36m%dh %dm %ds\e[0m of \e[0;31m%dh %dm %ds\e[0m.\n", current, step,
-		remaining.hour, remaining.minute, remaining.second, whole.hour, whole.minute, whole.second);
+//	double step = elapsedSeconds / (double) current;
+//	double wholeSeconds = step * runTimeCalculator.numberOfRuns;
+//	TimeComponent whole, remaining;
+//	convertFromDoubleTo(&whole, wholeSeconds);
+//	convertFromDoubleTo(&remaining, wholeSeconds - elapsedSeconds);
+//	printf("%d: Remains \e[0;36m%dh %dm %ds\e[0m of \e[0;31m%dh %dm %ds\e[0m.\n", current,
+//		remaining.hour, remaining.minute, remaining.second, whole.hour, whole.minute, whole.second);
+	printf("%6d %6g\n", current, elapsedSeconds);
 }
 
 void printRemainingTime(size_t current) {
 	current++;
 	if (!((current) % runTimeCalculator.numberOfRunsBetweenSteps)) {
 		printRemainingTimeAt(current);
-	} else if (current <= runTimeCalculator.numberOfRunsBetweenSteps
-		&& !((current) % (runTimeCalculator.numberOfRunsBetweenSteps / 10))) {
-		printRemainingTimeAt(current);
-	}
+	}// else if (current <= runTimeCalculator.numberOfRunsBetweenSteps
+//		&& !((current) % (runTimeCalculator.numberOfRunsBetweenSteps / 10))) {
+//		printRemainingTimeAt(current);
+//	}
 }

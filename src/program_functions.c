@@ -185,10 +185,12 @@ static void runForWaveformPairs(cstring fileName, bool copy, ProgramParameter *p
 	sprintf(configName, "%s/data_%s", program->outputDirectory, name);
 	FILE *file = safelyOpenForWriting(configName);
 	printStartOfConfigFile(file, &constants);
+	size_t current = 0;
 	if (numberOfPairs) {
-		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
+		initializeRunTimeCalculator(numberOfPairs * pair[1].numberOfRuns, program->stepSize);
+		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++, current++) {
 			for (size_t pairMultiply = 0; pairMultiply < pair[2 * currentPair + 1].numberOfRuns;
-				pairMultiply++) {
+				pairMultiply++, current++) {
 				SystemParameter parameter;
 				getSysemParametersFromLimits(&pair[2 * currentPair], &constants, copy, &parameter);
 				run(program, &parameter, pairMultiply);
@@ -201,9 +203,11 @@ static void runForWaveformPairs(cstring fileName, bool copy, ProgramParameter *p
 					|| pairMultiply != pair[2 * currentPair + 1].numberOfRuns - 1) {
 					printMiddleOfConfigFile(file);
 				}
+				printRemainingTime(current);
 			}
 		}
 	}
+	//printRemainingTime(current);
 	printEndOfConfigFile(file);
 	fclose(file);
 	destroyWaveformPairLimits(pair);
