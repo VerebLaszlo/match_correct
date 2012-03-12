@@ -42,7 +42,7 @@ static void printLALError(LALStatus *status) {
  */
 static void printLALParameters(LALParameters *params) {
 	for (short i = 0; i < 2; i++) {
-		printf("%lg %lg\n", params->injParams[i].mass1, params->injParams[i].mass1);
+		printf("%lg %lg\n", params->injParams[i].mass1, params->injParams[i].mass2);
 		printf("%lg %lg %lg\n", params->injParams[i].spin1x, params->injParams[i].spin1y,
 			params->injParams[i].spin1z);
 		printf("%lg %lg %lg\n", params->injParams[i].spin2x, params->injParams[i].spin2y,
