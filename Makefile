@@ -16,6 +16,7 @@ DER=	# ha 'make DER=ok' ként hivom meg, akkor DER-nek "ok" lesz az értéke!!!!
 
 CC := gcc
 CFLAGS := -std=gnu99 -O3 -ggdb3
+
 include config.mk
 
 errorFlags := -Wall -Wextra -Wformat-security -Wmissing-include-dirs -Wswitch-default
@@ -59,23 +60,23 @@ includes += $(lal_includes)
 lal_libraries := $(shell pkg-config --libs-only-l lalinspiral)
 lal_libraries_path := $(shell pkg-config --libs-only-L lalinspiral) $(shell pkg-config --libs-only-L libconfig)
 
-all : test
+all : test Makefile
 
 test main : CFLAGS += $(errorExtraFlags) $(lal_libraries_path)
 test : macros += -DTEST
 
 test main : $(objects) -lfftw3 -lm $(shell pkg-config --libs-only-l libconfig)
-	@echo -e '\e[36mLinking: $@\e[0m'
+	@echo -e $(start)'Linking: $@'$(reset)
 	$(hide_echo)$(CC) $(CFLAGS) $(macros) $(lal_libraries) -o $@ $^
-	@echo -e '\e[35mFinished linking: $@\e[0m'
+	@echo -e $(end)'Finished linking: $@'$(reset)
 	@echo ' '
 
 $(objdir)/%.o : %.h
 
 $(objdir)/%.o : %.c | $(objdir)
-	@echo -e '\e[36mBuilding file: $<\e[0m'
+	@echo -e $(start)'Building file: $<'$(reset)
 	$(hide_echo)$(CC) $(CFLAGS) $(CPPFLAGS) $(includes) $(macros) $(lal_libraries) -c -MMD -MF$(@:%.o=%.d) -MT$(@:%.o=%.d) $< -o $@
-	@echo -e '\e[35mFinished building: $<\e[0m'
+	@echo -e $(end)'Finished building: $<'$(reset)
 	@echo ' '
 
 # kisegítők
