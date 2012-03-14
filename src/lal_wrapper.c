@@ -32,7 +32,7 @@ static Approximant getApproximantFromString(const char * const approx) {
 	} else {
 		exit(EXIT_FAILURE);
 	}
-	return (result);
+	return ((result));
 }
 
 /**	Gets spin interaction code from string.
@@ -57,7 +57,7 @@ static LALSimInspiralInteraction getInteractionFromString(const char * const spi
 			result |= LAL_SIM_INSPIRAL_INTERACTION_SPIN_SPIN_SELF_2PN;
 		}
 	}
-	return (result);
+	return ((result));
 }
 
 /**	Creates the power spectrum density for the LIGO detector.
@@ -130,7 +130,7 @@ int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool
 				approx);
 		if (error) {
 			fprintf(stderr, "Error generating %d waveform\n", current);
-			return NOT_FOUND;
+			return (NOT_FOUND);
 		}
 	}
 	if (signal) {
@@ -147,5 +147,5 @@ int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool
 		}
 	}
 	LALCheckMemoryLeaks();
-	return FOUND;
+	return (FOUND);
 }

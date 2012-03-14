@@ -17,7 +17,7 @@ typedef struct {
 	bool chiSet;
 	bool inclSet;
 	bool azimSet;
-	ushort step[2];
+	size_t step[2];
 } Step;
 
 typedef struct {

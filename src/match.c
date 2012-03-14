@@ -28,7 +28,7 @@ static double inner_Product(fftw_complex left[], fftw_complex right[], double no
 		assert(norm[i]);
 		scalar += (left[i][0] * right[i][0] + left[i][1] * right[i][1]) / norm[i];
 	}
-	return 4.0 * scalar;
+	return (4.0 * scalar);
 }
 
 /**

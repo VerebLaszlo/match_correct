@@ -45,31 +45,31 @@ FILE *safelyOpenFile(const char *fileName, const char *mode) {
 		fflush(stderr);
 		exit(EXIT_FAILURE);
 	} else {
-		return stream;
+		return (stream);
 	}
 }
 
 FILE *safelyOpenForReading(const char *fileName) {
 	assert(strcmp(fileName, ""));
-	return safelyOpenFile(fileName, "r");
+	return (safelyOpenFile(fileName, "r"));
 }
 
 FILE *safelyOpenForWriting(const char *fileName) {
 	assert(strcmp(fileName, ""));
-	return safelyOpenFile(fileName, "w");
+	return (safelyOpenFile(fileName, "w"));
 }
 
 FILE *safelyOpenForAppend(const char *fileName) {
 	assert(strcmp(fileName, ""));
-	return safelyOpenFile(fileName, "a");
+	return (safelyOpenFile(fileName, "a"));
 }
 
 bool makeDir(const char *name) {
 	int status = mkdir(name, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
 	if (status != EEXIST) {
-		return false;
+		return (false);
 	}
-	return true;
+	return (true);
 }
 
 void getFileName(char *name, const char *path) {
@@ -206,7 +206,7 @@ static bool isOK_setFormatForOneNumber(void) {
 		setFormatForOneNumber(&format);
 		if (strcmp(result[i], format.oneNumber)) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 	}
 	format.leftJustified = false;
@@ -215,16 +215,16 @@ static bool isOK_setFormatForOneNumber(void) {
 		setFormatForOneNumber(&format);
 		if (!strcmp(result[i], format.oneNumber)) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_setOutputFormat(void) {
 	if (!isOK_setFormatForOneNumber()) {
-		return false;
+		return (false);
 	}
 	OutputFormat format;
 	char specifier = 'g';
@@ -240,27 +240,27 @@ static bool isOK_setOutputFormat(void) {
 			setOutputFormat(&format, precision, width, specifier, separator, leftJusfified);
 			if (format.precision != precision) {
 				PRINT_ERROR();
-				return false;
+				return (false);
 			}
 			if (format.width < width) {
 				PRINT_ERROR();
-				return false;
+				return (false);
 			}
 			if (format.width < precision) {
 				PRINT_ERROR();
-				return false;
+				return (false);
 			}
 			width = (ushort) (width + 2 * SPECIAL_CHARACTER_LENGTH);
 		}
 	}
 	/// @todo a hibás bemenet nincs leellenőrizve!!!
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_setFormat(void) {
 	if (!isOK_setOutputFormat()) {
-		return false;
+		return (false);
 	}
 	OutputFormat format;
 	char separator[] = { '%', 'X' };
@@ -277,26 +277,26 @@ static bool isOK_setFormat(void) {
 		setFormats(output, 1, &format);
 		if (strcmp(result[i][0], output)) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 		SAVE_FUNCTION_CALLER();
 		setFormats(output, 2, &format);
 		if (strcmp(result[i][1], output)) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 bool areIOFunctionsGood(void) {
 	if (isOK_setFormat()) {
 		PRINT_OK_FILE();
-		return true;
+		return (true);
 	}
 	PRINT_ERROR_FILE();
-	return false;
+	return (false);
 }
 
 ///@}

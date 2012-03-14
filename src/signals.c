@@ -15,7 +15,7 @@ void *secureFFTWMalloc(size_t number, size_t size) {
 		fprintf(stderr, "%s with size: %dbytes\n", strerror(errno), number * size);
 		exit(EXIT_FAILURE);
 	}
-	return result;
+	return (result);
 }
 void *secureFFTWCalloc(size_t number, size_t size) {
 	void *result = fftw_malloc(number * size);
@@ -24,7 +24,7 @@ void *secureFFTWCalloc(size_t number, size_t size) {
 		exit(EXIT_FAILURE);
 	}
 	memset(result, 0, number * size);
-	return result;
+	return (result);
 }
 
 void secureFFTWFree(void *memory) {
@@ -62,7 +62,6 @@ void createSignalForMatch(SignalStruct *signal, size_t size) {
 	assert(size);
 	memset(signal, 0, sizeof(SignalStruct));
 	signal->size = size;
-	size_t length = signal->size * sizeof(double);
 	for (ushort i = 0; i < NUMBER_OF_SIGNALS; i++) {
 		signal->inTime[i] = secureFFTWCalloc(signal->size, sizeof(double));
 	}

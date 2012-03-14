@@ -61,9 +61,9 @@ static bool isMassBetweenLimits(massParameters *mass, massLimits *limits) {
 		&& ((limits->m1_m2[MIN] < mass->m1_m2 || mass->m1_m2 < limits->m1_m2[MAX])
 			&& (limits->m1_m2[MAX] < mass->m1_m2 || mass->m1_m2 < limits->m1_m2[MIN]))) {
 		between = false;
-	};
+	};	//
 	SAVE_FUNCTION_FOR_TESTING();
-	return between;
+	return (between);
 }
 
 static bool areMassParametersNear(massParameters *left, massParameters *right) {
@@ -85,7 +85,7 @@ static bool areMassParametersNear(massParameters *left, massParameters *right) {
 	} else if (!isNear(left->nu, right->nu, EPSILON)) {
 		areEqual = false;
 	}
-	return areEqual;
+	return (areEqual);
 }
 
 /**	Calculates the chirpmass.
@@ -94,7 +94,7 @@ static bool areMassParametersNear(massParameters *left, massParameters *right) {
  * @return
  */
 static double calcChirpMass(double totalMass, double eta) {
-	return pow(eta, 3.0 / 5.0) * totalMass;
+	return (pow(eta, 3.0 / 5.0) * totalMass);
 }
 
 /**	Converts mass parameters from \f$m_1, m_2\f$.
@@ -152,7 +152,7 @@ void convertMasses(massParameters *mass) {
 	case MASS_CONVERTED:
 	default:
 		break;
-	};
+	};	//
 	SAVE_FUNCTION_FOR_TESTING();
 }
 
@@ -229,11 +229,11 @@ static bool isOK_m1m2ToRemainingMass(void) {
 	m1m2ToRemainingMass(&mass);
 	if (mass.m1_m2 != 0.5) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	if (mass.nu != 0.5) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	mass.mass[0] = 2.0;
 	mass.mass[1] = 1.0;
@@ -241,14 +241,14 @@ static bool isOK_m1m2ToRemainingMass(void) {
 	m1m2ToRemainingMass(&mass);
 	if (mass.m1_m2 != 2.0) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	if (mass.nu != 0.5) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_isMassBetweenLimits(void) {
@@ -275,7 +275,7 @@ static bool isOK_isMassBetweenLimits(void) {
 		SAVE_FUNCTION_CALLER();
 		if (!isMassBetweenLimits(&mass, &limit)) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 	}
 	double multMod = mult + 1.0;
@@ -290,7 +290,7 @@ static bool isOK_isMassBetweenLimits(void) {
 	SAVE_FUNCTION_CALLER();
 	if (isMassBetweenLimits(&mass, &limit)) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	multMod = mult - 1.0;
 	mass.mass[0] = limit.mass[0][MAX] * multMod;
@@ -304,15 +304,15 @@ static bool isOK_isMassBetweenLimits(void) {
 	SAVE_FUNCTION_CALLER();
 	if (isMassBetweenLimits(&mass, &limit)) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_convertMassesFromM1M2(void) {
 	if (!isOK_m1m2ToRemainingMass()) {
-		return false;
+		return (false);
 	}
 	massParameters mass, result;
 	mass.mass[0] = result.mass[0] = 90.0;
@@ -326,15 +326,15 @@ static bool isOK_convertMassesFromM1M2(void) {
 	convertMassesFromM1M2(&mass);
 	if (memcmp(&mass, &result, sizeof(massParameters))) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_convertMassesFromEtaM(void) {
 	if (!isOK_m1m2ToRemainingMass()) {
-		return false;
+		return (false);
 	}
 	massParameters mass, result;
 	mass.totalMass = result.totalMass = 100.0;
@@ -349,16 +349,16 @@ static bool isOK_convertMassesFromEtaM(void) {
 	if (!areMassParametersNear(&mass, &result)) {
 		convertMassesFromEtaM(&mass);
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	convertMassesFromEtaM(&mass);
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_convertMassesEtaChirp(void) {
 	if (!isOK_m1m2ToRemainingMass()) {
-		return false;
+		return (false);
 	}
 	massParameters mass, result;
 	result.totalMass = 100.0;
@@ -372,24 +372,24 @@ static bool isOK_convertMassesEtaChirp(void) {
 	convertMassesFromEtaChirp(&mass);
 	if (!areMassParametersNear(&mass, &result)) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_convertMasses(void) {
 	if (!isOK_convertMassesFromM1M2()) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	if (!isOK_convertMassesFromEtaM()) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	if (!isOK_convertMassesEtaChirp()) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	massParameters mass, result;
 	mass.totalMass = result.totalMass = 100.0;
@@ -404,21 +404,21 @@ static bool isOK_convertMasses(void) {
 	convertMasses(&mass);
 	if (!areMassParametersNear(&mass, &result)) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_generateMass(void) {
 	if (!isOK_randomBetween()) {
-		return false;
+		return (false);
 	}
 	if (!isOK_isMassBetweenLimits()) {
-		return false;
+		return (false);
 	}
 	if (!isOK_convertMasses()) {
-		return false;
+		return (false);
 	}
 	massParameters mass;
 	massLimits limit;
@@ -434,11 +434,11 @@ static bool isOK_generateMass(void) {
 	if (!isMassBetweenLimits(&mass, &limit)) {
 		generateMass(&mass, &limit);
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	generateMass(&mass, &limit);
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 /*
@@ -447,7 +447,7 @@ static bool isOK_generateMass(void) {
  SAVE_FUNCTION_CALLER();
  printMassParameters(stdout, &mass, defaultFormat);
  PRINT_OK();
- return true;
+ return (true);
  }
  */
 
@@ -465,7 +465,7 @@ bool areBinarySystemMassFunctionsGood(void) {
 	} else {
 		PRINT_ERROR_FILE();
 	}
-	return isOK;
+	return (isOK);
 }
 
 #endif	// TEST

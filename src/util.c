@@ -22,7 +22,7 @@ void *secureMalloc(size_t number, size_t size) {
 		fprintf(stderr, "%s with size: %dbytes\n", strerror(errno), number * size);
 		exit(EXIT_FAILURE);
 	}
-	return result;
+	return (result);
 }
 void *secureCalloc(size_t number, size_t size) {
 	void *result = calloc(number, size);
@@ -30,7 +30,7 @@ void *secureCalloc(size_t number, size_t size) {
 		fprintf(stderr, "%s with size: %dbytes\n", strerror(errno), number * size);
 		exit(EXIT_FAILURE);
 	}
-	return result;
+	return (result);
 }
 
 void secureFree(void *memory) {

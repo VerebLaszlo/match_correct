@@ -93,7 +93,7 @@ static DetectorID getDetectorIDOf(const char *name) {
 	for (short i = 0; i < NUMBER_OF_DETECTORS; i++) {
 		if (!strcmp(name, detectors[i].name)) {
 			SAVE_FUNCTION_FOR_TESTING();
-			return detectors[i].id;
+			return (detectors[i].id);
 		}
 	}
 	fprintf(stderr, "There is not such detector as: %s!", name);
@@ -109,11 +109,11 @@ static DetectorTable getDetectorTable(DetectorID id) {
 	for (short i = 0; i < NUMBER_OF_DETECTORS; i++) {
 		if (detectors[i].id == id) {
 			SAVE_FUNCTION_FOR_TESTING();
-			return detectors[i];
+			return (detectors[i]);
 		}
 	} //
 	SAVE_FUNCTION_FOR_TESTING();
-	return detectors[0];
+	return (detectors[0]);
 }
 
 /**	Calculates the response matrix for a given detector parameters. Equation [1] (B6).
@@ -218,7 +218,7 @@ static bool isOK_getDetectorIDOf(void) {
 		SAVE_FUNCTION_CALLER();
 		if (id[detector] != getDetectorIDOf(name[detector])) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 		detector++;
 	}
@@ -227,12 +227,12 @@ static bool isOK_getDetectorIDOf(void) {
 		SAVE_FUNCTION_CALLER();
 		if (id[detector + 1] == getDetectorIDOf(name[detector])) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 		detector++;
 	} //
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_getDetectorTable(void) {
@@ -247,7 +247,7 @@ static bool isOK_getDetectorTable(void) {
 		table = getDetectorTable(id[detector]);
 		if (strcmp(table.name, name[detector])) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 		detector++;
 	}
@@ -257,12 +257,12 @@ static bool isOK_getDetectorTable(void) {
 		table = getDetectorTable(id[detector + 1]);
 		if (!strcmp(table.name, name[detector])) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 		detector++;
 	} //
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_calcResponseMatrix(void) {
@@ -292,19 +292,19 @@ static bool isOK_calcResponseMatrix(void) {
 			for (ushort dim2 = X; dim2 < DIMENSION; dim2++) {
 				if (!isNear(matrix[dim1][dim2], result[detector][dim1][dim2], 4.849999999946e-07)) {
 					PRINT_ERROR();
-					return false;
+					return (false);
 				}
 			}
 		}
 		detector++;
 	} //
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_calcAntennaPatternFromResponseMatrix(void) {
 	if (!isOK_calcResponseMatrix()) {
-		return false;
+		return (false);
 	}
 	double matrix[DIMENSION][DIMENSION];
 	DetectorParameters antenna;
@@ -316,10 +316,10 @@ static bool isOK_calcAntennaPatternFromResponseMatrix(void) {
 	if (!isNear(antenna.antennaBeamPattern[0], -0.1663658543172435722, epsilon)
 		|| !isNear(antenna.antennaBeamPattern[1], -0.79869393295667401311, epsilon)) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	} //
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_calcAntennaPatternFor(void) {
@@ -334,15 +334,15 @@ static bool isOK_calcAntennaPatternFor(void) {
 	if (!isNear(params.antennaBeamPattern[0], -0.1663658543172435722, epsilon)
 		|| !isNear(params.antennaBeamPattern[1], -0.79869393295667401311, epsilon)) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	} //
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_generateDetectorParameters(void) {
 	if (!areUtilMathFunctionsOK()) {
-		return false;
+		return (false);
 	}
 	DetectorParameters params, limits[2];
 	limits[MAX].polarization = 10.0 + (limits[MIN].polarization = 0.0);
@@ -360,10 +360,10 @@ static bool isOK_generateDetectorParameters(void) {
 		|| limits[MIN].greenwichMeanSiderealTime > params.greenwichMeanSiderealTime
 		|| params.greenwichMeanSiderealTime > limits[MAX].greenwichMeanSiderealTime) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	} //
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 bool areDetectorFunctionsGood(void) {
@@ -384,7 +384,7 @@ bool areDetectorFunctionsGood(void) {
 	} else {
 		PRINT_ERROR_FILE();
 	}
-	return isOK;
+	return (isOK);
 }
 
 #endif	// TEST
@@ -430,7 +430,7 @@ bool areDetectorFunctionsGood(void) {
  + seconds_In_Current_Day * 1.002737909350795; // (UTC day is 1.002 * MST day)
  coordinated_Universal_Time = fmod(mean_Sidereal_Time * TIME_CONVERSION_CONSTANT.SECOND_TO_DAY, 1.0);
  coordinated_Universal_Time *= 2.0 * M_PI;
- return coordinated_Universal_Time;
+ return (coordinated_Universal_Time);
  }
  */
 

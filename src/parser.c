@@ -101,7 +101,7 @@ static ushort neededElementNumber(ushort number, config_setting_t *elements) {
 		printf("%d\n", count);
 		exit(EXIT_FAILURE);
 	}
-	return count;
+	return (count);
 }
 
 static void getLimits(config_setting_t *limits, double limit[]) {
@@ -308,7 +308,7 @@ static bool getConstantParameters(ConstantParameters *constants, config_t *cfg) 
 			}
 		}
 	}
-	return succes;
+	return (succes);
 }
 
 Limits *createWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants,
@@ -340,7 +340,7 @@ Limits *createWaveformPairLimitsFrom(cstring fileName, ConstantParameters *const
 		}
 	}
 	config_destroy(&cfg);
-	return pairLimits;
+	return (pairLimits);
 }
 
 void destroyWaveformPairLimits(Limits *pairs) {
@@ -380,7 +380,7 @@ Limits *createSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters 
 		}
 	}
 	config_destroy(&cfg);
-	return waveformLimit;
+	return (waveformLimit);
 }
 
 void destroySignalAndTemplatesLimits(Limits *limits) {
@@ -490,7 +490,7 @@ SystemParameter *createExactWaveformPairFrom(cstring fileName, size_t *numberOfP
 		}
 	}
 	config_destroy(&cfg);
-	return parameters;
+	return (parameters);
 }
 
 void destroyExactWaveformPairs(SystemParameter *pairs) {

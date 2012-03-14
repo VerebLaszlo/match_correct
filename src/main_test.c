@@ -75,7 +75,7 @@ static void interpretOptions(Options *option, int argc, char *argv[]) {
 				}
 				argc--;
 				argv++;
-				ushort step = strtoul(*argv, NULL, 10);
+				size_t step = strtoul(*argv, NULL, 10);
 				if (step <= 0.0 || step == fabs(HUGE_VAL)) {
 					fprintf(stderr, "Bad stepping value, need to be positive: %u\n", step);
 					perror("The following error occurred");
@@ -118,5 +118,5 @@ int main(int argc, char *argv[]) {
 		runProgram(option.programFile, option.parameterFile, &option);
 	}
 	puts("\nOK");
-	return 0;
+	return (0);
 }

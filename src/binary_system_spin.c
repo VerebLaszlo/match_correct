@@ -53,23 +53,23 @@ static bool isSpinBetweenLimits(spinParameters *spin, spinLimits *limit) {
 	assert(limit);
 	if ((!isnan(limit->magnitude[MIN]*limit->magnitude[MAX]))
 		&& (limit->magnitude[MIN] > spin->magnitude || spin->magnitude > limit->magnitude[MAX])) {
-		return false;
+		return ((false));
 	}
 	for (short coordinate = 0; coordinate < COORDINATE_CONVENTIONS; coordinate++) {
 		if ((!isnan(limit->azimuth[coordinate][MIN]*limit->azimuth[coordinate][MAX]))
 			&& (limit->azimuth[coordinate][MIN] > spin->azimuth[coordinate]
 				|| spin->azimuth[coordinate] > limit->azimuth[coordinate][MAX])) {
-			return false;
+			return (false);
 		}
 		if ((!isnan(limit->inclination[coordinate][MIN]*limit->inclination[coordinate][MAX]))
 			&& (limit->inclination[coordinate][MIN] > spin->inclination[coordinate]
 				|| spin->inclination[coordinate] > limit->inclination[coordinate][MAX])) {
-			return false;
+			return (false);
 		}
 		if ((!isnan(limit->elevation[coordinate][MIN]*limit->elevation[coordinate][MAX]))
 			&& (limit->elevation[coordinate][MIN] > spin->elevation[coordinate]
 				|| spin->elevation[coordinate] > limit->elevation[coordinate][MAX])) {
-			return false;
+			return (false);
 		}
 		for (short dimension = 0; dimension < DIMENSION; dimension++) {
 			if ((!
@@ -78,12 +78,12 @@ static bool isSpinBetweenLimits(spinParameters *spin, spinLimits *limit) {
 					> spin->component[coordinate][dimension]
 					|| spin->component[coordinate][dimension]
 						> limit->component[coordinate][dimension][MAX])) {
-				return false;
+				return (false);
 			}
 		}
 	};
 	SAVE_FUNCTION_FOR_TESTING();
-	return true;
+	return (true);
 }
 
 /**	Converts spin components to angles in the specified frame.
@@ -324,11 +324,11 @@ static bool isOK_magnitudeOfSpins(void) {
 		magnitudeOfSpin(&spin[i]);
 		if (spin[i].magnitude != 5.0) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_isSpinBetweenLimits(void) {
@@ -365,7 +365,7 @@ static bool isOK_isSpinBetweenLimits(void) {
 		SAVE_FUNCTION_CALLER();
 		if (!isSpinBetweenLimits(&spin, &limit)) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 	}
 	double multMod = mult + 1.0;
@@ -383,7 +383,7 @@ static bool isOK_isSpinBetweenLimits(void) {
 	SAVE_FUNCTION_CALLER();
 	if (isSpinBetweenLimits(&spin, &limit)) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	multMod = mult - 1.0;
 	spin.magnitude = limit.magnitude[MAX] * multMod;
@@ -399,15 +399,15 @@ static bool isOK_isSpinBetweenLimits(void) {
 	SAVE_FUNCTION_CALLER();
 	if (isSpinBetweenLimits(&spin, &limit)) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_convertSpinFromXyzToAngles(void) {
 	if (!isOK_magnitudeOfSpins()) {
-		return false;
+		return (false);
 	}
 	spinParameters spin;
 	const ushort AZIM = 0;
@@ -440,20 +440,20 @@ static bool isOK_convertSpinFromXyzToAngles(void) {
 				if (isnan(result[testing][AZIM])) {
 					if (!isnan(spin.azimuth[convention])) {
 						PRINT_ERROR();
-						return false;
+						return (false);
 					}
 				} else if (!isNear(radianFromDegree(result[testing][AZIM]),
 					spin.azimuth[convention], EPSILON)) {
 					PRINT_ERROR();
-					return false;
+					return (false);
 				} else if (!isNear(radianFromDegree(result[testing][INCL]),
 					spin.inclination[convention], EPSILON)) {
 					PRINT_ERROR();
-					return false;
+					return (false);
 				} else if (!isNear(radianFromDegree(result[testing][ELEV]),
 					spin.elevation[convention], EPSILON)) {
 					PRINT_ERROR();
-					return false;
+					return (false);
 				}
 				testing++;
 			}
@@ -482,25 +482,25 @@ static bool isOK_convertSpinFromXyzToAngles(void) {
 				if (!isNear(radianFromDegree(result2[testing][AZIM]), spin.azimuth[convention],
 					EPSILON)) {
 					PRINT_ERROR();
-					return false;
+					return (false);
 				} else if (!isNear(result2[testing][INCL], spin.inclination[convention], EPSILON)) {
 					PRINT_ERROR();
-					return false;
+					return (false);
 				} else if (!isNear(result2[testing][ELEV], spin.elevation[convention], EPSILON)) {
 					PRINT_ERROR();
-					return false;
+					return (false);
 				}
 				testing++;
 			}
 		}
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_convertSpinFromAnglesToXyz(void) {
 	if (!isOK_convertSpinFromXyzToAngles()) {
-		return false;
+		return (false);
 	}
 	spinParameters spin;
 	memset(&spin, 0, sizeof(spinParameters));
@@ -520,13 +520,13 @@ static bool isOK_convertSpinFromAnglesToXyz(void) {
 					&& spin.component[convention][Y] != (double) y
 					&& spin.component[convention][Z] != (double) z) {
 					PRINT_ERROR();
-					return false;
+					return (false);
 				}
 			}
 		}
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_convertSpinFromFixedFrame(void) {
@@ -547,39 +547,39 @@ static bool isOK_convertSpinFromFixedFrame(void) {
 							&& spin.component[FIXED][Y] != spin.component[PRECESSING][Y]
 							&& spin.component[FIXED][Z] != spin.component[PRECESSING][Z]) {
 							PRINT_ERROR();
-							return false;
+							return (false);
 						}
 					} else if (incl == M_PI) {
 						if (spin.component[FIXED][X] != -spin.component[PRECESSING][X]
 							&& spin.component[FIXED][Y] != spin.component[PRECESSING][Y]
 							&& spin.component[FIXED][Z] != -spin.component[PRECESSING][Z]) {
 							PRINT_ERROR();
-							return false;
+							return (false);
 						}
 					} else if (incl == M_PI_2) {
 						if (spin.component[FIXED][X] != spin.component[PRECESSING][Z]
 							&& spin.component[FIXED][Y] != spin.component[PRECESSING][Y]
 							&& spin.component[FIXED][Z] != spin.component[PRECESSING][X]) {
 							PRINT_ERROR();
-							return false;
+							return (false);
 						}
 					} else if (incl == M_PI_4) {
 						if (spin.component[FIXED][X] != spin.component[PRECESSING][X] * M_SQRT2
 							&& spin.component[FIXED][Y] != spin.component[PRECESSING][Y]
 							&& spin.component[FIXED][Z] != spin.component[PRECESSING][Z] * M_SQRT2) {
 							PRINT_ERROR();
-							return false;
+							return (false);
 						}
 					} else if (incl == M_PI_2 + M_PI_4) {
 						if (spin.component[FIXED][X] != -spin.component[PRECESSING][X] * M_SQRT2
 							&& spin.component[FIXED][Y] != spin.component[PRECESSING][Y]
 							&& spin.component[FIXED][Z] != -spin.component[PRECESSING][Z] * M_SQRT2) {
 							PRINT_ERROR();
-							return false;
+							return (false);
 						}
 					} else {
 						PRINT_ERROR();
-						return false;
+						return (false);
 					}
 					testing++;
 				}
@@ -588,12 +588,12 @@ static bool isOK_convertSpinFromFixedFrame(void) {
 		incl += M_PI_4;
 	} while (incl <= M_PI);
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_convertSpinFromPrecessionFrame(void) {
 	if (!isOK_convertSpinFromFixedFrame()) {
-		return false;
+		return (false);
 	}
 	spinParameters spin;
 	ushort testing = 0;
@@ -615,7 +615,7 @@ static bool isOK_convertSpinFromPrecessionFrame(void) {
 						&& spin.component[FIXED][Y] != (double) y
 						&& spin.component[FIXED][Z] != (double) z) {
 						PRINT_ERROR();
-						return false;
+						return (false);
 					}
 					testing++;
 				}
@@ -624,24 +624,24 @@ static bool isOK_convertSpinFromPrecessionFrame(void) {
 		incl += M_PI_4;
 	} while (incl <= M_PI);
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_convertSpin(void) {
 	if (!isOK_magnitudeOfSpins()) {
-		return false;
+		return (false);
 	}
 	if (!isOK_convertSpinFromFixedFrame()) {
-		return false;
+		return (false);
 	}
 	if (!isOK_convertSpinFromPrecessionFrame()) {
-		return false;
+		return (false);
 	}
 	if (!isOK_convertSpinFromXyzToAngles()) {
-		return false;
+		return (false);
 	}
 	if (!isOK_convertSpinFromAnglesToXyz()) {
-		return false;
+		return (false);
 	}
 	spinParameters spin;
 	spin.component[FIXED][X] = -1.0;
@@ -653,21 +653,21 @@ static bool isOK_convertSpin(void) {
 	convertSpin(&spin, inclination);
 	if (memcmp(spin.component[FIXED], spin.component[PRECESSING], sizeof(double) * DIMENSION)) {
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_generateSpin(void) {
 	if (!isOK_randomBetween()) {
-		return false;
+		return (false);
 	}
 	if (!isOK_convertSpin()) {
-		return false;
+		return (false);
 	}
 	if (!isOK_isSpinBetweenLimits()) {
-		return false;
+		return (false);
 	}
 	double inclination = 0.0;
 	spinParameters spin;
@@ -692,11 +692,11 @@ static bool isOK_generateSpin(void) {
 	if (!isSpinBetweenLimits(&spin, &limit)) {
 		generateSpin(&spin, &limit, inclination);
 		PRINT_ERROR();
-		return false;
+		return (false);
 	}
 	generateSpin(&spin, &limit, inclination);
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 bool areBinarySystemSpinFunctionsGood(void) {
@@ -711,7 +711,7 @@ bool areBinarySystemSpinFunctionsGood(void) {
 	} else {
 		PRINT_ERROR_FILE();
 	}
-	return isOK;
+	return (isOK);
 }
 ///@}
 #endif	// TEST

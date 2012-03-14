@@ -266,5 +266,5 @@ void runProgram(cstring programFileName, cstring parameterFileName, Options *opt
 	} else if (!areDetectorFunctionsGood()) {
 		succes = false;
 	}
-	return succes;
+	return (succes);
 }
