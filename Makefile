@@ -52,13 +52,13 @@ vpath %.h $(incdir)
 vpath %.o $(objdir)
 vpath %.d $(objdir)
 # EZT MÉG LE KELL ELLENŐRIZNI
-#vpath lib%.so $(subst -L,,$(subst lib\ -L,lib:,$(shell pkg-config --libs-only-L lalinspiral)))
-#vpath lib%.a $(subst -L,,$(subst lib\ -L,lib:,$(shell pkg-config --libs-only-L lalinspiral)))
+#vpath lib%.so $(subst -L,,$(subst lib\ -L,lib:,$(shell pkg-config --libs-only-L lalsimulation)))
+#vpath lib%.a $(subst -L,,$(subst lib\ -L,lib:,$(shell pkg-config --libs-only-L lalsimulation)))
 
-lal_includes := $(shell pkg-config --cflags lalinspiral) $(shell pkg-config --cflags libconfig)
+lal_includes := $(shell pkg-config --cflags lalsimulation) $(shell pkg-config --cflags libconfig)
 includes += $(lal_includes)
-lal_libraries := $(shell pkg-config --libs-only-l lalinspiral)
-lal_libraries_path := $(shell pkg-config --libs-only-L lalinspiral) $(shell pkg-config --libs-only-L libconfig)
+lal_libraries := $(shell pkg-config --libs-only-l lalsimulation)
+lal_libraries_path := $(shell pkg-config --libs-only-L lalsimulation) $(shell pkg-config --libs-only-L libconfig)
 
 all : test Makefile
 
@@ -124,4 +124,4 @@ cleanall : cleanobj
 
 cleanobj :
 	-rm $(objdir)/*.o
-	clear
+	$(CLEAR)

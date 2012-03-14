@@ -5,3 +5,4 @@ hide_echo := @
 #start := '\e[36m'
 #end := '\e[35m'
 #reset := '\e[0m'
+#CLEAR := clear

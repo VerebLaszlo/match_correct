@@ -41,10 +41,9 @@ typedef enum {
 } OptionCode;
 
 char const * optionName[] = { "units", "angle", "mass", "boundaryFrequency", "samplingFrequency",
-								"default", "binary", "mass1", "mass2", "spin1", "spin2",
-								"magnitude", "inclination", "azimuth", "distance", "detector",
-								"generation", "approximant", "phase", "spin", "amplitude", "name",
-								"pairs", "signal", "templates", };
+		"default", "binary", "mass1", "mass2", "spin1", "spin2", "magnitude", "inclination",
+		"azimuth", "distance", "detector", "generation", "approximant", "phase", "spin",
+		"amplitude", "name", "pairs", "signal", "templates", };
 
 static void getNameAndNumberOfRunsFrom(cstring code, string *name, size_t *numberOfRuns) {
 	stringPointer other = NULL;
@@ -128,7 +127,7 @@ static void getMasses(config_setting_t *binary, massLimits *defaults, massLimits
 	limit->mode = FROM_M1M2;
 	for (ushort minimax = ZERO; minimax < MINMAX; minimax++) {
 		limit->chirpMass[minimax] = limit->eta[minimax] = limit->m1_m2[minimax] =
-			limit->mu[minimax] = limit->nu[minimax] = limit->totalMass[minimax] = NAN;
+				limit->mu[minimax] = limit->nu[minimax] = limit->totalMass[minimax] = NAN;
 	}
 }
 
@@ -136,11 +135,11 @@ static void getSpin(config_setting_t *spin, spinLimits *defaults, spinLimits *li
 	config_setting_t *current;
 	for (ushort minimax = ZERO; minimax < MINMAX; minimax++) {
 		for (ushort convention = ZERO; convention < COORDINATE_CONVENTIONS; convention++) {
-			limit->inclination[convention][minimax] = limit->elevation[convention][minimax] = limit
-				->azimuth[convention][minimax] = NAN;
+			limit->inclination[convention][minimax] = limit->elevation[convention][minimax] =
+					limit->azimuth[convention][minimax] = NAN;
 			for (ushort dimention = X; dimention < DIMENSION; dimention++) {
 				limit->component[convention][dimention][minimax] =
-					limit->unity[convention][dimention][minimax] = NAN;
+						limit->unity[convention][dimention][minimax] = NAN;
 			}
 		}
 	}
@@ -177,13 +176,13 @@ static void getSpins(config_setting_t *binary, binaryLimits *defaults, binaryLim
 			getSpin(spin, &defaults->spin[blackhole], &limit->spin[blackhole]);
 		} else {
 			memcpy(&limit->spin[blackhole], &defaults->spin[blackhole],
-				sizeof(defaults->spin[blackhole]));
+					sizeof(defaults->spin[blackhole]));
 		}
 	}
 }
 
 static void getSourceParameters(config_setting_t *waveform, binaryLimits *defaults,
-	binaryLimits *limit) {
+		binaryLimits *limit) {
 	config_setting_t *binary = config_setting_get_member(waveform, optionName[BINARY]);
 	if (binary) {
 		getMasses(binary, &defaults->mass, &limit->mass);
@@ -211,18 +210,19 @@ static void getSourceParameters(config_setting_t *waveform, binaryLimits *defaul
 static void getGenerationParameters(config_setting_t *waveform, Limits *defaults, Limits *limit) {
 	config_setting_t *generation = config_setting_get_member(waveform, optionName[GENERATION]);
 	if (generation) {
-		cstring approximant = NULL, phase = NULL, spin = NULL, amplitude = NULL;
+		long phase, amplitude;
+		cstring approximant = NULL, spin = NULL;
 		config_setting_lookup_string(generation, optionName[APPROXIMANT], &approximant);
 		if (approximant) {
 			strcpy(limit->approximant, approximant);
 		} else {
 			strcpy(limit->approximant, defaults->approximant);
 		}
-		config_setting_lookup_string(generation, optionName[PHASE], &phase);
+		config_setting_lookup_int(generation, optionName[PHASE], &phase);
 		if (phase) {
-			strcpy(limit->phase, phase);
+			limit->phase = phase;
 		} else {
-			strcpy(limit->phase, defaults->phase);
+			limit->phase = defaults->phase;
 		}
 		config_setting_lookup_string(generation, optionName[SPIN], &spin);
 		if (spin) {
@@ -230,17 +230,17 @@ static void getGenerationParameters(config_setting_t *waveform, Limits *defaults
 		} else {
 			strcpy(limit->spin, defaults->spin);
 		}
-		config_setting_lookup_string(generation, optionName[AMPLITUDE], &amplitude);
+		config_setting_lookup_int(generation, optionName[AMPLITUDE], &amplitude);
 		if (amplitude) {
-			strcpy(limit->amplitude, amplitude);
+			limit->amplitude = amplitude;
 		} else {
-			strcpy(limit->amplitude, defaults->amplitude);
+			limit->amplitude = defaults->amplitude;
 		}
 	} else {
 		strcpy(limit->approximant, defaults->approximant);
-		strcpy(limit->phase, defaults->phase);
+		limit->phase = defaults->phase;
 		strcpy(limit->spin, defaults->spin);
-		strcpy(limit->amplitude, defaults->amplitude);
+		limit->amplitude = defaults->amplitude;
 	}
 }
 
@@ -253,8 +253,8 @@ static void getWaveformParameters(config_setting_t *waveform, Limits *defaults, 
 		getNameAndNumberOfRunsFrom(name, &limit->name, &limit->numberOfRuns);
 		if (defaults) {
 			limit->numberOfRuns =
-				limit->numberOfRuns < defaults->numberOfRuns ? limit->numberOfRuns :
-					defaults->numberOfRuns;
+					limit->numberOfRuns < defaults->numberOfRuns ?
+							limit->numberOfRuns : defaults->numberOfRuns;
 		}
 		if (strlen(limit->name) == 0) {
 			strcpy(limit->name, defaults->name);
@@ -278,7 +278,7 @@ static void getWavePairParameters(config_setting_t *pair, Limits *defaults, Limi
 	getNameAndNumberOfRunsFrom(code, &name, &numberOfRuns);
 	if (defaults) {
 		limit[MIN].numberOfRuns = limit[MAX].numberOfRuns =
-			numberOfRuns < defaults->numberOfRuns ? numberOfRuns : defaults->numberOfRuns;
+				numberOfRuns < defaults->numberOfRuns ? numberOfRuns : defaults->numberOfRuns;
 	}
 	if (strlen(name) != 0) {
 		strcpy(limit[MIN].name, name);
@@ -312,12 +312,12 @@ static bool getConstantParameters(ConstantParameters *constants, config_t *cfg) 
 }
 
 Limits *createWaveformPairLimitsFrom(cstring fileName, ConstantParameters *constants,
-	size_t *numberOfPairs) {
+		size_t *numberOfPairs) {
 	config_t cfg;
 	memset(&cfg, 0, sizeof(cfg));
 	if (!config_read_file(&cfg, fileName)) {
 		fprintf(stderr, "Error in %s config file: %d - %s\n", fileName, config_error_line(&cfg),
-			config_error_text(&cfg));
+				config_error_text(&cfg));
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
@@ -348,12 +348,12 @@ void destroyWaveformPairLimits(Limits *pairs) {
 }
 
 Limits *createSignalAndTemplatesLimitsFrom(cstring fileName, ConstantParameters *constants,
-	size_t *size) {
+		size_t *size) {
 	config_t cfg;
 	memset(&cfg, 0, sizeof(cfg));
 	if (!config_read_file(&cfg, fileName)) {
 		fprintf(stderr, "Error in %s config file: %d - %s\n", fileName, config_error_line(&cfg),
-			config_error_text(&cfg));
+				config_error_text(&cfg));
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
@@ -396,7 +396,7 @@ static void getExactMasses(config_setting_t *binary, massParameters *mass) {
 static void getExactSpin(config_setting_t *currentSpin, spinParameters *spin) {
 	config_setting_lookup_float(currentSpin, optionName[MAGNITUDE], &spin->magnitude);
 	config_setting_lookup_float(currentSpin, optionName[INCLINATION],
-		&spin->inclination[PRECESSING]);
+			&spin->inclination[PRECESSING]);
 	convertAngleToRadian(&spin->inclination[PRECESSING]);
 	config_setting_lookup_float(currentSpin, optionName[AZIMUTH], &spin->azimuth[PRECESSING]);
 	convertAngleToRadian(&spin->azimuth[PRECESSING]);
@@ -406,7 +406,7 @@ static void getExactSpin(config_setting_t *currentSpin, spinParameters *spin) {
 static void getExactSpins(config_setting_t *currentBinary, BinarySystem *binary) {
 	for (ushort blackhole = 0; blackhole < NUMBER_OF_BLACKHOLES; blackhole++) {
 		config_setting_t *currentSpin = config_setting_get_member(currentBinary,
-			optionName[SPIN1 + blackhole]);
+				optionName[SPIN1 + blackhole]);
 		getExactSpin(currentSpin, &binary->spin[blackhole]);
 	}
 }
@@ -423,23 +423,24 @@ static void getExactSourceParameters(config_setting_t *waveform, BinarySystem *b
 }
 
 static void getExactGenerationParameters(config_setting_t *waveform, ushort i,
-	SystemParameter *systems) {
+		SystemParameter *systems) {
 	config_setting_t *generation = config_setting_get_member(waveform, optionName[GENERATION]);
 	if (generation) {
-		cstring approximant = NULL, phase = NULL, spin = NULL, amplitude = NULL;
+		cstring approximant = NULL, spin = NULL;
+		long phase, amplitude;
 		config_setting_lookup_string(generation, optionName[APPROXIMANT], &approximant);
 		strcpy(systems->approximant[i], approximant);
-		config_setting_lookup_string(generation, optionName[PHASE], &phase);
-		strcpy(systems->phase[i], phase);
+		config_setting_lookup_int(generation, optionName[PHASE], &phase);
+		systems->phase[i] = (int) phase;
 		config_setting_lookup_string(generation, optionName[SPIN], &spin);
 		strcpy(systems->spin[i], spin);
-		config_setting_lookup_string(generation, optionName[AMPLITUDE], &amplitude);
-		strcpy(systems->amplitude[i], amplitude);
+		config_setting_lookup_int(generation, optionName[AMPLITUDE], &amplitude);
+		systems->amplitude[i] = (int) amplitude;
 	}
 }
 
 static void getExactWaveformParameters(config_setting_t *waveform, ushort i,
-	SystemParameter *systems) {
+		SystemParameter *systems) {
 	getExactSourceParameters(waveform, &systems->system[i]);
 	getExactGenerationParameters(waveform, i, systems);
 }
@@ -464,7 +465,7 @@ SystemParameter *createExactWaveformPairFrom(cstring fileName, size_t *numberOfP
 	memset(&cfg, 0, sizeof(cfg));
 	if (!config_read_file(&cfg, fileName)) {
 		fprintf(stderr, "Error in %s config file: %d - %s\n", fileName, config_error_line(&cfg),
-			config_error_text(&cfg));
+				config_error_text(&cfg));
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
@@ -512,8 +513,8 @@ typedef enum {
 } ProgramOptionCode;
 
 char const * programOptionName[] = { "outputDirectory", "numberOfRuns", "seed", "signalDataFormat",
-										"signalFormat", "dataFormat", "precision", "width",
-										"specifier", "separator", "leftJustified", };
+		"signalFormat", "dataFormat", "precision", "width", "specifier", "separator",
+		"leftJustified", };
 
 static void getFormat(OutputFormats code, config_setting_t *format) {
 	if (format) {
@@ -526,8 +527,8 @@ static void getFormat(OutputFormats code, config_setting_t *format) {
 		config_setting_lookup_string(format, programOptionName[SPECIFIER], &specifier);
 		config_setting_lookup_string(format, programOptionName[SEPARATOR], &separator);
 		config_setting_lookup_bool(format, programOptionName[LEFT_JUSTIFIED], &leftJustified);
-		setOutputFormat(&outputFormat[code], precision, width, specifier[0], separator[0],
-			leftJustified);
+		setOutputFormat(&outputFormat[code], (ushort) precision, (ushort) width, specifier[0],
+				separator[0], leftJustified);
 	}
 }
 
@@ -536,7 +537,7 @@ void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters, Op
 	memset(&cfg, 0, sizeof(cfg));
 	if (!config_read_file(&cfg, fileName)) {
 		fprintf(stderr, "Error in %s config file: %d - %s\n", fileName, config_error_line(&cfg),
-			config_error_text(&cfg));
+				config_error_text(&cfg));
 		config_destroy(&cfg);
 		exit(EXIT_FAILURE);
 	}
@@ -546,8 +547,11 @@ void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters, Op
 	config_setting_t *setting = config_lookup(&cfg, programOptionName[OUTPUT_DIRECTORY]);
 	cstring outputDirectoryName = config_setting_get_string(setting);
 	strcpy(parameters->outputDirectory, outputDirectoryName);
-	config_lookup_int(&cfg, programOptionName[NUMBER_OF_RUNS], &parameters->numberOfRuns);
-	config_lookup_int(&cfg, programOptionName[SEED], &parameters->seed);
+	long value;
+	config_lookup_int(&cfg, programOptionName[NUMBER_OF_RUNS], &value);
+	parameters->numberOfRuns = (ulong) value;
+	config_lookup_int(&cfg, programOptionName[SEED], &value);
+	parameters->seed = value;
 	config_setting_t *format = config_lookup(&cfg, programOptionName[SIGNAL_DATA_FORMAT]);
 	getFormat(SIGNAL_DATA, format);
 	format = config_lookup(&cfg, programOptionName[SIGNAL_FORMAT]);

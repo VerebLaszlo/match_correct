@@ -47,9 +47,9 @@ typedef struct {
 	size_t numberOfRuns;
 	binaryLimits binary;
 	char approximant[LENGTH_OF_STRING];
-	char phase[LENGTH_OF_STRING];
 	char spin[LENGTH_OF_STRING];
-	char amplitude[LENGTH_OF_STRING];
+	int phase;
+	int amplitude;
 	char name[LENGTH_OF_STRING];
 } Limits;
 
@@ -68,19 +68,19 @@ typedef struct SystemParameter_ {
 	double endingFrequency;
 	char name[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	char approximant[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
-	char phase[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	char spin[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
-	char amplitude[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
+	int phase[NUMBER_OF_SYSTEMS];
+	int amplitude[NUMBER_OF_SYSTEMS];
 	double match[NUMBER_OF_MATCHES];
 	size_t periods[2];
 	size_t numberOfRuns;
 } SystemParameter;
 
 void getSysemParametersFromLimit(Limits *limit, ConstantParameters *constants,
-	SystemParameter *parameter, ushort blackhole);
+		SystemParameter *parameter, ushort blackhole);
 
 void getSysemParametersFromLimits(Limits *limit, ConstantParameters *constants, bool copy,
-	SystemParameter *parameter);
+		SystemParameter *parameter);
 
 typedef struct {
 	size_t number;
@@ -118,7 +118,7 @@ void printWaveformPairsToConfigFile(FILE *file, SystemParameter *param, OutputFo
 void printSystemParameters(FILE *file, SystemParameter *params, OutputFormat *format);
 
 void printMassAndSpinsForStatistic(FILE *file, BinarySystem *param, double match[],
-	size_t periods[]);
+		size_t periods[]);
 
 void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double match[]);
 
