@@ -18,32 +18,36 @@
  * @param[in] parameters   :
  */
 static void run(ProgramParameter *program, SystemParameter *parameters, size_t number) {
+	int success;
 	setSignalExistanceFunctions(program->calculateMatches);
 	SignalStruct signal;
-	generateWaveformPair(parameters, &signal, program->calculateMatches);
-	if (program->calculateMatches) {
-		size_t min, max;
-		calculateIndexBoundariesFromFrequencies(parameters->initialFrequency,
-			parameters->endingFrequency, parameters->samplingFrequency, &min, &max);
-		calc_Matches(&signal, min, max, &parameters->match[TYPICAL], &parameters->match[BEST],
-			&parameters->match[WORST]);
-		countPeriods(&signal, parameters->periods);
-	}
-	if (program->plot) {
-		for (size_t i = 0; i < signal.size; i++) {
-			signal.inTime[H1][i] = M_SQRT1_2
-				* (signal.componentsInTime[H1P][i] + signal.componentsInTime[H1C][i]);
-			signal.inTime[H2][i] = M_SQRT1_2
-				* (signal.componentsInTime[H2P][i] + signal.componentsInTime[H2C][i]);
+	success = generateWaveformPair(parameters, &signal, program->calculateMatches);
+	if (success) {
+		if (program->calculateMatches) {
+			size_t min, max;
+			calculateIndexBoundariesFromFrequencies(parameters->initialFrequency,
+					parameters->endingFrequency, parameters->samplingFrequency, &min, &max);
+			calc_Matches(&signal, min, max, &parameters->match[TYPICAL], &parameters->match[BEST],
+					&parameters->match[WORST]);
+			countPeriods(&signal, parameters->periods);
 		}
-		char fileName[1000];
-		sprintf(fileName, "%s/%s%02d.dat", program->outputDirectory, parameters->name[1], number);
-		FILE *file = safelyOpenForWriting(fileName);
-		printParametersForSignalPlotting(file, parameters, parameters->match);
-		printTwoSignals(file, &signal);
-		fclose(file);
+		if (program->plot) {
+			for (size_t i = 0; i < signal.size; i++) {
+				signal.inTime[H1][i] = M_SQRT1_2
+						* (signal.componentsInTime[H1P][i] + signal.componentsInTime[H1C][i]);
+				signal.inTime[H2][i] = M_SQRT1_2
+						* (signal.componentsInTime[H2P][i] + signal.componentsInTime[H2C][i]);
+			}
+			char fileName[1000];
+			sprintf(fileName, "%s/%s%02d.dat", program->outputDirectory, parameters->name[1],
+					number);
+			FILE *file = safelyOpenForWriting(fileName);
+			printParametersForSignalPlotting(file, parameters, parameters->match);
+			printTwoSignalsWithHPHC(file, &signal);
+			fclose(file);
+		}
+		destroySignal(&signal);
 	}
-	destroySignal(&signal);
 }
 
 static void runForSignalAndTemplates(cstring fileName, ProgramParameter *program) {
@@ -51,13 +55,13 @@ static void runForSignalAndTemplates(cstring fileName, ProgramParameter *program
 	SystemParameter parameter;
 	size_t numberOfTemplatesWithSignal;
 	Limits *template = createSignalAndTemplatesLimitsFrom(fileName, &constants,
-		&numberOfTemplatesWithSignal);
+			&numberOfTemplatesWithSignal);
 	if (numberOfTemplatesWithSignal) {
 		getSysemParametersFromLimit(template, &constants, &parameter, 0);
 		for (ushort currentTemplate = 1; currentTemplate < numberOfTemplatesWithSignal;
-			currentTemplate++) {
+				currentTemplate++) {
 			for (size_t templateMultiply = 0;
-				templateMultiply < template[currentTemplate].numberOfRuns; templateMultiply++) {
+					templateMultiply < template[currentTemplate].numberOfRuns; templateMultiply++) {
 				getSysemParametersFromLimit(&template[currentTemplate], &constants, &parameter, 1);
 				run(program, &parameter, templateMultiply);
 			}
@@ -76,9 +80,9 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 	double step[2], max[2], min[2];
 	if (steps->massSet) {
 		double mass1[MINMAX] =
-			{ pair[0].binary.mass.mass[0][MIN], pair[0].binary.mass.mass[0][MAX] };
+				{ pair[0].binary.mass.mass[0][MIN], pair[0].binary.mass.mass[0][MAX] };
 		double mass2[MINMAX] =
-			{ pair[0].binary.mass.mass[1][MIN], pair[0].binary.mass.mass[1][MAX] };
+				{ pair[0].binary.mass.mass[1][MIN], pair[0].binary.mass.mass[1][MAX] };
 		double totalMass[MINMAX] = { mass1[MIN] + mass2[MIN], mass1[MAX] + mass2[MAX] };
 		max[0] = totalMass[MAX];
 		min[0] = totalMass[MIN];
@@ -109,57 +113,59 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 	bool notSkip = true;
 	if (numberOfPairs) {
 		initializeRunTimeCalculator(numberOfPairs * (steps->step[0] + 1lu) * (steps->step[1] + 1lu),
-			program->stepSize);
+				program->stepSize);
 		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++) {
 			for (double currentOuter = max[0]; currentOuter >= min[0]; currentOuter -= step[0]) {
 				for (double currentInner = max[1]; currentInner >= min[1];
-					currentInner -= step[1], current++) {
+						currentInner -= step[1], current++) {
 					if (steps->massSet) {
 						parameter.system[0].mass.totalMass = parameter.system[1].mass.totalMass =
-							currentOuter;
+								currentOuter;
 						parameter.system[0].mass.eta = parameter.system[1].mass.eta = currentInner;
 						parameter.system[0].mass.mass[0] = parameter.system[1].mass.mass[0] = (1.0
-							+ sqrt(1.0 - 4.0 * currentInner)) * currentOuter / 2.0;
+								+ sqrt(1.0 - 4.0 * currentInner)) * currentOuter / 2.0;
 						parameter.system[0].mass.mass[1] = parameter.system[1].mass.mass[1] = (1.0
-							- sqrt(1.0 - 4.0 * currentInner)) * currentOuter / 2.0;
+								- sqrt(1.0 - 4.0 * currentInner)) * currentOuter / 2.0;
 						if (parameter.system[0].mass.mass[0] < 3.0
-							|| parameter.system[0].mass.mass[1] < 3.0) {
+								|| parameter.system[0].mass.mass[1] < 3.0) {
 							notSkip = false;
 						}
 					} else if (steps->chiSet) {
-						parameter.system[0].spin[0].magnitude = parameter.system[1].spin[0]
-							.magnitude = currentOuter;
-						parameter.system[0].spin[1].magnitude = parameter.system[1].spin[1]
-							.magnitude = currentInner;
+						parameter.system[0].spin[0].magnitude =
+								parameter.system[1].spin[0].magnitude = currentOuter;
+						parameter.system[0].spin[1].magnitude =
+								parameter.system[1].spin[1].magnitude = currentInner;
 					} else if (steps->inclSet) {
-						parameter.system[0].spin[0].inclination[PRECESSING] = parameter.system[1]
-							.spin[0].inclination[PRECESSING] = currentOuter;
-						parameter.system[0].spin[1].inclination[PRECESSING] = parameter.system[1]
-							.spin[1].inclination[PRECESSING] = currentInner;
+						parameter.system[0].spin[0].inclination[PRECESSING] =
+								parameter.system[1].spin[0].inclination[PRECESSING] = currentOuter;
+						parameter.system[0].spin[1].inclination[PRECESSING] =
+								parameter.system[1].spin[1].inclination[PRECESSING] = currentInner;
 					} else if (steps->azimSet) {
 						parameter.system[0].spin[0].azimuth[PRECESSING] =
-							parameter.system[1].spin[0].azimuth[PRECESSING] = currentOuter;
+								parameter.system[1].spin[0].azimuth[PRECESSING] = currentOuter;
 						parameter.system[0].spin[1].azimuth[PRECESSING] =
-							parameter.system[1].spin[1].azimuth[PRECESSING] = currentInner;
+								parameter.system[1].spin[1].azimuth[PRECESSING] = currentInner;
 					}
 					if (notSkip) {
 						if (steps->chiSet || steps->inclSet || steps->azimSet) {
-							parameter.system[0].spin[0].convert = parameter.system[0].spin[1]
-								.convert = parameter.system[1].spin[0].convert = parameter.system[1]
-								.spin[1].convert = FROM_PRECESSING_ANGLES;
+							parameter.system[0].spin[0].convert =
+									parameter.system[0].spin[1].convert =
+											parameter.system[1].spin[0].convert =
+													parameter.system[1].spin[1].convert =
+															FROM_PRECESSING_ANGLES;
 							convertSpin(&parameter.system[0].spin[0],
-								parameter.system[0].inclination);
+									parameter.system[0].inclination);
 							convertSpin(&parameter.system[0].spin[1],
-								parameter.system[0].inclination);
+									parameter.system[0].inclination);
 							convertSpin(&parameter.system[1].spin[0],
-								parameter.system[1].inclination);
+									parameter.system[1].inclination);
 							convertSpin(&parameter.system[1].spin[1],
-								parameter.system[1].inclination);
+									parameter.system[1].inclination);
 						}
 						run(program, &parameter, current);
 						parameter.samplingFrequency = backup;
 						printMassAndSpinsForStatistic(matchFile, &parameter.system[0],
-							parameter.match, parameter.periods);
+								parameter.match, parameter.periods);
 					} else {
 						notSkip = true;
 					}
@@ -187,23 +193,27 @@ static void runForWaveformPairs(cstring fileName, bool copy, ProgramParameter *p
 	printStartOfConfigFile(file, &constants);
 	size_t current = 0;
 	if (numberOfPairs) {
-		initializeRunTimeCalculator(numberOfPairs * pair[1].numberOfRuns, program->stepSize);
+		if (program->stepSize) {
+			initializeRunTimeCalculator(numberOfPairs * pair[1].numberOfRuns, program->stepSize);
+		}
 		for (size_t currentPair = 0; currentPair < numberOfPairs; currentPair++, current++) {
 			for (size_t pairMultiply = 0; pairMultiply < pair[2 * currentPair + 1].numberOfRuns;
-				pairMultiply++, current++) {
+					pairMultiply++, current++) {
 				SystemParameter parameter;
 				getSysemParametersFromLimits(&pair[2 * currentPair], &constants, copy, &parameter);
 				run(program, &parameter, pairMultiply);
 				if (copy) {
 					printMassAndSpinsForStatistic(matchFile, &parameter.system[0], parameter.match,
-						parameter.periods);
+							parameter.periods);
 				}
 				printWaveformPairsToConfigFile(file, &parameter, &outputFormat[DATA]);
 				if ((currentPair != numberOfPairs - 1)
-					|| pairMultiply != pair[2 * currentPair + 1].numberOfRuns - 1) {
+						|| pairMultiply != pair[2 * currentPair + 1].numberOfRuns - 1) {
 					printMiddleOfConfigFile(file);
 				}
-				printRemainingTime(current);
+				if (program->stepSize) {
+					printRemainingTime(current);
+				}
 			}
 		}
 	}

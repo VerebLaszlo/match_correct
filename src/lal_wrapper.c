@@ -15,6 +15,8 @@
 #include "util_math.h"
 #include "lal_wrapper.h"
 
+//extern int lalDebugLevel = LALMSGLVL3;
+
 enum {
 	HP = 0, HC,
 };
@@ -28,7 +30,7 @@ static Approximant getApproximantFromString(const char * const approx) {
 	if (!strcmp("SQT", approx)) {
 		result = SpinQuadTaylor;
 	} else if (!strcmp("STF", approx)) {
-		result = SpinTaylor;
+		result = SpinTaylorFrameless;
 	} else {
 		exit(EXIT_FAILURE);
 	}
@@ -53,7 +55,7 @@ static LALSimInspiralInteraction getInteractionFromString(const char * const spi
 		if (strstr(spin, "QM20")) {
 			result |= LAL_SIM_INSPIRAL_INTERACTION_QUAD_MONO_2PN;
 		}
-		if (strstr(spin, "SELF")) {
+		if (strstr(spin, "SELF20")) {
 			result |= LAL_SIM_INSPIRAL_INTERACTION_SPIN_SPIN_SELF_2PN;
 		}
 	}
@@ -84,8 +86,8 @@ static void createPSD(double *psd_out, size_t length1, size_t length2, double in
  * @param signal
  * @param lal
  */
-static void createSignalStructFromLAL(SignalStruct *signal, REAL8TimeSeries h[]) {
-	signal->size = (size_t) fmax(h[0].data->length, h[1].data->length);
+static void createSignalStructFromLAL(SignalStruct *signal, REAL8TimeSeries *h[]) {
+	signal->size = (size_t) fmax(h[0]->data->length, h[1]->data->length);
 	if (createSignal) {
 		createSignal(signal, signal->size);
 	} else {
@@ -93,17 +95,18 @@ static void createSignalStructFromLAL(SignalStruct *signal, REAL8TimeSeries h[])
 				"You did not choose signal structure handling function with \"setSignalExistanceFunctions(bool)\" function.");
 		exit(EXIT_FAILURE);
 	}
-	signal->samplingTime = h[0].deltaT;
-	signal->length[H1] = h[H1].data->length;
-	signal->length[H2] = h[H2].data->length;
+	signal->samplingTime = h[0]->deltaT;
+	signal->length[H1] = h[H1]->data->length;
+	signal->length[H2] = h[H2]->data->length;
 	for (ushort i = 0; i < NUMBER_OF_SYSTEMS; i++) {
 		for (ulong current = 0; current < signal->length[i]; current++) {
 			signal->componentsInTime[H1P + NUMBER_OF_SIGNALS * i][current] =
-					h[2 * i].data->data[current];
+					h[2 * i]->data->data[current];
 			signal->componentsInTime[H1C + NUMBER_OF_SIGNALS * i][current] =
-					h[2 * i + 1].data->data[current];
+					h[2 * i + 1]->data->data[current];
 		}
 	}
+
 }
 
 int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool calculateMatches) {
@@ -113,8 +116,8 @@ int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool
 	for (ushort current = 0; current < NUMBER_OF_SYSTEMS; current++) {
 		Approximant approx = getApproximantFromString(parameters->approximant[current]);
 		LALSimInspiralInteraction spin = getInteractionFromString(parameters->spin[current]);
-		REAL8 mass[2] = { parameters->system[current].mass.mass[0],
-				parameters->system[current].mass.mass[1] };
+		REAL8 mass[2] = { parameters->system[current].mass.mass[0] * LAL_MSUN_SI,
+				parameters->system[current].mass.mass[1] * LAL_MSUN_SI };
 		REAL8 s1[3] = { parameters->system[current].spin[0].component[FIXED][X],
 				parameters->system[current].spin[0].component[FIXED][Y],
 				parameters->system[current].spin[0].component[FIXED][Z] };
@@ -132,9 +135,10 @@ int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool
 			fprintf(stderr, "Error generating %d waveform\n", current);
 			return (NOT_FOUND);
 		}
+		break;
 	}
 	if (signal) {
-		createSignalStructFromLAL(signal, *h);
+		createSignalStructFromLAL(signal, h);
 		if (calculateMatches) {
 			createPSD(signal->powerSpectrumDensity, h[H1P]->data->length, h[H2P]->data->length,
 					parameters->initialFrequency, parameters->samplingTime);

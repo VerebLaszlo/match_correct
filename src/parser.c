@@ -210,28 +210,29 @@ static void getSourceParameters(config_setting_t *waveform, binaryLimits *defaul
 static void getGenerationParameters(config_setting_t *waveform, Limits *defaults, Limits *limit) {
 	config_setting_t *generation = config_setting_get_member(waveform, optionName[GENERATION]);
 	if (generation) {
+		int success = CONFIG_FALSE;
 		long phase, amplitude;
 		cstring approximant = NULL, spin = NULL;
-		config_setting_lookup_string(generation, optionName[APPROXIMANT], &approximant);
-		if (approximant) {
+		success = config_setting_lookup_string(generation, optionName[APPROXIMANT], &approximant);
+		if (success) {
 			strcpy(limit->approximant, approximant);
 		} else {
 			strcpy(limit->approximant, defaults->approximant);
 		}
-		config_setting_lookup_int(generation, optionName[PHASE], &phase);
-		if (phase) {
+		success = config_setting_lookup_int(generation, optionName[PHASE], &phase);
+		if (success) {
 			limit->phase = phase;
 		} else {
 			limit->phase = defaults->phase;
 		}
-		config_setting_lookup_string(generation, optionName[SPIN], &spin);
-		if (spin) {
+		success = config_setting_lookup_string(generation, optionName[SPIN], &spin);
+		if (success) {
 			strcpy(limit->spin, spin);
 		} else {
 			strcpy(limit->spin, defaults->spin);
 		}
-		config_setting_lookup_int(generation, optionName[AMPLITUDE], &amplitude);
-		if (amplitude) {
+		success = config_setting_lookup_int(generation, optionName[AMPLITUDE], &amplitude);
+		if (success) {
 			limit->amplitude = amplitude;
 		} else {
 			limit->amplitude = defaults->amplitude;
@@ -245,11 +246,12 @@ static void getGenerationParameters(config_setting_t *waveform, Limits *defaults
 }
 
 static void getWaveformParameters(config_setting_t *waveform, Limits *defaults, Limits *limit) {
+	int success = CONFIG_FALSE;
 	getSourceParameters(waveform, &defaults->binary, &limit->binary);
 	getGenerationParameters(waveform, defaults, limit);
 	cstring name = NULL;
-	config_setting_lookup_string(waveform, optionName[NAME], &name);
-	if (name) {
+	success = config_setting_lookup_string(waveform, optionName[NAME], &name);
+	if (success) {
 		getNameAndNumberOfRunsFrom(name, &limit->name, &limit->numberOfRuns);
 		if (defaults) {
 			limit->numberOfRuns =
@@ -293,9 +295,10 @@ static bool getConstantParameters(ConstantParameters *constants, config_t *cfg) 
 	bool succes = false;
 	config_setting_t *unit = config_lookup(cfg, optionName[UNITS]);
 	if (unit) {
+		int success = CONFIG_FALSE;
 		cstring angleCode, massCode;
-		config_setting_lookup_string(unit, optionName[ANGLE], &angleCode);
-		config_setting_lookup_string(unit, optionName[MASS], &massCode);
+		success = config_setting_lookup_string(unit, optionName[ANGLE], &angleCode);
+		success = config_setting_lookup_string(unit, optionName[MASS], &massCode);
 		getUnitsCodeFromStrings(angleCode, massCode);
 		config_setting_t *frequency = config_lookup(cfg, optionName[BOUNDARY_FREQUENCY]);
 		if (frequency) {
@@ -388,17 +391,20 @@ void destroySignalAndTemplatesLimits(Limits *limits) {
 }
 
 static void getExactMasses(config_setting_t *binary, massParameters *mass) {
-	config_setting_lookup_float(binary, optionName[MASS1], &mass->mass[0]);
-	config_setting_lookup_float(binary, optionName[MASS2], &mass->mass[1]);
+	int success = CONFIG_FALSE;
+	success = config_setting_lookup_float(binary, optionName[MASS1], &mass->mass[0]);
+	success = config_setting_lookup_float(binary, optionName[MASS2], &mass->mass[1]);
 	mass->convert = FROM_M1M2;
 }
 
 static void getExactSpin(config_setting_t *currentSpin, spinParameters *spin) {
-	config_setting_lookup_float(currentSpin, optionName[MAGNITUDE], &spin->magnitude);
-	config_setting_lookup_float(currentSpin, optionName[INCLINATION],
+	int success = CONFIG_FALSE;
+	success = config_setting_lookup_float(currentSpin, optionName[MAGNITUDE], &spin->magnitude);
+	success = config_setting_lookup_float(currentSpin, optionName[INCLINATION],
 			&spin->inclination[PRECESSING]);
 	convertAngleToRadian(&spin->inclination[PRECESSING]);
-	config_setting_lookup_float(currentSpin, optionName[AZIMUTH], &spin->azimuth[PRECESSING]);
+	success = config_setting_lookup_float(currentSpin, optionName[AZIMUTH],
+			&spin->azimuth[PRECESSING]);
 	convertAngleToRadian(&spin->azimuth[PRECESSING]);
 	spin->convert = FROM_PRECESSING_ANGLES;
 }
@@ -414,11 +420,14 @@ static void getExactSpins(config_setting_t *currentBinary, BinarySystem *binary)
 static void getExactSourceParameters(config_setting_t *waveform, BinarySystem *binary) {
 	config_setting_t *currentBinary = config_setting_get_member(waveform, optionName[BINARY]);
 	if (currentBinary) {
+		int success = CONFIG_FALSE;
 		getExactMasses(currentBinary, &binary->mass);
 		getExactSpins(currentBinary, binary);
-		config_setting_lookup_float(currentBinary, optionName[INCLINATION], &binary->inclination);
+		success = config_setting_lookup_float(currentBinary, optionName[INCLINATION],
+				&binary->inclination);
 		convertAngleToRadian(&binary->inclination);
-		config_setting_lookup_float(currentBinary, optionName[DISTANCE], &binary->distance);
+		success = config_setting_lookup_float(currentBinary, optionName[DISTANCE],
+				&binary->distance);
 	}
 }
 
@@ -426,15 +435,16 @@ static void getExactGenerationParameters(config_setting_t *waveform, ushort i,
 		SystemParameter *systems) {
 	config_setting_t *generation = config_setting_get_member(waveform, optionName[GENERATION]);
 	if (generation) {
+		int success = CONFIG_FALSE;
 		cstring approximant = NULL, spin = NULL;
 		long phase, amplitude;
-		config_setting_lookup_string(generation, optionName[APPROXIMANT], &approximant);
+		success = config_setting_lookup_string(generation, optionName[APPROXIMANT], &approximant);
 		strcpy(systems->approximant[i], approximant);
-		config_setting_lookup_int(generation, optionName[PHASE], &phase);
+		success = config_setting_lookup_int(generation, optionName[PHASE], &phase);
 		systems->phase[i] = (int) phase;
-		config_setting_lookup_string(generation, optionName[SPIN], &spin);
+		success = config_setting_lookup_string(generation, optionName[SPIN], &spin);
 		strcpy(systems->spin[i], spin);
-		config_setting_lookup_int(generation, optionName[AMPLITUDE], &amplitude);
+		success = config_setting_lookup_int(generation, optionName[AMPLITUDE], &amplitude);
 		systems->amplitude[i] = (int) amplitude;
 	}
 }
@@ -522,11 +532,13 @@ static void getFormat(OutputFormats code, config_setting_t *format) {
 		cstring specifier;
 		cstring separator;
 		int leftJustified;
-		config_setting_lookup_int(format, programOptionName[PRECISION], &precision);
-		config_setting_lookup_int(format, programOptionName[WIDTH], &width);
-		config_setting_lookup_string(format, programOptionName[SPECIFIER], &specifier);
-		config_setting_lookup_string(format, programOptionName[SEPARATOR], &separator);
-		config_setting_lookup_bool(format, programOptionName[LEFT_JUSTIFIED], &leftJustified);
+		int success = CONFIG_FALSE;
+		success = config_setting_lookup_int(format, programOptionName[PRECISION], &precision);
+		success = config_setting_lookup_int(format, programOptionName[WIDTH], &width);
+		success = config_setting_lookup_string(format, programOptionName[SPECIFIER], &specifier);
+		success = config_setting_lookup_string(format, programOptionName[SEPARATOR], &separator);
+		success = config_setting_lookup_bool(format, programOptionName[LEFT_JUSTIFIED],
+				&leftJustified);
 		setOutputFormat(&outputFormat[code], (ushort) precision, (ushort) width, specifier[0],
 				separator[0], leftJustified);
 	}
