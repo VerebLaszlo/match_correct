@@ -58,7 +58,7 @@ vpath %.d $(objdir)
 lal_includes := $(shell pkg-config --cflags lalinspiral) $(shell pkg-config --cflags libconfig)
 includes += $(lal_includes)
 lal_libraries := $(shell pkg-config --libs-only-l lalinspiral)
-lal_libraries_path := $(shell pkg-config --libs-only-L lalinspiral) $(shell pkg-config --libs-only-L libconfig)
+lal_libraries_path := $(shell pkg-config --libs-only-L lalinspiral) $(shell pkg-config --libs-only-L libconfig) -lmetaio
 
 all : test Makefile
 
