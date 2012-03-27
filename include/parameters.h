@@ -49,7 +49,7 @@ typedef struct {
 	char approximant[LENGTH_OF_STRING];
 	char phase[LENGTH_OF_STRING];
 	char spin[LENGTH_OF_STRING];
-	char amplitude[LENGTH_OF_STRING];
+	int amplitude;
 	char name[LENGTH_OF_STRING];
 } Limits;
 
@@ -70,7 +70,7 @@ typedef struct SystemParameter_ {
 	char approximant[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	char phase[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	char spin[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
-	char amplitude[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
+	int amplitude[NUMBER_OF_SYSTEMS];
 	double match[NUMBER_OF_MATCHES];
 	size_t periods[2];
 	size_t numberOfRuns;

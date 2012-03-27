@@ -11,12 +11,12 @@
 #include "parameters.h"
 
 void getSysemParametersFromLimit(Limits *limit, ConstantParameters *constants,
-	SystemParameter *parameter, ushort systems) {
+		SystemParameter *parameter, ushort systems) {
 	generateBinarySystemParameters(&parameter->system[systems], &limit->binary);
 	strcpy(parameter->approximant[systems], limit->approximant);
 	strcpy(parameter->phase[systems], limit->phase);
 	strcpy(parameter->spin[systems], limit->spin);
-	strcpy(parameter->amplitude[systems], limit->amplitude);
+	parameter->amplitude[systems] = limit->amplitude;
 	strcpy(parameter->name[systems], limit->name);
 	parameter->numberOfRuns = limit->numberOfRuns;
 	parameter->initialFrequency = constants->initialFrequency;
@@ -26,7 +26,7 @@ void getSysemParametersFromLimit(Limits *limit, ConstantParameters *constants,
 }
 
 void getSysemParametersFromLimits(Limits limit[], ConstantParameters *constants, bool copy,
-	SystemParameter *parameter) {
+		SystemParameter *parameter) {
 	for (ushort systems = 0; systems < NUMBER_OF_SYSTEMS; systems++) {
 		getSysemParametersFromLimit(&limit[systems], constants, parameter, systems);
 	}
@@ -57,9 +57,9 @@ static void printMassLimits(FILE *file, massLimits* mass) {
 static void printSpinLimits(FILE *file, spinLimits *spin) {
 	fprintf(file, "magnitude: %lg %lg\n", spin->magnitude[MIN], spin->magnitude[MAX]);
 	fprintf(file, "inclination: %lg %lg\n", degreeFromRadian(spin->inclination[PRECESSING][MIN]),
-		degreeFromRadian(spin->inclination[PRECESSING][MAX]));
+			degreeFromRadian(spin->inclination[PRECESSING][MAX]));
 	fprintf(file, "azimuth: %lg %lg\n", degreeFromRadian(spin->azimuth[PRECESSING][MIN]),
-		degreeFromRadian(spin->azimuth[PRECESSING][MAX]));
+			degreeFromRadian(spin->azimuth[PRECESSING][MAX]));
 }
 
 static void printBinaryLimits(FILE *file, binaryLimits *binary) {
@@ -67,7 +67,7 @@ static void printBinaryLimits(FILE *file, binaryLimits *binary) {
 	printSpinLimits(file, &binary->spin[0]);
 	printSpinLimits(file, &binary->spin[1]);
 	fprintf(file, "incl: %lg %lg\n", degreeFromRadian(binary->inclination[MIN]),
-		degreeFromRadian(binary->inclination[MAX]));
+			degreeFromRadian(binary->inclination[MAX]));
 	fprintf(file, "dist: %lg %lg\n", binary->distance[MIN], binary->distance[MAX]);
 }
 
@@ -76,7 +76,7 @@ void printLimits(FILE *file, Limits *limit) {
 	fprintf(file, "appr: %s\n", limit->approximant);
 	fprintf(file, "phase: %s\n", limit->phase);
 	fprintf(file, "spin: %s\n", limit->spin);
-	fprintf(file, "ampl: %s\n", limit->amplitude);
+	fprintf(file, "ampl: %d\n", limit->amplitude);
 	fprintf(file, "name: %s\n", limit->name);
 }
 
@@ -90,20 +90,20 @@ void printProgramParameters(FILE *file, ProgramParameter *params) {
 }
 
 static void printWaveParametersToConfigFile(FILE *file, SystemParameter *param,
-	ushort currentSystem, OutputFormat *format) {
+		ushort currentSystem, OutputFormat *format) {
 	printBinarySystemToConfig(file, &param->system[currentSystem], format);
 	fputs("\t\t\tgeneration = {", file);
 	fprintf(file, " approximant = \"%s\";", param->approximant[currentSystem]);
 	fprintf(file, " phase = \"%s\"; ", param->phase[currentSystem]);
 	fprintf(file, " spin = \"%s\"; ", param->spin[currentSystem]);
-	fprintf(file, " amplitude = \"%s\"; ", param->amplitude[currentSystem]);
+	fprintf(file, " amplitude = \"%d\"; ", param->amplitude[currentSystem]);
 	fputs("};\n", file);
 }
 
 static void printConstantsToConfigFile(FILE *file, ConstantParameters *constant) {
 	fputs("units = { angle = \"degree\"; mass = \"solar\"; };\n", file);
 	fprintf(file, "boundaryFrequency = [%lg, %lg]; samplingFrequency = %lg;\n\n",
-		constant->initialFrequency, constant->endingFrequency, constant->samplingFrequency);
+			constant->initialFrequency, constant->endingFrequency, constant->samplingFrequency);
 }
 
 void printStartOfConfigFile(FILE *file, ConstantParameters *constant) {
@@ -140,7 +140,7 @@ void printSystemParameters(FILE *file, SystemParameter *params, OutputFormat *fo
 		fprintf(file, "%10s %10s\n", "approx", params->approximant[i]);
 		fprintf(file, "%10s %10s\n", "phase", params->phase[i]);
 		fprintf(file, "%10s %10s\n", "spin", params->spin[i]);
-		fprintf(file, "%10s %10s\n", "amp", params->amplitude[0]);
+		fprintf(file, "%10s %10d\n", "amp", params->amplitude[0]);
 		printBinarySystemParameters(file, &params->system[i], format);
 	}
 }
@@ -154,7 +154,7 @@ void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double
 	for (ushort i = ZERO; i < NUMBER_OF_SYSTEMS; i++) {
 		fprintf(file, "#system_%d -     m_0, m_1, totalMass, eta: ", i);
 		fprintf(file, formatString, param->system[i].mass.mass[0], param->system[i].mass.mass[1],
-			param->system[i].mass.totalMass, param->system[i].mass.eta);
+				param->system[i].mass.totalMass, param->system[i].mass.eta);
 	}
 	number = 6;
 	length = (ushort) (number * format->widthWithSeparator);
@@ -162,16 +162,16 @@ void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double
 	for (ushort i = ZERO; i < NUMBER_OF_SYSTEMS; i++) {
 		fprintf(file, "#system_%d - c_0, k_0, p_0, c_1, k_1, p_1: ", i);
 		fprintf(file, formatString, param->system[i].spin[0].magnitude,
-			degreeFromRadian(param->system[i].spin[0].inclination[PRECESSING]),
-			degreeFromRadian(param->system[i].spin[0].azimuth[PRECESSING]),
-			param->system[i].spin[1].magnitude,
-			degreeFromRadian(param->system[i].spin[1].inclination[PRECESSING]),
-			degreeFromRadian(param->system[i].spin[1].azimuth[PRECESSING]));
+				degreeFromRadian(param->system[i].spin[0].inclination[PRECESSING]),
+				degreeFromRadian(param->system[i].spin[0].azimuth[PRECESSING]),
+				param->system[i].spin[1].magnitude,
+				degreeFromRadian(param->system[i].spin[1].inclination[PRECESSING]),
+				degreeFromRadian(param->system[i].spin[1].azimuth[PRECESSING]));
 	}
 	for (ushort i = ZERO; i < NUMBER_OF_SYSTEMS; i++) {
 		fprintf(file, "#system_%d -    approx, phase, spin, ampl: ", i);
-		fprintf(file, "%s %s %s %s\n", param->approximant[i], param->phase[i], param->spin[i],
-			param->amplitude[i]);
+		fprintf(file, "%s %s %s %d\n", param->approximant[i], param->phase[i], param->spin[i],
+				param->amplitude[i]);
 	}
 	number = 3;
 	length = (ushort) (number * format->widthWithSeparator);
@@ -181,19 +181,20 @@ void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double
 	number = 2;
 	length = (ushort) (number * format->widthWithSeparator);
 	setFormatEnd(formatString, number, format);
-	fprintf(file, "#periods  -                             : %d %d\n", param->periods[0], param->periods[1]);
+	fprintf(file, "#periods  -                             : %d %d\n", param->periods[0],
+			param->periods[1]);
 }
 
 void printMassAndSpinsForStatistic(FILE *file, BinarySystem *param, double match[],
-	size_t periods[]) {
+		size_t periods[]) {
 	OutputFormat *format = &outputFormat[SIGNAL_TO_PLOT];
 	ushort number = 3 + 2 + 2 * 3 + 2;
-	ushort length = number * format->widthWithSeparator;
+	ushort length = (ushort) (number * format->widthWithSeparator);
 	char formatString[length];
 	setFormatEnd(formatString, number, format);
 	fprintf(file, formatString, match[WORST], match[TYPICAL], match[BEST], param->mass.totalMass,
-		param->mass.eta, param->spin[0].magnitude, param->spin[1].magnitude,
-		param->spin[0].inclination[PRECESSING], param->spin[1].inclination[PRECESSING],
-		param->spin[0].azimuth[PRECESSING], param->spin[1].azimuth[PRECESSING], periods[0],
-		periods[1]);
+			param->mass.eta, param->spin[0].magnitude, param->spin[1].magnitude,
+			param->spin[0].inclination[PRECESSING], param->spin[1].inclination[PRECESSING],
+			param->spin[0].azimuth[PRECESSING], param->spin[1].azimuth[PRECESSING], periods[0],
+			periods[1]);
 }

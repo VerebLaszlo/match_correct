@@ -54,27 +54,6 @@ static void printLALParameters(LALParameters *params) {
 	}
 }
 
-/**	Converts the amplitude character code to number code.
- * @param[in] amplitudeOrder :
- * @return
- */
-static INT4 convertAmplitudeOrderFromString(const char *amplitudeOrder) {
-	INT4 amplitudeCode = 0;
-	if (strstr(amplitudeOrder, "100") || strstr(amplitudeOrder, "110")
-		|| strstr(amplitudeOrder, "101") || strstr(amplitudeOrder, "111")) {
-		amplitudeCode |= LALSQTPN_0_0;
-	}
-	if (strstr(amplitudeOrder, "010") || strstr(amplitudeOrder, "110")
-		|| strstr(amplitudeOrder, "011") || strstr(amplitudeOrder, "111")) {
-		amplitudeCode |= LALSQTPN_0_5;
-	}
-	if (strstr(amplitudeOrder, "001") || strstr(amplitudeOrder, "101")
-		|| strstr(amplitudeOrder, "011") || strstr(amplitudeOrder, "111")) {
-		amplitudeCode |= LALSQTPN_1_0;
-	}
-	return amplitudeCode;
-}
-
 /**	Initialize the parameters for calling the lal functions.
  * @param[out] lalparams  :
  * @param[in]  parameters :
@@ -96,11 +75,10 @@ static void initLALParameters(LALParameters *lalparams, SystemParameter *paramet
 		lalparams->injParams[i].f_lower = (REAL4) parameters->initialFrequency;
 		lalparams->injParams[i].distance = (REAL4) parameters->system[i].distance;
 		lalparams->ppnParams[i].deltaT = 1. / parameters->samplingFrequency;
-		lalparams->injParams[i].amp_order = convertAmplitudeOrderFromString(
-			parameters->amplitude[i]);
+		lalparams->injParams[i].amp_order = parameters->amplitude[i];
 		snprintf(lalparams->injParams[i].waveform, LIGOMETA_WAVEFORM_MAX * sizeof(CHAR), "%s%s%s%s",
-			parameters->approximant[i], parameters->phase[i], parameters->spin[i],
-			parameters->amplitude[i]);
+				parameters->approximant[i], parameters->phase[i], parameters->spin[i],
+				"");
 		if (strstr(parameters->approximant[i], "SpinQuadTaylor")) {
 			lalparams->approx[i] = SpinQuadTaylor;
 		} else if (strstr(parameters->approximant[i], "SpinTaylorFrameless")) {
