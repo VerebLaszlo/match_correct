@@ -47,7 +47,7 @@ typedef struct {
 	size_t numberOfRuns;
 	binaryLimits binary;
 	char approximant[LENGTH_OF_STRING];
-	char phase[LENGTH_OF_STRING];
+	int phase;
 	char spin[LENGTH_OF_STRING];
 	int amplitude;
 	char name[LENGTH_OF_STRING];
@@ -68,7 +68,7 @@ typedef struct SystemParameter_ {
 	double endingFrequency;
 	char name[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	char approximant[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
-	char phase[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
+	int phase[NUMBER_OF_SYSTEMS];
 	char spin[NUMBER_OF_SYSTEMS][LENGTH_OF_STRING];
 	int amplitude[NUMBER_OF_SYSTEMS];
 	double match[NUMBER_OF_MATCHES];

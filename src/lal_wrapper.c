@@ -5,89 +5,86 @@
  * @author vereb
  */
 
-#include <lal/LALSQTPNWaveformInterface.h>
-#include <lal/LALNoiseModelsInspiral.h>
-#include <lal/SimulateCoherentGW.h>
-#include <lal/GenerateInspiral.h>
-#include <lal/LALInspiralBank.h>
-#include <lal/LALDatatypes.h>
-#include <lal/LALInspiral.h>
-#include <lal/LALStdlib.h>
-#include <lal/RealFFT.h>
+#include <lal/LALSimInspiral.h>
+#include <lal/LALMalloc.h>
+#include <lal/TimeSeries.h>
+#include <math.h>
 #include "lal_wrapper.h"
 
-int switchMode = LALSQTPN_PRECESSING;
+enum {
+	HP, HC,
+};
+
+static Approximant getApproximant(const char * const approximant) {
+	Approximant approx = NumApproximants;
+	if (strstr(approximant, "SQT")) {
+		approx = SpinQuadTaylor;
+	} else if (strstr(approximant, "ST")) {
+		approx = SpinTaylorT4;
+	}
+	return (approx);
+}
+
+static LALSimInspiralInteraction getInteraction(const char * const interaction) {
+	LALSimInspiralInteraction spin = LAL_SIM_INSPIRAL_INTERACTION_NONE;
+	if (!strstr(interaction, "NO")) {
+		if (strstr(interaction, "ALL")) {
+			spin = LAL_SIM_INSPIRAL_INTERACTION_SPIN_ORBIT_15PN
+					| LAL_SIM_INSPIRAL_INTERACTION_SPIN_SPIN_2PN
+					| LAL_SIM_INSPIRAL_INTERACTION_SPIN_SPIN_SELF_2PN
+					| LAL_SIM_INSPIRAL_INTERACTION_QUAD_MONO_2PN;
+		} else {
+			if (strstr(interaction, "SO")) {
+				spin |= LAL_SIM_INSPIRAL_INTERACTION_SPIN_ORBIT_15PN;
+			}
+			if (strstr(interaction, "SS")) {
+				spin |= LAL_SIM_INSPIRAL_INTERACTION_SPIN_SPIN_2PN;
+			}
+			if (strstr(interaction, "SE")) {
+				spin |= LAL_SIM_INSPIRAL_INTERACTION_SPIN_SPIN_SELF_2PN;
+			}
+			if (strstr(interaction, "QM")) {
+				spin |= LAL_SIM_INSPIRAL_INTERACTION_QUAD_MONO_2PN;
+			}
+		}
+	}
+	return (spin);
+}
+
+static void setSignalFromH(SignalStruct *signal, REAL8TimeSeries *h[2]) {
+	for (ulong i = 0; i < h[HP]->data->length; i++) {
+		signal->inTime[H1P][i] = h[0][HP].data->data[i];
+		signal->inTime[H1C][i] = h[0][HC].data->data[i];
+		signal->inTime[H2P][i] = h[1][HP].data->data[i];
+		signal->inTime[H2C][i] = h[1][HC].data->data[i];
+	}
+}
+
+static void createSignalFromH(SignalStruct *signal, REAL8TimeSeries *h[2]) {
+	signal->size = (size_t) fmax(h[0][HP].data->length, h[1][HP].data->length);
+	if (createSignal) {
+		createSignal(signal, signal->size);
+	} else {
+		fprintf(stderr,
+				"You did not choose signal structure handling function with \"setSignalExistanceFunctions(bool)\" function.");
+		exit(EXIT_FAILURE);
+	}
+	signal->samplingTime = h[0][HP].deltaT;
+	signal->length[0] = h[0][HP].data->length;
+	signal->length[1] = h[1][HP].data->length;
+	setSignalFromH(signal, h);
+}
 
 /** LAL parameters.
  */
 typedef struct LALParameters {
-	LALStatus status; ///<a
-	CoherentGW waveform[NUMBER_OF_SYSTEMS]; ///<a
-	SimInspiralTable injParams[NUMBER_OF_SYSTEMS]; ///<a
-	PPNParamStruc ppnParams[NUMBER_OF_SYSTEMS]; ///<a
-	RandomInspiralSignalIn randIn; ///<a
+//	CoherentGW waveform[NUMBER_OF_SYSTEMS]; ///<a
+//	PPNParamStruc ppnParams[NUMBER_OF_SYSTEMS]; ///<a
+//	RandomInspiralSignalIn randIn; ///<a
 	ushort firstShorter; ///<a
 	size_t length[NUMBER_OF_SYSTEMS];
 	Approximant approx[NUMBER_OF_SYSTEMS];
 } LALParameters;
-
-static void printLALError(LALStatus *status) {
-	puts(status->statusDescription);
-	printf("in %s in %s at line %d\n", status->file, status->function, status->line);
-	printf("other: %s, level:%d\n", status->Id, status->level);
-}
-
-/**	Prints the parameters in the lal structures.
- * @param[in] params
- */
-static void printLALParameters(LALParameters *params) {
-	for (short i = 0; i < 2; i++) {
-		printf("%lg %lg\n", params->injParams[i].mass1, params->injParams[i].mass2);
-		printf("%lg %lg %lg\n", params->injParams[i].spin1x, params->injParams[i].spin1y,
-			params->injParams[i].spin1z);
-		printf("%lg %lg %lg\n", params->injParams[i].spin2x, params->injParams[i].spin2y,
-			params->injParams[i].spin2z);
-		printf("%lg %lg %lg\n", params->injParams[i].inclination, params->injParams[i].f_lower,
-			params->injParams[i].distance);
-		printf("%d %lg %s\n", params->injParams[i].amp_order, params->ppnParams[i].deltaT,
-			params->injParams[i].waveform);
-	}
-}
-
-/**	Initialize the parameters for calling the lal functions.
- * @param[out] lalparams  :
- * @param[in]  parameters :
- */
-static void initLALParameters(LALParameters *lalparams, SystemParameter *parameters) {
-	assert(lalparams);
-	assert(parameters);
-	memset(lalparams, 0, sizeof(LALParameters));
-	for (short i = 0; i < 2; i++) {
-		lalparams->injParams[i].mass1 = (REAL4) parameters->system[i].mass.mass[0];
-		lalparams->injParams[i].mass2 = (REAL4) parameters->system[i].mass.mass[1];
-		lalparams->injParams[i].spin1x = (REAL4) parameters->system[i].spin[0].component[FIXED][X];
-		lalparams->injParams[i].spin1y = (REAL4) parameters->system[i].spin[0].component[FIXED][Y];
-		lalparams->injParams[i].spin1z = (REAL4) parameters->system[i].spin[0].component[FIXED][Z];
-		lalparams->injParams[i].spin2x = (REAL4) parameters->system[i].spin[1].component[FIXED][X];
-		lalparams->injParams[i].spin2y = (REAL4) parameters->system[i].spin[1].component[FIXED][Y];
-		lalparams->injParams[i].spin2z = (REAL4) parameters->system[i].spin[1].component[FIXED][Z];
-		lalparams->injParams[i].inclination = (REAL4) parameters->system[i].inclination;
-		lalparams->injParams[i].f_lower = (REAL4) parameters->initialFrequency;
-		lalparams->injParams[i].distance = (REAL4) parameters->system[i].distance;
-		lalparams->ppnParams[i].deltaT = 1. / parameters->samplingFrequency;
-		lalparams->injParams[i].amp_order = parameters->amplitude[i];
-		snprintf(lalparams->injParams[i].waveform, LIGOMETA_WAVEFORM_MAX * sizeof(CHAR), "%s%s%s%s",
-				parameters->approximant[i], parameters->phase[i], parameters->spin[i],
-				"");
-		if (strstr(parameters->approximant[i], "SpinQuadTaylor")) {
-			lalparams->approx[i] = SpinQuadTaylor;
-		} else if (strstr(parameters->approximant[i], "SpinTaylorFrameless")) {
-			lalparams->approx[i] = SpinTaylorFrameless;
-		} else if (strstr(parameters->approximant[i], "SpinTaylor")) {
-			lalparams->approx[i] = SpinTaylor;
-		}
-	}
-}
 
 /**	Creates the power spectrum density for the LIGO detector.
  * @param[out] psd_out	 :
@@ -95,155 +92,68 @@ static void initLALParameters(LALParameters *lalparams, SystemParameter *paramet
  */
 static void createPSD(double *psd_out, LALParameters *lalparams) {
 	assert(lalparams);
-	REAL8Vector psd;
-	psd.length =
-		(UINT4) lalparams->ppnParams[0].length < lalparams->ppnParams[1].length ?
-			lalparams->ppnParams[0].length : lalparams->ppnParams[1].length;
-	double df = 1. / lalparams->ppnParams[0].deltaT / psd.length;
-	psd.data = (REAL8*) XLALCalloc(sizeof(REAL8), psd.length);
-	LALNoiseSpectralDensity(&lalparams->status, &psd, &LALLIGOIPsd, df);
-	for (ulong j = 0; j < psd.length; j++) {
-		psd_out[j] = psd.data[j];
-	}
-	XLALFree(psd.data);
-}
-
-/**	Sets the signal components from the generated waveform.
- * @param[out] signal	:
- * @param[in]  length	:
- * @param[in]  waveform :
- */
-static void setSignalFromA1A2(double *signal[], size_t length, CoherentGW *waveform) {
-	REAL8 a1, a2, phi, shift;
-	for (ulong j = 0; j < length; j++) {
-		a1 = waveform->a->data->data[2 * j];
-		a2 = waveform->a->data->data[2 * j + 1];
-		phi = waveform->phi->data->data[j];
-		shift = 0.0;
-		signal[0][j] = a1 * cos(shift) * cos(phi) - a2 * sin(shift) * sin(phi);
-		signal[1][j] = a1 * sin(shift) * cos(phi) + a2 * cos(shift) * sin(phi);
-	}
-}
-
-/**	Sets the signal components from the generated waveform.
- * @param[out] signal	:
- * @param[in]  length	:
- * @param[in]  waveform :
- */
-static void setSignalsFromH(double *signal[], size_t length, CoherentGW *waveform) {
-	for (ulong j = 0; j < length; j++) {
-		signal[0][j] = waveform->h->data->data[2 * j];
-		signal[1][j] = waveform->h->data->data[2 * j + 1];
-	}
-}
-
-static void setSignalsFromHH(double *signal[], size_t length, CoherentGW *waveform) {
-	for (ulong j = 0; j < length; j++) {
-		signal[0][j] = waveform->h->data->data[j];
-		signal[1][j] = waveform->h->data->data[length + j];
-	}
-}
-
-/**	Creates a signal structure and populates it from the generated waveforms.
- * @param signal
- * @param lal
- */
-static void createSignalStructFromLAL(SignalStruct *signal, LALParameters *lal) {
-	signal->size = (size_t) fmax(lal->ppnParams[0].length, lal->ppnParams[1].length);
-	if (createSignal) {
-		createSignal(signal, signal->size);
-	} else {
-		fprintf(
-			stderr,
-			"You did not choose signal structure handling function with \"setSignalExistanceFunctions(bool)\" function.");
-		exit(EXIT_FAILURE);
-	}
-	signal->samplingTime = lal->ppnParams[0].deltaT;
-	signal->length[0] = lal->ppnParams[0].length;
-	signal->length[1] = lal->ppnParams[1].length;
-	for (ushort i = 0; i < NUMBER_OF_SYSTEMS; i++) {
-		switch (lal->approx[i]) {
-		case SpinQuadTaylor:
-			setSignalsFromH(&signal->componentsInTime[H1P + NUMBER_OF_SIGNALS * i],
-				signal->length[i], &lal->waveform[i]);
-			break;
-		case SpinTaylorFrameless:
-			setSignalsFromHH(&signal->componentsInTime[H1P + NUMBER_OF_SIGNALS * i],
-				signal->length[i], &lal->waveform[i]);
-			break;
-		case SpinTaylor:
-			setSignalFromA1A2(&signal->componentsInTime[H1P + NUMBER_OF_SIGNALS * i],
-				signal->length[i], &lal->waveform[i]);
-			break;
-		case TaylorT1:
-		case TaylorT2:
-		case TaylorT3:
-		case TaylorF1:
-		case TaylorF2:
-		case PadeT1:
-		case PadeF1:
-		case EOB:
-		case BCV:
-		case BCVSpin:
-		case SpinTaylorT3:
-		case PhenSpinTaylorRD:
-		case PhenSpinTaylorRDF:
-		case FindChirpSP:
-		case FindChirpPTF:
-		case GeneratePPN:
-		case BCVC:
-		case FrameFile:
-		case AmpCorPPN:
-		case NumRel:
-		case Eccentricity:
-		case EOBNR:
-		case IMRPhenomA:
-		case IMRPhenomB:
-		case IMRPhenomFA:
-		case IMRPhenomFB:
-		case TaylorEt:
-		case TaylorT4:
-		case TaylorN:
-		case NumApproximants:
-		default:
-			break;
-		}
-	}
+	/*
+	 REAL8Vector psd;
+	 psd.length =
+	 (UINT4) lalparams->ppnParams[0].length < lalparams->ppnParams[1].length ?
+	 lalparams->ppnParams[0].length : lalparams->ppnParams[1].length;
+	 double df = 1. / lalparams->ppnParams[0].deltaT / psd.length;
+	 psd.data = (REAL8*) XLALCalloc(sizeof(REAL8), psd.length);
+	 LALNoiseSpectralDensity(&lalparams->status, &psd, &LALLIGOIPsd, df);
+	 for (ulong j = 0; j < psd.length; j++) {
+	 psd_out[j] = psd.data[j];
+	 }
+	 XLALFree(psd.data);
+	 */
 }
 
 int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool calculateMatches) {
 	assert(parameters);
 	assert(signal);
-	static LALParameters lalparams;
-	initLALParameters(&lalparams, parameters);
+	REAL8TimeSeries *h[2][2] = { { NULL, NULL }, { NULL, NULL } };
+	REAL8 lambda[2] = { 0.0, 0.0 };
+	REAL8 qm[2] = { 1.0, 1.0 };
+	REAL8 phiEnd = 0.0;
+	REAL8 startingFrequency = 0.0;
+	REAL8 initialFrequency = parameters->initialFrequency;
+	REAL8 samplingTime = parameters->samplingTime;
+	LALSimInspiralInteraction spin;
+	Approximant approx;
+	int amp, phase;
+	REAL8 mass[2], dist, incl, chi[2][DIMENSION];
 	for (ushort i = 0; i < NUMBER_OF_SYSTEMS; i++) {
-		memset(&lalparams.status, 0, sizeof(LALStatus));
-		/*if (i) {*/
-		//switchMode = LALSQTPN_ADAPTIVE;
-		/*} else {*/
-		switchMode = LALSQTPN_PRECESSING;
-		/*}*/
-		LALGenerateInspiral(&lalparams.status, &lalparams.waveform[i], &lalparams.injParams[i],
-			&lalparams.ppnParams[i]);
-		if (lalparams.status.statusCode) {
-			fprintf(stderr, "Error generating %d waveform\n", i);
-			printLALError(&lalparams.status);
-			XLALSQTPNDestroyCoherentGW(&lalparams.waveform[0]);
-			return NOT_FOUND;
+		approx = getApproximant(parameters->approximant[i]);
+		spin = getInteraction(parameters->spin[i]);
+		phase = parameters->phase[i];
+		amp = parameters->amplitude[i];
+		dist = parameters->system[i].distance;
+		incl = parameters->system[i].inclination;
+		mass[0] = parameters->system[i].mass.mass[0];
+		mass[1] = parameters->system[i].mass.mass[1];
+		for (ushort j = 0; j < 2; j++) {
+			for (ushort dim = 0; dim < DIMENSION; dim++) {
+				chi[j][dim] = parameters->system[i].spin[j].component[FIXED][dim];
+			}
 		}
-		parameters->coalescencePhase[i] = lalparams.ppnParams[i].fStop;
-		parameters->coalescenceTime[i] = lalparams.ppnParams[i].tc;
+		XLALSimInspiralChooseTDWaveform(&h[i][HP], &h[i][HC], phiEnd, samplingTime, mass[0],
+				mass[1], chi[0][X], chi[0][Y], chi[0][Z], chi[1][X], chi[1][Y], chi[1][Z],
+				initialFrequency, startingFrequency, dist, incl, lambda[0], lambda[1], qm[0], qm[1],
+				spin, amp, phase, approx);
+//		parameters->coalescencePhase[i] = lalparams.ppnParams[i].fStop;
+		parameters->coalescenceTime[i] = h[i][HP]->data->length * samplingTime;
 	}
 	if (signal) {
-		createSignalStructFromLAL(signal, &lalparams);
+		createSignalFromH(signal, *h);
 		if (calculateMatches) {
-			createPSD(signal->powerSpectrumDensity, &lalparams);
+//			createPSD(signal->powerSpectrumDensity, &lalparams);
 		}
-		parameters->samplingFrequency = 1. / (lalparams.ppnParams[0].deltaT * signal->size);
+//		parameters->samplingFrequency = 1. / (lalparams.ppnParams[0].deltaT * signal->size);
 		signal->samplingTime = parameters->samplingTime;
 	}
-	XLALSQTPNDestroyCoherentGW(&lalparams.waveform[0]);
-	XLALSQTPNDestroyCoherentGW(&lalparams.waveform[1]);
+	for (ushort system = 0; system < 2; system++) {
+		XLALDestroyREAL8TimeSeries(h[system][HP]);
+		XLALDestroyREAL8TimeSeries(h[system][HC]);
+	}
 	LALCheckMemoryLeaks();
 	return FOUND;
 }

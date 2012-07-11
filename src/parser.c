@@ -210,19 +210,18 @@ static void getSourceParameters(config_setting_t *waveform, binaryLimits *defaul
 static void getGenerationParameters(config_setting_t *waveform, Limits *defaults, Limits *limit) {
 	config_setting_t *generation = config_setting_get_member(waveform, optionName[GENERATION]);
 	if (generation) {
-		cstring approximant = NULL, phase = NULL, spin = NULL;
-		long amplitude;
+		cstring approximant = NULL, spin = NULL;
+		int amplitude, phase;
 		config_setting_lookup_string(generation, optionName[APPROXIMANT], &approximant);
 		if (approximant) {
 			strcpy(limit->approximant, approximant);
 		} else {
 			strcpy(limit->approximant, defaults->approximant);
 		}
-		config_setting_lookup_string(generation, optionName[PHASE], &phase);
+		limit->phase = defaults->phase;
+		config_setting_lookup_int(generation, optionName[PHASE], &phase);
 		if (phase) {
-			strcpy(limit->phase, phase);
-		} else {
-			strcpy(limit->phase, defaults->phase);
+			limit->phase = (int) phase;
 		}
 		config_setting_lookup_string(generation, optionName[SPIN], &spin);
 		if (spin) {
@@ -230,12 +229,14 @@ static void getGenerationParameters(config_setting_t *waveform, Limits *defaults
 		} else {
 			strcpy(limit->spin, defaults->spin);
 		}
-		limit->amplitude = 0;
+		limit->amplitude = defaults->amplitude;
 		config_setting_lookup_int(generation, optionName[AMPLITUDE], &amplitude);
-		limit->amplitude = (int) amplitude;
+		if (amplitude) {
+			limit->amplitude = (int) amplitude;
+		}
 	} else {
 		strcpy(limit->approximant, defaults->approximant);
-		strcpy(limit->phase, defaults->phase);
+		limit->phase = defaults->phase;
 		strcpy(limit->spin, defaults->spin);
 		limit->amplitude = defaults->amplitude;
 	}
@@ -423,12 +424,12 @@ static void getExactGenerationParameters(config_setting_t *waveform, ushort i,
 		SystemParameter *systems) {
 	config_setting_t *generation = config_setting_get_member(waveform, optionName[GENERATION]);
 	if (generation) {
-		cstring approximant = NULL, phase = NULL, spin = NULL;
-		long amplitude = 0;
+		cstring approximant = NULL, spin = NULL;
+		int amplitude, phase;
 		config_setting_lookup_string(generation, optionName[APPROXIMANT], &approximant);
 		strcpy(systems->approximant[i], approximant);
-		config_setting_lookup_string(generation, optionName[PHASE], &phase);
-		strcpy(systems->phase[i], phase);
+		config_setting_lookup_int(generation, optionName[PHASE], &phase);
+		systems->phase[i] = phase;
 		config_setting_lookup_string(generation, optionName[SPIN], &spin);
 		strcpy(systems->spin[i], spin);
 		config_setting_lookup_int(generation, optionName[AMPLITUDE], &amplitude);
@@ -515,7 +516,7 @@ char const * programOptionName[] = { "outputDirectory", "numberOfRuns", "seed", 
 
 static void getFormat(OutputFormats code, config_setting_t *format) {
 	if (format) {
-		long precision, width;
+		int precision, width;
 		cstring specifier;
 		cstring separator;
 		int leftJustified;
@@ -544,7 +545,7 @@ void getProgramParametersFrom(cstring fileName, ProgramParameter *parameters, Op
 	config_setting_t *setting = config_lookup(&cfg, programOptionName[OUTPUT_DIRECTORY]);
 	cstring outputDirectoryName = config_setting_get_string(setting);
 	strcpy(parameters->outputDirectory, outputDirectoryName);
-	long value = 0;
+	int value;
 	config_lookup_int(&cfg, programOptionName[NUMBER_OF_RUNS], &value);
 	parameters->numberOfRuns = (size_t) value;
 	config_lookup_int(&cfg, programOptionName[SEED], &value);

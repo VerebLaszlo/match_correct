@@ -14,7 +14,7 @@ void getSysemParametersFromLimit(Limits *limit, ConstantParameters *constants,
 		SystemParameter *parameter, ushort systems) {
 	generateBinarySystemParameters(&parameter->system[systems], &limit->binary);
 	strcpy(parameter->approximant[systems], limit->approximant);
-	strcpy(parameter->phase[systems], limit->phase);
+	parameter->phase[systems] = limit->phase;
 	strcpy(parameter->spin[systems], limit->spin);
 	parameter->amplitude[systems] = limit->amplitude;
 	strcpy(parameter->name[systems], limit->name);
@@ -74,7 +74,7 @@ static void printBinaryLimits(FILE *file, binaryLimits *binary) {
 void printLimits(FILE *file, Limits *limit) {
 	printBinaryLimits(file, &limit->binary);
 	fprintf(file, "appr: %s\n", limit->approximant);
-	fprintf(file, "phase: %s\n", limit->phase);
+	fprintf(file, "phase: %d\n", limit->phase);
 	fprintf(file, "spin: %s\n", limit->spin);
 	fprintf(file, "ampl: %d\n", limit->amplitude);
 	fprintf(file, "name: %s\n", limit->name);
@@ -94,7 +94,7 @@ static void printWaveParametersToConfigFile(FILE *file, SystemParameter *param,
 	printBinarySystemToConfig(file, &param->system[currentSystem], format);
 	fputs("\t\t\tgeneration = {", file);
 	fprintf(file, " approximant = \"%s\";", param->approximant[currentSystem]);
-	fprintf(file, " phase = \"%s\"; ", param->phase[currentSystem]);
+	fprintf(file, " phase = \"%d\"; ", param->phase[currentSystem]);
 	fprintf(file, " spin = \"%s\"; ", param->spin[currentSystem]);
 	fprintf(file, " amplitude = \"%d\"; ", param->amplitude[currentSystem]);
 	fputs("};\n", file);
@@ -138,7 +138,7 @@ void printSystemParameters(FILE *file, SystemParameter *params, OutputFormat *fo
 	for (ushort i = 0; i < NUMBER_OF_SYSTEMS; i++) {
 		fprintf(file, "%10s %10s\n", "name", params->name[i]);
 		fprintf(file, "%10s %10s\n", "approx", params->approximant[i]);
-		fprintf(file, "%10s %10s\n", "phase", params->phase[i]);
+		fprintf(file, "%10s %10d\n", "phase", params->phase[i]);
 		fprintf(file, "%10s %10s\n", "spin", params->spin[i]);
 		fprintf(file, "%10s %10d\n", "amp", params->amplitude[0]);
 		printBinarySystemParameters(file, &params->system[i], format);
@@ -170,7 +170,7 @@ void printParametersForSignalPlotting(FILE *file, SystemParameter *param, double
 	}
 	for (ushort i = ZERO; i < NUMBER_OF_SYSTEMS; i++) {
 		fprintf(file, "#system_%d -    approx, phase, spin, ampl: ", i);
-		fprintf(file, "%s %s %s %d\n", param->approximant[i], param->phase[i], param->spin[i],
+		fprintf(file, "%s %d %s %d\n", param->approximant[i], param->phase[i], param->spin[i],
 				param->amplitude[i]);
 	}
 	number = 3;
