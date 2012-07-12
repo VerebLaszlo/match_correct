@@ -5,6 +5,7 @@
  * @author vereb
  */
 
+#include <lal/LALConstants.h>
 #include <lal/LALSimInspiral.h>
 #include <lal/LALMalloc.h>
 #include <lal/TimeSeries.h>
@@ -12,7 +13,7 @@
 #include "lal_wrapper.h"
 
 enum {
-	HP, HC,
+	HP, HC, MEGA = 1000000,
 };
 
 static Approximant getApproximant(const char * const approximant) {
@@ -126,10 +127,10 @@ int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool
 		spin = getInteraction(parameters->spin[i]);
 		phase = parameters->phase[i];
 		amp = parameters->amplitude[i];
-		dist = parameters->system[i].distance;
+		dist = parameters->system[i].distance * MEGA * LAL_PC_SI;
 		incl = parameters->system[i].inclination;
-		mass[0] = parameters->system[i].mass.mass[0];
-		mass[1] = parameters->system[i].mass.mass[1];
+		mass[0] = parameters->system[i].mass.mass[0] * LAL_MSUN_SI;
+		mass[1] = parameters->system[i].mass.mass[1] * LAL_MSUN_SI;
 		for (ushort j = 0; j < 2; j++) {
 			for (ushort dim = 0; dim < DIMENSION; dim++) {
 				chi[j][dim] = parameters->system[i].spin[j].component[FIXED][dim];
