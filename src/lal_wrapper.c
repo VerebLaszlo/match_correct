@@ -52,17 +52,19 @@ static LALSimInspiralInteraction getInteraction(const char * const interaction) 
 	return (spin);
 }
 
-static void setSignalFromH(SignalStruct *signal, REAL8TimeSeries *h[2]) {
-	for (ulong i = 0; i < h[HP]->data->length; i++) {
-		signal->inTime[H1P][i] = h[0][HP].data->data[i];
-		signal->inTime[H1C][i] = h[0][HC].data->data[i];
-		signal->inTime[H2P][i] = h[1][HP].data->data[i];
-		signal->inTime[H2C][i] = h[1][HC].data->data[i];
+static void setSignalFromH(SignalStruct *signal, REAL8TimeSeries *h[2][2]) {
+	for (ulong i = 0; i < h[0][HP]->data->length; i++) {
+		signal->componentsInTime[H1P][i] = h[0][HP]->data->data[i];
+		signal->componentsInTime[H1C][i] = h[0][HC]->data->data[i];
+	}
+	for (ulong i = 0; i < h[1][HP]->data->length; i++) {
+		signal->componentsInTime[H2P][i] = h[1][HP]->data->data[i];
+		signal->componentsInTime[H2C][i] = h[1][HC]->data->data[i];
 	}
 }
 
-static void createSignalFromH(SignalStruct *signal, REAL8TimeSeries *h[2]) {
-	signal->size = (size_t) fmax(h[0][HP].data->length, h[1][HP].data->length);
+static void createSignalFromH(SignalStruct *signal, REAL8TimeSeries *h[2][2]) {
+	signal->size = (size_t) fmax(h[0][HP]->data->length, h[1][HP]->data->length);
 	if (createSignal) {
 		createSignal(signal, signal->size);
 	} else {
@@ -70,9 +72,9 @@ static void createSignalFromH(SignalStruct *signal, REAL8TimeSeries *h[2]) {
 				"You did not choose signal structure handling function with \"setSignalExistanceFunctions(bool)\" function.");
 		exit(EXIT_FAILURE);
 	}
-	signal->samplingTime = h[0][HP].deltaT;
-	signal->length[0] = h[0][HP].data->length;
-	signal->length[1] = h[1][HP].data->length;
+	signal->samplingTime = h[0][HP]->deltaT;
+	signal->length[0] = h[0][HP]->data->length;
+	signal->length[1] = h[1][HP]->data->length;
 	setSignalFromH(signal, h);
 }
 
@@ -144,7 +146,7 @@ int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool
 		parameters->coalescenceTime[i] = h[i][HP]->data->length * samplingTime;
 	}
 	if (signal) {
-		createSignalFromH(signal, *h);
+		createSignalFromH(signal, h);
 		if (calculateMatches) {
 //			createPSD(signal->powerSpectrumDensity, &lalparams);
 		}

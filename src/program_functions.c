@@ -128,7 +128,7 @@ static void runWithStep(cstring fileName, Step *steps, bool copy, ProgramParamet
 						}
 					} else if (steps->chiSet) {
 						parameter.system[0].spin[0].magnitude = parameter.system[1].spin[0]
-							.magnitude = currentOuter;
+						    .magnitude = currentOuter;
 						parameter.system[0].spin[1].magnitude = parameter.system[1].spin[1]
 							.magnitude = currentInner;
 					} else if (steps->inclSet) {
@@ -203,7 +203,9 @@ static void runForWaveformPairs(cstring fileName, bool copy, ProgramParameter *p
 					|| pairMultiply != pair[2 * currentPair + 1].numberOfRuns - 1) {
 					printMiddleOfConfigFile(file);
 				}
-				printRemainingTime(current);
+				if (program->stepSize) {
+					printRemainingTime(current);
+				}
 			}
 		}
 	}
