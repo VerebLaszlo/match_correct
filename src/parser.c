@@ -222,9 +222,7 @@ static void getGenerationParameters(config_setting_t *waveform, Limits *defaults
 			limit->phase = defaults->phase;
 		}
 		config_setting_lookup_int(generation, optionName[PHASE], &phase);
-		if (phase) {
-			limit->phase = (int) phase;
-		}
+		limit->phase = (int) phase;
 		config_setting_lookup_string(generation, optionName[SPIN], &spin);
 		if (spin) {
 			strcpy(limit->spin, spin);
@@ -235,9 +233,7 @@ static void getGenerationParameters(config_setting_t *waveform, Limits *defaults
 			limit->amplitude = defaults->amplitude;
 		}
 		config_setting_lookup_int(generation, optionName[AMPLITUDE], &amplitude);
-		if (amplitude) {
-			limit->amplitude = (int) amplitude;
-		}
+		limit->amplitude = (int) amplitude;
 	} else {
 		strcpy(limit->approximant, defaults->approximant);
 		limit->phase = defaults->phase;

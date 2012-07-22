@@ -138,10 +138,14 @@ int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool
 				chi[j][dim] = parameters->system[i].spin[j].component[FIXED][dim];
 			}
 		}
-		XLALSimInspiralChooseTDWaveform(&h[i][HP], &h[i][HC], phiEnd, samplingTime, mass[0],
+		int error = XLALSimInspiralChooseTDWaveform(&h[i][HP], &h[i][HC], phiEnd, samplingTime, mass[0],
 				mass[1], chi[0][X], chi[0][Y], chi[0][Z], chi[1][X], chi[1][Y], chi[1][Z],
 				initialFrequency, startingFrequency, dist, incl, lambda[0], lambda[1], qm[0], qm[1],
 				spin, amp, phase, approx);
+		if (error) {
+			printf("Error: %d\n", error);
+			exit(EXIT_FAILURE);
+		}
 //		parameters->coalescencePhase[i] = lalparams.ppnParams[i].fStop;
 		parameters->coalescenceTime[i] = h[i][HP]->data->length * samplingTime;
 	}
