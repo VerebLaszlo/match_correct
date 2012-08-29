@@ -18,8 +18,8 @@ default = {
 
 pairs = (
 	(
-		{ generation = { approximant = "ST"; spin = "ALL"; amplitude = 3; phase = 4; } },
-		{ generation = { approximant = "ST"; spin = "ALL"; amplitude = 3; phase = 4; } },
+		{ generation = { approximant = "SQT"; spin = "ALL"; amplitude = 3; phase = 4; } },
+		{ generation = { approximant = "SQT"; spin = "ALL"; amplitude = 3; phase = 4; } },
 		"w*2000"
 	)
 );

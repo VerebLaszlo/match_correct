@@ -110,13 +110,13 @@ int main(int argc, char *argv[]) {
 	argc--;
 	argv++;
 	interpretOptions(&option, argc, argv);
-	if (option.testing) {
-#ifdef TEST
-		testingFunctions();
-#endif // TEST
-	} else {
+//	if (option.testing) {
+//#ifdef TEST
+//		testingFunctions();
+//#endif // TEST
+//	} else {
 		runProgram(option.programFile, option.parameterFile, &option);
-	}
+//	}
 	puts("\nOK");
 	return 0;
 }
