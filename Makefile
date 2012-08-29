@@ -45,6 +45,16 @@ objs_test := main_test.o signals.o detector.o binary_system.o binary_system_mass
 objs_test += binary_system_spin.o util_math.o util_IO.o util.o test.o parameters.o lal_wrapper.o
 objs_test += parser.o
 
+objects := object_dir/main.o
+
+all : main
+
+main : $(objects)
+	@echo -e $(start)'Linking: $@'$(reset)
+	$(hide_echo)$(CC) $(CFLAGS) $(errorExtraFlags) $(macros) -o $@ $^
+	@echo -e $(end)'Finished linking: $@'$(reset)
+	@echo ' '
+
 vpath
 vpath %.c $(srcdir)
 vpath %.c $(testdir)
@@ -60,12 +70,10 @@ includes += $(lal_includes)
 lal_libraries := $(shell pkg-config --libs-only-l lalsimulation)
 lal_libraries_path := $(shell pkg-config --libs-only-L lalsimulation) $(shell pkg-config --libs-only-L libconfig) -lmetaio
 
-all : test Makefile
-
-test main : CFLAGS += $(errorExtraFlags) $(lal_libraries_path)
+test : CFLAGS += $(errorExtraFlags) $(lal_libraries_path)
 test : macros += -DTEST
 
-test main : $(objects) -lfftw3 -lm $(shell pkg-config --libs-only-l libconfig)
+test : $(objects) -lfftw3 -lm $(shell pkg-config --libs-only-l libconfig)
 	@echo -e $(start)'Linking: $@'$(reset)
 	$(hide_echo)$(CC) $(CFLAGS) $(macros) $(lal_libraries) -o $@ $^
 	@echo -e $(end)'Finished linking: $@'$(reset)
