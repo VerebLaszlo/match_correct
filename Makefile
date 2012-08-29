@@ -49,7 +49,7 @@ objects := object_dir/main.o
 
 all : main
 
-main : $(objects)
+main : $(objects) $(shell pkg-config --libs libconfuse)
 	@echo -e $(start)'Linking: $@'$(reset)
 	$(hide_echo)$(CC) $(CFLAGS) $(errorExtraFlags) $(macros) -o $@ $^
 	@echo -e $(end)'Finished linking: $@'$(reset)
