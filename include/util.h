@@ -8,6 +8,11 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+/** Success codes. */
+enum {
+	FAILURE, SUCCESS,
+};
+
 typedef enum {
 	ZERO = 0, STRING_LENGTH = 100,
 } UtilityConstants;

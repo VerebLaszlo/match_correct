@@ -45,7 +45,7 @@ objs_test := main_test.o signals.o detector.o binary_system.o binary_system_mass
 objs_test += binary_system_spin.o util_math.o util_IO.o util.o test.o parameters.o lal_wrapper.o
 objs_test += parser.o
 
-objects := object_dir/main.o
+objects := object_dir/main.o object_dir/parser_confuse.o
 
 all : main
 
