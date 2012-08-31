@@ -45,11 +45,11 @@ objs_test := main_test.o signals.o detector.o binary_system.o binary_system_mass
 objs_test += binary_system_spin.o util_math.o util_IO.o util.o test.o parameters.o lal_wrapper.o
 objs_test += parser.o
 
-objects := object_dir/main.o object_dir/parser_confuse.o
+objects := object_dir/main.o object_dir/parser_confuse.o object_dir/util_math.o object_dir/util.o
 
 all : main
 
-main : $(objects) $(shell pkg-config --libs libconfuse)
+main : $(objects) $(shell pkg-config --libs libconfuse) -lm
 	@echo -e $(start)'Linking: $@'$(reset)
 	$(hide_echo)$(CC) $(CFLAGS) $(errorExtraFlags) $(macros) -o $@ $^
 	@echo -e $(end)'Finished linking: $@'$(reset)

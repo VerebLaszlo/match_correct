@@ -4,8 +4,8 @@
  *	@brief	The main file.
  */
 
-#include "stdio.h"
-#include "stdlib.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include "parser_confuse.h"
 
 /**
@@ -16,10 +16,12 @@
  */
 int main(int argc, char *argv[]) {
 	char *file = argc > 1 ? argv[1] : "test.conf";
-	int success = parse(file);
+	Parameter parameters;
+	int success = parse(file, &parameters);
 	if (!success) {
 		puts("Error!");
 		exit(EXIT_FAILURE);
 	}
+	printParameter(stdout, &parameters);
 	puts("OK!");
 }
