@@ -28,48 +28,48 @@ FILE *safelyOpenFile(const char *fileName, const char *mode) {
 	FILE *stream;
 	errno = 0;
 	stream = fopen(fileName, mode);
-	if (stream == NULL) {
+	if (stream == NULL ) {
 		if (strcmp(mode, "r")) {
-			fprintf(stderr, "%s: Couldn't open file %s for reading; %s\n",
-				program_invocation_short_name, fileName, strerror(errno));
+			fprintf(stderr, "%s: Couldn't open file %s for reading; %s\n", program_invocation_short_name, fileName,
+			        strerror(errno));
 		} else if (strcmp(mode, "w")) {
-			fprintf(stderr, "%s: Couldn't open file %s for writing; %s\n",
-				program_invocation_short_name, fileName, strerror(errno));
+			fprintf(stderr, "%s: Couldn't open file %s for writing; %s\n", program_invocation_short_name, fileName,
+			        strerror(errno));
 		} else if (strcmp(mode, "a")) {
-			fprintf(stderr, "%s: Couldn't open file %s for append; %s\n",
-				program_invocation_short_name, fileName, strerror(errno));
+			fprintf(stderr, "%s: Couldn't open file %s for append; %s\n", program_invocation_short_name, fileName,
+			        strerror(errno));
 		} else {
-			fprintf(stderr, "%s: Couldn't open file %s; %s\n", program_invocation_short_name,
-				fileName, strerror(errno));
+			fprintf(stderr, "%s: Couldn't open file %s; %s\n", program_invocation_short_name, fileName,
+			        strerror(errno));
 		}
 		fflush(stderr);
 		exit(EXIT_FAILURE);
 	} else {
-		return stream;
+		return (stream);
 	}
 }
 
 FILE *safelyOpenForReading(const char *fileName) {
 	assert(strcmp(fileName, ""));
-	return safelyOpenFile(fileName, "r");
+	return (safelyOpenFile(fileName, "r"));
 }
 
 FILE *safelyOpenForWriting(const char *fileName) {
 	assert(strcmp(fileName, ""));
-	return safelyOpenFile(fileName, "w");
+	return (safelyOpenFile(fileName, "w"));
 }
 
 FILE *safelyOpenForAppend(const char *fileName) {
 	assert(strcmp(fileName, ""));
-	return safelyOpenFile(fileName, "a");
+	return (safelyOpenFile(fileName, "a"));
 }
 
 bool makeDir(const char *name) {
 	int status = mkdir(name, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
 	if (status != EEXIST) {
-		return false;
+		return (false);
 	}
-	return true;
+	return (true);
 }
 
 void getFileName(char *name, const char *path) {
@@ -98,26 +98,24 @@ static void setFormatForOneNumber(OutputFormat *format) {
 	assert(format->width > 0);
 	sprintf(format->empty, "%%%ds", format->width);
 	if (format->leftJustified) {
-		sprintf(format->oneNumber, "%%- %d.%dl%c", format->width, format->precision,
-			format->specifier);
+		sprintf(format->oneNumber, "%%- %d.%dl%c", format->width, format->precision, format->specifier);
 	} else {
-		sprintf(format->oneNumber, "%% %d.%dl%c", format->width, format->precision,
-			format->specifier);
-	};
-	SAVE_FUNCTION_FOR_TESTING();
+		sprintf(format->oneNumber, "%% %d.%dl%c", format->width, format->precision, format->specifier);
+	}; SAVE_FUNCTION_FOR_TESTING();
 }
 
-void setOutputFormat(OutputFormat *format, const ushort precision, const ushort width,
-	const char specifier, const char separator, bool leftJustified) {
+void setOutputFormat(OutputFormat *format, const ushort precision, const ushort width, const char specifier,
+        const char separator, bool leftJustified) {
 	BACKUP_DEFINITION_LINE(); //
 	assert(format);
 	assert(width < MAXIMUM_WIDTH);
 	assert(precision < MAXIMUM_PRECISION);
 	assert(separator);
 	format->precision = precision;
-	format->width = (ushort) (
-		width > format->precision + SPECIAL_CHARACTER_LENGTH ? width :
-			format->precision + SPECIAL_CHARACTER_LENGTH);
+	format->width =
+	        (ushort) (
+	                width > format->precision + SPECIAL_CHARACTER_LENGTH ?
+	                        width : format->precision + SPECIAL_CHARACTER_LENGTH);
 	format->widthWithSeparator = (ushort) (format->width + SEPARATOR_LENGTH);
 	format->specifier = specifier;
 	format->separator = separator;
@@ -144,8 +142,7 @@ static void setFormats(char formatString[], const ushort number, OutputFormat *f
 			sprintf(temp, "%s %c %s", formatString, format->separator, format->oneNumber);
 			strcpy(formatString, temp);
 		}
-	};
-	SAVE_FUNCTION_FOR_TESTING();
+	}; SAVE_FUNCTION_FOR_TESTING();
 }
 
 void setFormat(char formatString[], const ushort number, OutputFormat *format) {
@@ -154,8 +151,8 @@ void setFormat(char formatString[], const ushort number, OutputFormat *format) {
 	assert(number);
 	assert(format);
 	setFormats(formatString, number, format);
-	char temp[number * format->widthWithSeparator];strcpy
-	(temp, formatString);
+	char temp[number * format->widthWithSeparator];
+	strcpy(temp, formatString);
 	if (format->separator == '%') {
 		sprintf(formatString, "%s %%%c", temp, format->separator);
 	} else {
@@ -197,7 +194,7 @@ void setFormatEnd(char formatString[], const ushort number, OutputFormat *format
 
 static bool isOK_setFormatForOneNumber(void) {
 	OutputFormat format;
-	nameString result[2] = { "%- 10.5lg", "% 10.5lg" };
+	nameString result[2] = {"%- 10.5lg", "% 10.5lg"};
 	format.leftJustified = true;
 	format.precision = 5;
 	format.width = 10;
@@ -206,7 +203,7 @@ static bool isOK_setFormatForOneNumber(void) {
 		setFormatForOneNumber(&format);
 		if (strcmp(result[i], format.oneNumber)) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 	}
 	format.leftJustified = false;
@@ -215,16 +212,16 @@ static bool isOK_setFormatForOneNumber(void) {
 		setFormatForOneNumber(&format);
 		if (!strcmp(result[i], format.oneNumber)) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_setOutputFormat(void) {
 	if (!isOK_setFormatForOneNumber()) {
-		return false;
+		return (false);
 	}
 	OutputFormat format;
 	char specifier = 'g';
@@ -240,63 +237,63 @@ static bool isOK_setOutputFormat(void) {
 			setOutputFormat(&format, precision, width, specifier, separator, leftJusfified);
 			if (format.precision != precision) {
 				PRINT_ERROR();
-				return false;
+				return (false);
 			}
 			if (format.width < width) {
 				PRINT_ERROR();
-				return false;
+				return (false);
 			}
 			if (format.width < precision) {
 				PRINT_ERROR();
-				return false;
+				return (false);
 			}
 			width = (ushort) (width + 2 * SPECIAL_CHARACTER_LENGTH);
 		}
 	}
 	/// @todo a hibás bemenet nincs leellenőrizve!!!
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 static bool isOK_setFormat(void) {
 	if (!isOK_setOutputFormat()) {
-		return false;
+		return (false);
 	}
 	OutputFormat format;
-	char separator[] = { '%', 'X' };
+	char separator[] = {'%', 'X'};
 	char specifier = 'g';
 	ushort precision = 5;
 	bool leftJusfified = false;
 	ushort width = 12;
 	nameString output;
-	nameString result[2][2] = { { "% 12.5lg", "% 12.5lg %% % 12.5lg" }, //
-		{ "% 12.5lg", "% 12.5lg X % 12.5lg" } };
+	nameString result[2][2] = { {"% 12.5lg", "% 12.5lg %% % 12.5lg"}, //
+		{	"% 12.5lg", "% 12.5lg X % 12.5lg"}};
 	for (ushort i = 0; i < 2; i++) {
 		setOutputFormat(&format, precision, width, specifier, separator[i], leftJusfified);
 		SAVE_FUNCTION_CALLER();
 		setFormats(output, 1, &format);
 		if (strcmp(result[i][0], output)) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 		SAVE_FUNCTION_CALLER();
 		setFormats(output, 2, &format);
 		if (strcmp(result[i][1], output)) {
 			PRINT_ERROR();
-			return false;
+			return (false);
 		}
 	}
 	PRINT_OK();
-	return true;
+	return (true);
 }
 
 bool areIOFunctionsGood(void) {
 	if (isOK_setFormat()) {
 		PRINT_OK_FILE();
-		return true;
+		return (true);
 	}
 	PRINT_ERROR_FILE();
-	return false;
+	return (false);
 }
 
 ///@}
