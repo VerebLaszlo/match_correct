@@ -43,11 +43,11 @@ int cleanOutput(Output *output);
 
 /**
  * Prints the generated values to a file.
- * @param[in] file   where to print.
- * @param[in] output what to print.
- * @param[in] dt     sampling time.
+ * @param[in] file      where to print.
+ * @param[in] output    what to print.
+ * @param[in] parameter the waveforms parameters.
  * @return success code
  */
-int printOutput(FILE *file, Output *output, double dt);
+int printOutput(FILE *file, Output *output, Parameter *parameter);
 
 #endif /* GENERATOR_LAL_H_ */

@@ -192,15 +192,24 @@ int cleanOutput(Output *output) {
 	return (SUCCESS);
 }
 
-int printOutput(FILE *file, Output *output, double dt) {
+int printOutput(FILE *file, Output *output, Parameter *parameter) {
 	double sqrt2p2 = M_SQRT2 / 2.0;
+	double M = parameter->wave.binary.mass[0] + parameter->wave.binary.mass[1];
+	double eta = parameter->wave.binary.mass[0] * parameter->wave.binary.mass[1] / (M * M);
+	fprintf(file, "#mass %11.5g %11.5g %11.5g %11.5g\n", parameter->wave.binary.mass[0], parameter->wave.binary.mass[1],
+	        M, eta);
+	for (int blackhole = 0; blackhole < BH; blackhole++) {
+		fprintf(file, "#spin %11.5g %11.5g %11.5g\n", parameter->wave.binary.spin.magnitude[blackhole],
+		        degreeFromRadian(parameter->wave.binary.spin.inclination[blackhole]),
+		        degreeFromRadian(parameter->wave.binary.spin.azimuth[blackhole]));
+	}
 	fprintf(file, "%11.5s %11.5s %11.5s %11.5s %11.5s %11.5s ", "t", "h", "hp", "hc", "phi", "omega");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "s1x", "s1y", "s1z");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "s2x", "s2y", "s2z");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "e1x", "e1y", "e1z");
 	fprintf(file, "%11.5s %11.5s %11.5s\n", "e3x", "e3y", "e3z");
 	for (size_t index = 0; index < output->length; index++) {
-		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * dt,
+		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * parameter->samplingTime,
 		        sqrt2p2 * (output->h[HP][index] + output->h[HC][index]), output->h[HP][index], output->h[HC][index],
 		        output->Phi[index], output->V[index]);
 		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S1[X][index], output->S1[Y][index], output->S1[Z][index]);

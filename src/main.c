@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 	puts("B");
 	FILE *file = safelyOpenForWriting("out/all.txt");
 	puts("C");
-	printOutput(file, &output, parameter.samplingTime);
+	printOutput(file, &output, &parameter);
 	puts("D");
 	fclose(file);
 	puts("E");
