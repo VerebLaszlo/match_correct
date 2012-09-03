@@ -8,10 +8,6 @@
 #define GENERATOR_LAL_H_
 
 #include <stdio.h>
-#include <lal/LALConstants.h>
-#include <lal/LALDatatypes.h>
-#include <lal/LALSimInspiral.h>
-#include <lal/TimeSeries.h>
 #include "parser_confuse.h"
 
 /** Various constants. */
@@ -19,15 +15,15 @@ enum {
 	HP, HC, WAVE,
 };
 
-/** Structure containing the output vectors. */
 typedef struct {
-	REAL8TimeSeries *h[WAVE];
-	REAL8TimeSeries *V;
-	REAL8TimeSeries *Phi;
-	REAL8TimeSeries *S1[DIMENSION];
-	REAL8TimeSeries *S2[DIMENSION];
-	REAL8TimeSeries *E1[DIMENSION];
-	REAL8TimeSeries *E3[DIMENSION];
+	size_t length;
+	double *h[WAVE];
+	double *V;
+	double *Phi;
+	double *S1[DIMENSION];
+	double *S2[DIMENSION];
+	double *E1[DIMENSION];
+	double *E3[DIMENSION];
 } Output;
 
 /**
@@ -43,7 +39,7 @@ int generate(Parameter *parameter, Output *output);
  * @param[in] output memories to free.
  * @return success code
  */
-int cleanLAL(Output *output);
+int cleanOutput(Output *output);
 
 /**
  * Prints the generated values to a file.

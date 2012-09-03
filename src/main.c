@@ -26,11 +26,18 @@ int main(int argc, char *argv[]) {
 	}
 	printParameter(stdout, &parameter);
 	Output output;
+	memset(&output, 0, sizeof(Output));
+	puts("A");
 	generate(&parameter, &output);
+	puts("B");
 	FILE *file = safelyOpenForWriting("out/all.txt");
+	puts("C");
 	printOutput(file, &output, parameter.samplingTime);
+	puts("D");
 	fclose(file);
-	cleanLAL(&output);
+	puts("E");
+	cleanOutput(&output);
+	puts("F");
 	if (!success) {
 		puts("Error!");
 		exit(EXIT_FAILURE);
