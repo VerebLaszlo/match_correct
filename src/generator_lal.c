@@ -7,7 +7,6 @@
 #include <math.h>
 #include <string.h>
 #include "generator_lal.h"
-#include "util_IO.h"
 
 /** Various constants. */
 enum {
@@ -72,12 +71,30 @@ static int convertSpinFromAnglesToXyz(Spin *spin, double inclination) {
 	return (SUCCESS);
 }
 
-/**
- * Frees the allocated memory.
- * @param[in] output memories to free.
- * @return success code
- */
-static int cleanLAL(Output *output) {
+int generate(Parameter *parameter, Output *output) {
+	convertSpinFromAnglesToXyz(&parameter->wave.binary.spin, parameter->wave.binary.inclination);
+	memset(&output, 0, sizeof(Output));
+	REAL8 e1[DIMENSION] = { +cos(parameter->wave.binary.inclination), 0.0, -sin(parameter->wave.binary.inclination) };
+	REAL8 e3[DIMENSION] = { +sin(parameter->wave.binary.inclination), 0.0, +cos(parameter->wave.binary.inclination) };
+	LALSimInspiralInteraction interactionFlags = getInteraction(parameter->defaultWave.method.spin);
+	int error = XLALSimInspiralSpinQuadTaylorEvolveAll(&output->h[HP], &output->h[HC], &output->V, &output->Phi,
+	        &output->S1[X], &output->S1[Y], &output->S1[Z], &output->S2[X], &output->S2[Y], &output->S2[Z],
+	        &output->E3[X], &output->E3[Y], &output->E3[Z], &output->E1[X], &output->E1[Y], &output->E1[Z],
+	        parameter->wave.binary.mass[0] * LAL_MSUN_SI, parameter->wave.binary.mass[1] * LAL_MSUN_SI, 1.0, 1.0,
+	        parameter->wave.binary.spin.component[0][X], parameter->wave.binary.spin.component[0][Y],
+	        parameter->wave.binary.spin.component[0][Z], parameter->wave.binary.spin.component[1][X],
+	        parameter->wave.binary.spin.component[1][Y], parameter->wave.binary.spin.component[1][Z], e3[X], e3[Y],
+	        e3[Z], e1[X], e1[Y], e1[Z], parameter->wave.binary.distance * MEGA * LAL_PC_SI, 0.0,
+	        parameter->initialFrequency, 0.0, parameter->samplingTime, parameter->wave.method.phase,
+	        parameter->wave.method.amplitude, interactionFlags);
+	if (error) {
+		printf("Error: %d\n", error);
+		return (FAILURE);
+	}
+	return (SUCCESS);
+}
+
+int cleanLAL(Output *output) {
 	XLALDestroyREAL8TimeSeries(output->h[HP]);
 	XLALDestroyREAL8TimeSeries(output->h[HC]);
 	XLALDestroyREAL8TimeSeries(output->V);
@@ -91,13 +108,6 @@ static int cleanLAL(Output *output) {
 	return (SUCCESS);
 }
 
-/**
- * Prints the generated values to a file.
- * @param[in] file   where to print.
- * @param[in] output what to print.
- * @param[in] dt     sampling time.
- * @return success code
- */
 int printOutput(FILE *file, Output *output, double dt) {
 	double sqrt2p2 = M_SQRT2 / 2.0;
 	fprintf(file, "%11.5s %11.5s %11.5s %11.5s %11.5s %11.5s ", "t", "h", "hp", "hc", "phi", "omega");
@@ -119,38 +129,5 @@ int printOutput(FILE *file, Output *output, double dt) {
 		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", output->E3[X]->data->data[index], output->E3[Y]->data->data[index],
 		        output->E3[Z]->data->data[index]);
 	}
-	return (SUCCESS);
-}
-
-/**
- * Generates a waveform.
- * @param[in] parameter defining the waveform.
- * @return success code
- */
-int generate(Parameter *parameter) {
-	convertSpinFromAnglesToXyz(&parameter->wave.binary.spin, parameter->wave.binary.inclination);
-	Output output;
-	memset(&output, 0, sizeof(Output));
-	REAL8 e1[DIMENSION] = { +cos(parameter->wave.binary.inclination), 0.0, -sin(parameter->wave.binary.inclination) };
-	REAL8 e3[DIMENSION] = { +sin(parameter->wave.binary.inclination), 0.0, +cos(parameter->wave.binary.inclination) };
-	LALSimInspiralInteraction interactionFlags = getInteraction(parameter->defaultWave.method.spin);
-	int error = XLALSimInspiralSpinQuadTaylorEvolveAll(&output.h[HP], &output.h[HC], &output.V, &output.Phi,
-	        &output.S1[X], &output.S1[Y], &output.S1[Z], &output.S2[X], &output.S2[Y], &output.S2[Z], &output.E3[X],
-	        &output.E3[Y], &output.E3[Z], &output.E1[X], &output.E1[Y], &output.E1[Z],
-	        parameter->wave.binary.mass[0] * LAL_MSUN_SI, parameter->wave.binary.mass[1] * LAL_MSUN_SI, 1.0, 1.0,
-	        parameter->wave.binary.spin.component[0][X], parameter->wave.binary.spin.component[0][Y],
-	        parameter->wave.binary.spin.component[0][Z], parameter->wave.binary.spin.component[1][X],
-	        parameter->wave.binary.spin.component[1][Y], parameter->wave.binary.spin.component[1][Z], e3[X], e3[Y],
-	        e3[Z], e1[X], e1[Y], e1[Z], parameter->wave.binary.distance * MEGA * LAL_PC_SI, 0.0,
-	        parameter->initialFrequency, 0.0, parameter->samplingTime, parameter->wave.method.phase,
-	        parameter->wave.method.amplitude, interactionFlags);
-	if (error) {
-		printf("Error: %d\n", error);
-		return (FAILURE);
-	}
-	FILE *file = safelyOpenForWriting("out/all.txt");
-	printOutput(file, &output, parameter->samplingTime);
-	fclose(file);
-	cleanLAL(&output);
 	return (SUCCESS);
 }

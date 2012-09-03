@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "generator_lal.h"
+#include "util_IO.h"
 
 /**
  * Main program function.
@@ -15,16 +16,21 @@
  * @return	error code
  */
 int main(int argc, char *argv[]) {
-	char *file = argc > 1 ? argv[1] : "test.conf";
+	char *input = argc > 1 ? argv[1] : "test.conf";
 	Parameter parameter;
 	memset(&parameter, 0, sizeof(Parameter));
-	int success = parse(file, &parameter);
+	int success = parse(input, &parameter);
 	if (!success) {
 		puts("Error!");
 		exit(EXIT_FAILURE);
 	}
 	printParameter(stdout, &parameter);
-	generate(&parameter);
+	Output output;
+	generate(&parameter, &output);
+	FILE *file = safelyOpenForWriting("out/all.txt");
+	printOutput(file, &output, parameter.samplingTime);
+	fclose(file);
+	cleanLAL(&output);
 	if (!success) {
 		puts("Error!");
 		exit(EXIT_FAILURE);

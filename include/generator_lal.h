@@ -31,6 +31,21 @@ typedef struct {
 } Output;
 
 /**
+ * Generates a waveform.
+ * @param[in] parameter defining the waveform.
+ * @param[in] output    generated output.
+ * @return success code
+ */
+int generate(Parameter *parameter, Output *output);
+
+/**
+ * Frees the allocated memory.
+ * @param[in] output memories to free.
+ * @return success code
+ */
+int cleanLAL(Output *output);
+
+/**
  * Prints the generated values to a file.
  * @param[in] file   where to print.
  * @param[in] output what to print.
@@ -38,12 +53,5 @@ typedef struct {
  * @return success code
  */
 int printOutput(FILE *file, Output *output, double dt);
-
-/**
- * Generates a waveform.
- * @param[in] parameter defining the waveform.
- * @return success code
- */
-int generate(Parameter *parameter);
 
 #endif /* GENERATOR_LAL_H_ */
