@@ -46,6 +46,7 @@ objs_test += binary_system_spin.o util_math.o util_IO.o util.o test.o parameters
 objs_test += parser.o
 
 objects := object_dir/main.o object_dir/parser_confuse.o object_dir/util_math.o object_dir/util_IO.o object_dir/util.o
+objects += object_dir/generator_lal.o
 
 all : main
 

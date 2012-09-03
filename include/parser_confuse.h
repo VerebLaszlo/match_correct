@@ -8,6 +8,7 @@
 #define PARSER_CONFUSE_H_
 
 #include "util.h"
+#include "util_math.h"
 
 /** Parameter specific constants. */
 enum {
