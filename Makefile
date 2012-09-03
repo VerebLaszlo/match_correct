@@ -14,7 +14,7 @@ include system.mk
 
 DER=	# ha 'make DER=ok' ként hivom meg, akkor DER-nek "ok" lesz az értéke!!!!!
 
-CC := gcc
+CC := colorgcc
 CFLAGS := -std=gnu99 -O3 -ggdb3
 
 include config.mk
@@ -45,15 +45,19 @@ objs_test := main_test.o signals.o detector.o binary_system.o binary_system_mass
 objs_test += binary_system_spin.o util_math.o util_IO.o util.o test.o parameters.o lal_wrapper.o
 objs_test += parser.o
 
-objects := object_dir/main.o object_dir/parser_confuse.o object_dir/util_math.o object_dir/util.o
+objects := object_dir/main.o object_dir/parser_confuse.o object_dir/util_math.o object_dir/util_IO.o object_dir/util.o
 
 all : main
 
-main : $(objects) $(shell pkg-config --libs libconfuse) -lm
-	@echo -e $(start)'Linking: $@'$(reset)
-	$(hide_echo)$(CC) $(CFLAGS) $(errorExtraFlags) $(macros) -o $@ $^
-	@echo -e $(end)'Finished linking: $@'$(reset)
-	@echo ' '
+#lal_includes := $(shell pkg-config --cflags lalsimulation)
+#lal_libraries := $(shell pkg-config --libs-only-l lalsimulation)
+#lal_libraries_path := $(shell pkg-config --libs-only-L lalsimulation)
+#
+#main : $(objects) $(shell pkg-config --libs libconfuse) -lm
+#	@echo -e $(start)'Linking: $@'$(reset)
+#	$(hide_echo)$(CC) $(CFLAGS) $(errorExtraFlags) $(macros) $(lal_includes) $(lal_libraries) -o $@ $^
+#	@echo -e $(end)'Finished linking: $@'$(reset)
+#	@echo ' '
 
 vpath
 vpath %.c $(srcdir)
@@ -65,17 +69,14 @@ vpath %.d $(objdir)
 #vpath lib%.so $(subst -L,,$(subst lib\ -L,lib:,$(shell pkg-config --libs-only-L lalsimulation)))
 #vpath lib%.a $(subst -L,,$(subst lib\ -L,lib:,$(shell pkg-config --libs-only-L lalsimulation)))
 
-lal_includes := $(shell pkg-config --cflags lalsimulation) $(shell pkg-config --cflags libconfig)
+lal_includes := $(shell pkg-config --cflags lalsimulation)
 includes += $(lal_includes)
-lal_libraries := $(shell pkg-config --libs-only-l lalsimulation)
-lal_libraries_path := $(shell pkg-config --libs-only-L lalsimulation) $(shell pkg-config --libs-only-L libconfig) -lmetaio
+lal_libraries := $(shell pkg-config --libs-only-l lalsimulation)  $(shell pkg-config --libs-only-l libconfuse)
+lal_libraries_path := $(shell pkg-config --libs-only-L lalsimulation)
 
-test : CFLAGS += $(errorExtraFlags) $(lal_libraries_path)
-test : macros += -DTEST
-
-test : $(objects) -lfftw3 -lm $(shell pkg-config --libs-only-l libconfig)
+main : $(objects) -lfftw3 -lm
 	@echo -e $(start)'Linking: $@'$(reset)
-	$(hide_echo)$(CC) $(CFLAGS) $(macros) $(lal_libraries) -o $@ $^
+	$(CC) $(CFLAGS) $(macros) $(lal_libraries_path) $(lal_libraries) -o $@ $^
 	@echo -e $(end)'Finished linking: $@'$(reset)
 	@echo ' '
 
@@ -83,16 +84,9 @@ $(objdir)/%.o : %.h
 
 $(objdir)/%.o : %.c | $(objdir)
 	@echo -e $(start)'Building file: $<'$(reset)
-	$(hide_echo)$(CC) $(CFLAGS) $(CPPFLAGS) $(includes) $(macros) $(lal_libraries) -c -MMD -MF$(@:%.o=%.d) -MT$(@:%.o=%.d) $< -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(includes) $(macros) -c -MMD -MF$(@:%.o=%.d) -MT$(@:%.o=%.d) $< -o $@
 	@echo -e $(end)'Finished building: $<'$(reset)
 	@echo ' '
-
-# kisegítők
-#$(objdir)/%.o: | $(objdir)		# NEM MŰKÖDIK!!!!!!!!!!!!!!!!!!!!!!!!!
-#	@echo 'obj'
-
-#$(objdir)/%.d: | $(objdir)		# NEM MŰKÖDIK!!!!!!!!!!!!!!!!!!!!!!!!!
-#	@echo 'makes'
 
 $(objdir) :
 	mkdir $(objdir)

@@ -1,7 +1,7 @@
-/**	@file	parser_confuse.h
- *	@author vereb
- *	@date	29 Aug 2012
- *	@brief
+/**	@file   parser_confuse.h
+ *	@author László Veréb
+ *	@date   29 Aug 2012
+ *	@brief  Configuration file parser.
  */
 
 #ifndef PARSER_CONFUSE_H_
@@ -22,8 +22,9 @@ typedef enum {
 /** Spin parameters. */
 typedef struct {
 	double magnitude[BH];	///< magnitude of the spin.
-	double inclination[BH];	///< inclination of the spin \f$[0,\pi]\rad\f$.
-	double azimuth[BH];	///< azimuth of the spin \f$[0,2\pi)\rad\f$.
+	double inclination[BH];	///< inclination of the spin \f$[0,\pi]\rad\f$ in precessing frame.
+	double azimuth[BH];	///< azimuth of the spin \f$[0,2\pi)\rad\f$ in precessing frame.
+	double component[BH][DIMENSION];	///< components of the spn in fixed frame.
 	CoordinateSystem system;	///< coordinate system convention.
 } Spin;
 
@@ -58,6 +59,7 @@ typedef struct {
 	double samplingFrequency;	///< sampling frequency.
 	double samplingTime;	///< sampling time.
 	Wave defaultWave;	///< default wave parameters.
+	Wave wave;	///< default wave parameters.
 } Parameter;
 
 /**

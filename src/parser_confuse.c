@@ -1,7 +1,7 @@
-/**	@file	parser_confuse.c
- *	@author vereb
- *	@date	29.08.2012
- *	@brief
+/**	@file   parser_confuse.c
+ *	@author László Veréb
+ *	@date   29.08.2012
+ *	@brief  Configuration file parser.
  */
 
 #include <confuse.h>
@@ -110,8 +110,6 @@ Option option = {
 	}
 };
 
-static int parseFrequency(cfg_t *config, Parameter *parameters);
-
 static int parseFrequency(cfg_t *config, Parameter *parameters) {
 	parameters->initialFrequency = cfg_getnfloat(config, optionName[BOUNDARY_FREQUENCY], 0);
 	parameters->endingFrequency = cfg_getnfloat(config, optionName[BOUNDARY_FREQUENCY], 1);
@@ -142,6 +140,7 @@ static int parseGeneration(cfg_t *config, Method *method) {
 	method->amplitude = cfg_getint(config, optionName[AMPLITUDE]);
 	return (SUCCESS);
 }
+
 static int parseBinary(cfg_t *config, Binary *binary) {
 	cfg_t *spin;
 	spin = cfg_getsec(config, optionName[SPIN]);
@@ -182,23 +181,24 @@ int parse(char *file, Parameter *parameters) {
 		return (FAILURE);
 	}
 	cfg_free(config);
+	memcpy(&parameters->wave, &parameters->defaultWave, sizeof(Wave));
 	return (SUCCESS);
 }
 
 int printParameter(FILE *file, Parameter *parameter) {
 	fprintf(file, "% 11.5g % 11.5g % 11.5g\n", parameter->initialFrequency, parameter->endingFrequency,
 	        parameter->samplingFrequency);
-	fprintf(file, "%11.5s %11.0u\n", parameter->defaultWave.name, parameter->defaultWave.number);
-	fprintf(file, "%11.5s %11.5s % 11.0d % 11.0d\n", parameter->defaultWave.method.approximant,
-	        parameter->defaultWave.method.spin, parameter->defaultWave.method.phase,
-	        parameter->defaultWave.method.amplitude);
-	fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g\n", parameter->defaultWave.binary.mass[0],
-	        parameter->defaultWave.binary.mass[1], parameter->defaultWave.binary.inclination,
-	        parameter->defaultWave.binary.distance);
+	fprintf(file, "%11.5s %11.0u\n", parameter->wave.name, parameter->wave.number);
+	fprintf(file, "%11.5s %11.5s % 11.0d % 11.0d\n", parameter->wave.method.approximant, parameter->wave.method.spin,
+	        parameter->wave.method.phase, parameter->wave.method.amplitude);
+	fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g\n", parameter->wave.binary.mass[0], parameter->wave.binary.mass[1],
+	        parameter->wave.binary.inclination, parameter->wave.binary.distance);
 	for (int blackhole = 0; blackhole < BH; blackhole++) {
-		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", parameter->defaultWave.binary.spin.magnitude[blackhole],
-		        parameter->defaultWave.binary.spin.inclination[blackhole],
-		        parameter->defaultWave.binary.spin.azimuth[blackhole]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", parameter->wave.binary.spin.magnitude[blackhole],
+		        parameter->wave.binary.spin.inclination[blackhole], parameter->wave.binary.spin.azimuth[blackhole]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", parameter->wave.binary.spin.component[blackhole][X],
+		        parameter->wave.binary.spin.component[blackhole][Y],
+		        parameter->wave.binary.spin.component[blackhole][Z]);
 	}
 	return (SUCCESS);
 }
