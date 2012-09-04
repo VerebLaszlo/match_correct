@@ -19,7 +19,13 @@ int main(int argc, char *argv[]) {
 	char *input = argc > 1 ? argv[1] : "test.conf";
 	Parameter parameter;
 	memset(&parameter, 0, sizeof(Parameter));
-	int success = parse(input, &parameter);
+	int success;
+	success = initParser();
+	if (!success) {
+		puts("Error!");
+		exit(EXIT_FAILURE);
+	}
+	success = parse(input, &parameter);
 	if (!success) {
 		puts("Error!");
 		exit(EXIT_FAILURE);

@@ -59,9 +59,10 @@ typedef struct {
 	double endingFrequency;	///< ending frequency.
 	double samplingFrequency;	///< sampling frequency.
 	double samplingTime;	///< sampling time.
-	Wave defaultWave;	///< default wave parameters.
 	Wave wave;	///< default wave parameters.
 } Parameter;
+
+int initParser(void);
 
 /**
  * Parse the config file.

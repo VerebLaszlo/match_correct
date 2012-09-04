@@ -150,7 +150,7 @@ int generate(Parameter *parameter, Output *output) {
 	memset(&timeSeries, 0, sizeof(TimeSeries));
 	REAL8 e1[DIMENSION] = { +cos(parameter->wave.binary.inclination), 0.0, -sin(parameter->wave.binary.inclination) };
 	REAL8 e3[DIMENSION] = { +sin(parameter->wave.binary.inclination), 0.0, +cos(parameter->wave.binary.inclination) };
-	LALSimInspiralInteraction interactionFlags = getInteraction(parameter->defaultWave.method.spin);
+	LALSimInspiralInteraction interactionFlags = getInteraction(parameter->wave.method.spin);
 	int error = XLALSimInspiralSpinQuadTaylorEvolveAll(&timeSeries.h[HP], &timeSeries.h[HC], &timeSeries.V,
 	        &timeSeries.Phi, &timeSeries.S1[X], &timeSeries.S1[Y], &timeSeries.S1[Z], &timeSeries.S2[X],
 	        &timeSeries.S2[Y], &timeSeries.S2[Z], &timeSeries.E3[X], &timeSeries.E3[Y], &timeSeries.E3[Z],
