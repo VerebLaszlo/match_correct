@@ -19,34 +19,21 @@ int main(int argc, char *argv[]) {
 	char *input = argc > 1 ? argv[1] : "test.conf";
 	Parameter parameter;
 	memset(&parameter, 0, sizeof(Parameter));
-	int success;
-	success = initParser();
-	if (!success) {
-		puts("Error!");
-		exit(EXIT_FAILURE);
+	int failure = SUCCESS;
+	initParser();
+	failure &= parse(input, &parameter);
+	if (!failure) {
+		Output output;
+		memset(&output, 0, sizeof(Output));
+		failure &= generate(&parameter, &output);
+		FILE *file = safelyOpenForWriting("out/all.txt");
+		failure &= printOutput(file, &output, &parameter);
+		fclose(file);
+		cleanOutput(&output);
 	}
-	success = parse(input, &parameter);
-	if (!success) {
+	if (!failure) {
+		puts("OK!");
+	} else {
 		puts("Error!");
-		exit(EXIT_FAILURE);
 	}
-	printParameter(stdout, &parameter);
-	Output output;
-	memset(&output, 0, sizeof(Output));
-	puts("A");
-	generate(&parameter, &output);
-	puts("B");
-	FILE *file = safelyOpenForWriting("out/all.txt");
-	puts("C");
-	printOutput(file, &output, &parameter);
-	puts("D");
-	fclose(file);
-	puts("E");
-	cleanOutput(&output);
-	puts("F");
-	if (!success) {
-		puts("Error!");
-		exit(EXIT_FAILURE);
-	}
-	puts("OK!");
 }

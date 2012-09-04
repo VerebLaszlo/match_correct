@@ -37,9 +37,8 @@ int generate(Parameter *parameter, Output *output);
 /**
  * Frees the allocated memory.
  * @param[in] output memories to free.
- * @return success code
  */
-int cleanOutput(Output *output);
+void cleanOutput(Output *output);
 
 /**
  * Prints the generated values to a file.

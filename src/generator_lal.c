@@ -62,7 +62,7 @@ static LALSimInspiralInteraction getInteraction(const char * const interaction) 
  * Converts spin from precessing angle representation to fixed component representation.
  * @param[in,out] spin    angles, magnitude, and components
  * @param[in] inclination angle of the precessing z axis.
- * @return success code
+ * @return failure code
  */
 static int convertSpinFromAnglesToXyz(Spin *spin, double inclination) {
 	double theta[2] = { -0.0, inclination };
@@ -108,9 +108,10 @@ static int fillOutput(TimeSeries *timeSeries, Output*output) {
  * Creates outputs.
  * @param[in]  timeSeries generated time series.
  * @param[out] output     ?
- * @return success code
+ * @return failure code
  */
 static int createOutput(TimeSeries *timeSeries, Output *output) {
+	int failure = SUCCESS;
 	output->length = timeSeries->h[HP]->data->length;
 	for (int blackhole = 0; blackhole < BH; blackhole++) {
 		output->h[blackhole] = malloc(output->length * sizeof(double));
@@ -123,14 +124,15 @@ static int createOutput(TimeSeries *timeSeries, Output *output) {
 		output->E1[dimension] = malloc(output->length * sizeof(double));
 		output->E3[dimension] = malloc(output->length * sizeof(double));
 	}
-	int success = fillOutput(timeSeries, output);
-	if (!success) {
-		return (FAILURE);
-	}
-	return (SUCCESS);
+	failure = fillOutput(timeSeries, output);
+	return (failure);
 }
 
-static int cleanLAL(TimeSeries *timeSeries) {
+/**
+ * Cleans the structure.
+ * @param[in] timeSeries memories to clean.
+ */
+static void cleanLAL(TimeSeries *timeSeries) {
 	XLALDestroyREAL8TimeSeries(timeSeries->h[HP]);
 	XLALDestroyREAL8TimeSeries(timeSeries->h[HC]);
 	XLALDestroyREAL8TimeSeries(timeSeries->V);
@@ -141,17 +143,17 @@ static int cleanLAL(TimeSeries *timeSeries) {
 		XLALDestroyREAL8TimeSeries(timeSeries->E1[dimension]);
 		XLALDestroyREAL8TimeSeries(timeSeries->E3[dimension]);
 	}
-	return (SUCCESS);
 }
 
 int generate(Parameter *parameter, Output *output) {
+	int failure = SUCCESS;
 	convertSpinFromAnglesToXyz(&parameter->wave.binary.spin, parameter->wave.binary.inclination);
 	TimeSeries timeSeries;
 	memset(&timeSeries, 0, sizeof(TimeSeries));
 	REAL8 e1[DIMENSION] = { +cos(parameter->wave.binary.inclination), 0.0, -sin(parameter->wave.binary.inclination) };
 	REAL8 e3[DIMENSION] = { +sin(parameter->wave.binary.inclination), 0.0, +cos(parameter->wave.binary.inclination) };
 	LALSimInspiralInteraction interactionFlags = getInteraction(parameter->wave.method.spin);
-	int error = XLALSimInspiralSpinQuadTaylorEvolveAll(&timeSeries.h[HP], &timeSeries.h[HC], &timeSeries.V,
+	failure = XLALSimInspiralSpinQuadTaylorEvolveAll(&timeSeries.h[HP], &timeSeries.h[HC], &timeSeries.V,
 	        &timeSeries.Phi, &timeSeries.S1[X], &timeSeries.S1[Y], &timeSeries.S1[Z], &timeSeries.S2[X],
 	        &timeSeries.S2[Y], &timeSeries.S2[Z], &timeSeries.E3[X], &timeSeries.E3[Y], &timeSeries.E3[Z],
 	        &timeSeries.E1[X], &timeSeries.E1[Y], &timeSeries.E1[Z], parameter->wave.binary.mass[0] * LAL_MSUN_SI,
@@ -161,22 +163,14 @@ int generate(Parameter *parameter, Output *output) {
 	        parameter->wave.binary.spin.component[1][Z], e3[X], e3[Y], e3[Z], e1[X], e1[Y], e1[Z],
 	        parameter->wave.binary.distance * MEGA * LAL_PC_SI, 0.0, parameter->initialFrequency, 0.0,
 	        parameter->samplingTime, parameter->wave.method.phase, parameter->wave.method.amplitude, interactionFlags);
-	if (error) {
-		printf("Error: %d\n", error);
-		return (FAILURE);
+	if (!failure) {
+		failure = createOutput(&timeSeries, output);
 	}
-	int success = createOutput(&timeSeries, output);
-	if (!success) {
-		return (FAILURE);
-	}
-	success = cleanLAL(&timeSeries);
-	if (!success) {
-		return (FAILURE);
-	}
-	return (SUCCESS);
+	cleanLAL(&timeSeries);
+	return (failure);
 }
 
-int cleanOutput(Output *output) {
+void cleanOutput(Output *output) {
 	output->length = 0;
 	for (int blackhole = 0; blackhole < BH; blackhole++) {
 		free(output->h[blackhole]);
@@ -189,7 +183,6 @@ int cleanOutput(Output *output) {
 		free(output->E1[dimension]);
 		free(output->E3[dimension]);
 	}
-	return (SUCCESS);
 }
 
 int printOutput(FILE *file, Output *output, Parameter *parameter) {

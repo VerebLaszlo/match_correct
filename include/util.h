@@ -10,7 +10,7 @@
 
 /** Success codes. */
 enum {
-	FAILURE, SUCCESS,
+	SUCCESS, FAILURE,
 };
 
 typedef enum {

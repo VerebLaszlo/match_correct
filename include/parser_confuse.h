@@ -62,7 +62,10 @@ typedef struct {
 	Wave wave;	///< default wave parameters.
 } Parameter;
 
-int initParser(void);
+/**
+ * Initialise the parser.
+ */
+void initParser(void);
 
 /**
  * Parse the config file.
@@ -71,6 +74,12 @@ int initParser(void);
  */
 int parse(char *file, Parameter *parameters);
 
+/**
+ * Prints the paramters.
+ * @param[in] file      where to print.
+ * @param[in] parameter to print.
+ * @return
+ */
 int printParameter(FILE *file, Parameter *parameter);
 
 #endif /* PARSER_CONFUSE_H_ */
