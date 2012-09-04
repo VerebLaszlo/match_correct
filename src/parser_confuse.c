@@ -129,6 +129,15 @@ static int parseWave(cfg_t *config, Wave *parameters) {
 
 void initParser(void) {
 	memset(&defaultWave, 0, sizeof(Wave));
+	sprintf(defaultWave.name, "wave");
+	defaultWave.number = 1;
+	sprintf(defaultWave.method.approximant, "SQT");
+	sprintf(defaultWave.method.spin, "ALL");
+	defaultWave.method.phase = 4;
+	defaultWave.method.amplitude = 2;
+	defaultWave.binary.distance = 1.0;
+	defaultWave.binary.mass[0] = 3.0;
+	defaultWave.binary.mass[1] = 3.0;
 }
 
 static int createList(double first, double second, char *string) {
