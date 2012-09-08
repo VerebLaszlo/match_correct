@@ -82,7 +82,7 @@ static int convertSpinFromAnglesToXyz(Spin *spin, double inclination) {
 		        + component[blackhole][Y] * cosGood(theta[0])
 		        + component[blackhole][Z] * sinGood(theta[0]) * sinGood(theta[1]);
 		spin->component[blackhole][Z] = +component[blackhole][X] * sinGood(theta[1])
-		        + component[blackhole][Y] * cosGood(theta[1]);
+		        + component[blackhole][Z] * cosGood(theta[1]);
 	}
 	return (SUCCESS);
 }
