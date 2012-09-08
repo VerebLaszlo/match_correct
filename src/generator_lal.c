@@ -145,24 +145,24 @@ static void cleanLAL(TimeSeries *timeSeries) {
 	}
 }
 
-int generate(Parameter *parameter, Output *output) {
+int generate(Wave *wave, Output *output, double initialFrequency, double samplingTime) {
 	int failure = SUCCESS;
-	convertSpinFromAnglesToXyz(&parameter->wave.binary.spin, parameter->wave.binary.inclination);
+	convertSpinFromAnglesToXyz(&wave->binary.spin, wave->binary.inclination);
 	TimeSeries timeSeries;
 	memset(&timeSeries, 0, sizeof(TimeSeries));
-	REAL8 e1[DIMENSION] = { +cos(parameter->wave.binary.inclination), 0.0, -sin(parameter->wave.binary.inclination) };
-	REAL8 e3[DIMENSION] = { +sin(parameter->wave.binary.inclination), 0.0, +cos(parameter->wave.binary.inclination) };
-	LALSimInspiralInteraction interactionFlags = getInteraction(parameter->wave.method.spin);
+	REAL8 e1[DIMENSION] = { +cos(wave->binary.inclination), 0.0, -sin(wave->binary.inclination) };
+	REAL8 e3[DIMENSION] = { +sin(wave->binary.inclination), 0.0, +cos(wave->binary.inclination) };
+	LALSimInspiralInteraction interactionFlags = getInteraction(wave->method.spin);
+	printWaveParameter(stdout, wave);
 	failure = XLALSimInspiralSpinQuadTaylorEvolveAll(&timeSeries.h[HP], &timeSeries.h[HC], &timeSeries.V,
 	        &timeSeries.Phi, &timeSeries.S1[X], &timeSeries.S1[Y], &timeSeries.S1[Z], &timeSeries.S2[X],
 	        &timeSeries.S2[Y], &timeSeries.S2[Z], &timeSeries.E3[X], &timeSeries.E3[Y], &timeSeries.E3[Z],
-	        &timeSeries.E1[X], &timeSeries.E1[Y], &timeSeries.E1[Z], parameter->wave.binary.mass[0] * LAL_MSUN_SI,
-	        parameter->wave.binary.mass[1] * LAL_MSUN_SI, 1.0, 1.0, parameter->wave.binary.spin.component[0][X],
-	        parameter->wave.binary.spin.component[0][Y], parameter->wave.binary.spin.component[0][Z],
-	        parameter->wave.binary.spin.component[1][X], parameter->wave.binary.spin.component[1][Y],
-	        parameter->wave.binary.spin.component[1][Z], e3[X], e3[Y], e3[Z], e1[X], e1[Y], e1[Z],
-	        parameter->wave.binary.distance * MEGA * LAL_PC_SI, 0.0, parameter->initialFrequency, 0.0,
-	        parameter->samplingTime, parameter->wave.method.phase, parameter->wave.method.amplitude, interactionFlags);
+	        &timeSeries.E1[X], &timeSeries.E1[Y], &timeSeries.E1[Z], wave->binary.mass[0] * LAL_MSUN_SI,
+	        wave->binary.mass[1] * LAL_MSUN_SI, 1.0, 1.0, wave->binary.spin.component[0][X],
+	        wave->binary.spin.component[0][Y], wave->binary.spin.component[0][Z], wave->binary.spin.component[1][X],
+	        wave->binary.spin.component[1][Y], wave->binary.spin.component[1][Z], e3[X], e3[Y], e3[Z], e1[X], e1[Y],
+	        e1[Z], wave->binary.distance * MEGA * LAL_PC_SI, 0.0, initialFrequency, 0.0, samplingTime,
+	        wave->method.phase, wave->method.amplitude, interactionFlags);
 	if (!failure) {
 		failure = createOutput(&timeSeries, output);
 	}
@@ -185,16 +185,15 @@ void cleanOutput(Output *output) {
 	}
 }
 
-int printOutput(FILE *file, Output *output, Parameter *parameter) {
+int printOutput(FILE *file, Output *output, Wave *wave, double samplingTime) {
 	double sqrt2p2 = M_SQRT2 / 2.0;
-	double M = parameter->wave.binary.mass[0] + parameter->wave.binary.mass[1];
-	double eta = parameter->wave.binary.mass[0] * parameter->wave.binary.mass[1] / (M * M);
-	fprintf(file, "#mass %11.5g %11.5g %11.5g %11.5g\n", parameter->wave.binary.mass[0], parameter->wave.binary.mass[1],
-	        M, eta);
+	double M = wave->binary.mass[0] + wave->binary.mass[1];
+	double eta = wave->binary.mass[0] * wave->binary.mass[1] / (M * M);
+	fprintf(file, "#mass %11.5g %11.5g %11.5g %11.5g\n", wave->binary.mass[0], wave->binary.mass[1], M, eta);
 	for (int blackhole = 0; blackhole < BH; blackhole++) {
-		fprintf(file, "#spin %11.5g %11.5g %11.5g\n", parameter->wave.binary.spin.magnitude[blackhole],
-		        degreeFromRadian(parameter->wave.binary.spin.inclination[blackhole]),
-		        degreeFromRadian(parameter->wave.binary.spin.azimuth[blackhole]));
+		fprintf(file, "#spin %11.5g %11.5g %11.5g\n", wave->binary.spin.magnitude[blackhole],
+		        degreeFromRadian(wave->binary.spin.inclination[blackhole]),
+		        degreeFromRadian(wave->binary.spin.azimuth[blackhole]));
 	}
 	fprintf(file, "%11.5s %11.5s %11.5s %11.5s %11.5s %11.5s ", "t", "h", "hp", "hc", "phi", "omega");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "s1x", "s1y", "s1z");
@@ -202,7 +201,7 @@ int printOutput(FILE *file, Output *output, Parameter *parameter) {
 	fprintf(file, "%11.5s %11.5s %11.5s ", "e1x", "e1y", "e1z");
 	fprintf(file, "%11.5s %11.5s %11.5s\n", "e3x", "e3y", "e3z");
 	for (size_t index = 0; index < output->length; index++) {
-		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * parameter->samplingTime,
+		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * samplingTime,
 		        sqrt2p2 * (output->h[HP][index] + output->h[HC][index]), output->h[HP][index], output->h[HC][index],
 		        output->Phi[index], output->V[index]);
 		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S1[X][index], output->S1[Y][index], output->S1[Z][index]);

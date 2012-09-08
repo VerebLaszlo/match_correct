@@ -22,15 +22,19 @@ int main(int argc, char *argv[]) {
 	int failure = SUCCESS;
 	initParser();
 	failure &= parse(input, &parameter);
+	failure &= parseWaves(input, &parameter);
 	if (!failure) {
 		Output output;
 		memset(&output, 0, sizeof(Output));
-		failure &= generate(&parameter, &output);
-		FILE *file = safelyOpenForWriting("out/all.txt");
-		failure &= printOutput(file, &output, &parameter);
-		fclose(file);
-		cleanOutput(&output);
+		for (size_t index = 0; index < parameter.length; index++) {
+			failure &= generate(&parameter.wave[index], &output, parameter.initialFrequency, parameter.samplingTime);
+			FILE *file = safelyOpenForWriting("out/all.txt");
+			//failure &= printOutput(file, &output, &parameter.wave[0], parameter.samplingTime);
+			fclose(file);
+			cleanOutput(&output);
+		}
 	}
+	cleanParameter(&parameter);
 	if (!failure) {
 		puts("OK!");
 	} else {

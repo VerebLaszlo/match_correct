@@ -28,11 +28,13 @@ typedef struct {
 
 /**
  * Generates a waveform.
- * @param[in] parameter defining the waveform.
- * @param[in] output    generated output.
- * @return success code
+ * @param[in] wave             waveform parameters.
+ * @param[in] output           generated output.
+ * @param[in] initialFrequency starting frequency
+ * @param[in] samplingTime     sampling time
+ * @return failure code
  */
-int generate(Parameter *parameter, Output *output);
+int generate(Wave *wave, Output *output, double initialFrequency, double samplingTime);
 
 /**
  * Frees the allocated memory.
@@ -42,11 +44,12 @@ void cleanOutput(Output *output);
 
 /**
  * Prints the generated values to a file.
- * @param[in] file      where to print.
- * @param[in] output    what to print.
- * @param[in] parameter the waveforms parameters.
+ * @param[in] file         where to print.
+ * @param[in] output       what to print.
+ * @param[in] wave         the waveforms parameters.
+ * @param[in] samplingTime sampling time
  * @return success code
  */
-int printOutput(FILE *file, Output *output, Parameter *parameter);
+int printOutput(FILE *file, Output *output, Wave *wave, double samplingTime);
 
 #endif /* GENERATOR_LAL_H_ */

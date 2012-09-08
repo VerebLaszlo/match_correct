@@ -10,6 +10,8 @@
 #include "util.h"
 #include "util_math.h"
 
+typedef char string[STRING_LENGTH];
+
 /** Parameter specific constants. */
 enum {
 	BH = 2,	///< number of blackholes in the binary system.
@@ -59,13 +61,17 @@ typedef struct {
 	double endingFrequency;	///< ending frequency.
 	double samplingFrequency;	///< sampling frequency.
 	double samplingTime;	///< sampling time.
-	Wave wave;	///< default wave parameters.
+	size_t length;	///< number of waveform pairs.
+	Wave *wave;	///< default wave parameters.
+	string *name;	///< name of the waveform pairs.
 } Parameter;
 
 /**
  * Initialise the parser.
  */
 void initParser(void);
+
+int parseWaves(char *file, Parameter *parameter);
 
 /**
  * Parse the config file.
@@ -74,12 +80,18 @@ void initParser(void);
  */
 int parse(char *file, Parameter *parameters);
 
+int printWaveParameter(FILE *file, Wave *wave);
+
+void cleanParameter(Parameter *parameter);
+
 /**
  * Prints the paramters.
  * @param[in] file      where to print.
  * @param[in] parameter to print.
+ * @param[in] from
+ * @param[in] to
  * @return
  */
-int printParameter(FILE *file, Parameter *parameter);
+int printParameter(FILE *file, Parameter *parameter, int from, int to);
 
 #endif /* PARSER_CONFUSE_H_ */
