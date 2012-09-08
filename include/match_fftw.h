@@ -7,6 +7,8 @@
 #ifndef MATCH_FFTW_H_
 #define MATCH_FFTW_H_
 
+void indexFromFrequency(double min, double max, double step, size_t *minIndex, size_t *maxIndex);
+
 void initMatch(size_t lengthFirst, size_t lengthSecond);
 
 void prepairMatch(double *first[2], double *second[2], double *norm);

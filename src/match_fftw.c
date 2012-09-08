@@ -155,6 +155,19 @@ typedef struct {
 
 Data data;
 
+void indexFromFrequency(double min, double max, double step, size_t *minIndex, size_t *maxIndex) {
+	*minIndex = *maxIndex = 0;
+	double fr = 0.;
+	while (fr < min) {
+		fr += step;
+		*maxIndex = ++(*minIndex);
+	}
+	while (fr < max) {
+		fr += step;
+		(*maxIndex)++;
+	}
+}
+
 void initMatch(size_t lengthFirst, size_t lengthSecond) {
 	data.length[0] = lengthFirst;
 	data.length[1] = lengthSecond;
