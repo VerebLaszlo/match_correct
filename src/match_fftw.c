@@ -137,17 +137,37 @@ inline static size_t max(size_t first, size_t second) {
 	return (first > second ? first : second);
 }
 
-enum {
-	HP1, HC1, HP2, HC2, WAVE,
-};
+Waveform *createWaveform(size_t firstLength, size_t secondLength) {
+	Waveform *waveform = calloc(1, sizeof(Waveform));
+	waveform->length[HP] = firstLength;
+	waveform->length[HC] = secondLength;
+	waveform->size = max(waveform->length[HP], waveform->length[HC]);
+	for (int wave = HP; wave < WAVE; wave++) {
+		waveform->H[wave] = calloc(waveform->size, sizeof(double));
+	}
+	for (int wave = HP1; wave < COMPONENT; wave++) {
+		waveform->h[wave] = fftw_alloc_real(waveform->size);
+	}
+	return (waveform);
+}
+
+void destroyWaveform(Waveform **waveform) {
+	for (int wave = HP; wave < WAVE; wave++) {
+		free((*waveform)->H[wave]);
+	}
+	for (int wave = HP1; wave < COMPONENT; wave++) {
+		fftw_free((*waveform)->h[wave]);
+	}
+	free(*waveform);
+}
 
 typedef struct {
-	double *inTime[WAVE];
-	fftw_plan plan[WAVE];
-	complex *inFrequency[WAVE];
+	Waveform *wave;
+	fftw_plan plan[COMPONENT];
+	complex *inFrequency[COMPONENT];
 	complex *product;
-	fftw_plan iplan[WAVE];
-	double *correlated[WAVE];
+	fftw_plan iplan[COMPONENT];
+	double *correlated[COMPONENT];
 	double *norm;
 	size_t length[2];
 	size_t size;
@@ -172,10 +192,9 @@ void initMatch(size_t lengthFirst, size_t lengthSecond) {
 	data.length[0] = lengthFirst;
 	data.length[1] = lengthSecond;
 	data.size = max(data.length[0], data.length[1]);
-	for (int wave = HP1; wave < WAVE; wave++) {
-		data.inTime[wave] = fftw_alloc_real(data.size);
+	for (int wave = HP1; wave < COMPONENT; wave++) {
 		data.inFrequency[wave] = fftw_alloc_complex(data.size);
-		data.plan[wave] = fftw_plan_dft_r2c_1d((int) data.size, data.inTime[wave], data.inFrequency[wave],
+		data.plan[wave] = fftw_plan_dft_r2c_1d((int) data.size, data.wave->h[wave], data.inFrequency[wave],
 		        FFTW_ESTIMATE);
 		data.iplan[wave] = fftw_plan_dft_c2r_1d((int) data.size, data.product, data.correlated[wave], FFTW_ESTIMATE);
 	}
@@ -183,21 +202,15 @@ void initMatch(size_t lengthFirst, size_t lengthSecond) {
 	data.product = fftw_alloc_complex(data.size);
 }
 
-void prepairMatch(double *first[WAVE], double *second[WAVE], double *norm) {
+void prepairMatch(Waveform *waveform, double *norm) {
 	size_t size = data.size * sizeof(double);
 	memset(data.norm, 0, size);
 	memcpy(data.norm, norm, size);
-	for (int wave = HP1; wave < HP2; wave++) {
-		memset(data.inTime[wave], 0, size);
-		memcpy(data.inTime[wave], first[wave], size);
-		memset(data.inTime[wave + 2], 0, size);
-		memcpy(data.inTime[wave + 2], second[wave], size);
-	}
+	data.wave = waveform;
 }
 
 void cleanMatch(void) {
-	for (int wave = HP1; wave < WAVE; wave++) {
-		fftw_free(data.inTime[wave]);
+	for (int wave = HP1; wave < COMPONENT; wave++) {
 		fftw_free(data.inFrequency[wave]);
 		fftw_destroy_plan(data.plan[wave]);
 		fftw_destroy_plan(data.iplan[wave]);
@@ -206,19 +219,37 @@ void cleanMatch(void) {
 	fftw_free(data.product);
 }
 
-void calcMatches(size_t minIndex, size_t maxIndex, double *typ, double *best, double *minimax) {
-	for (int wave = 0; wave < WAVE; wave++) {
+void calcMatches(size_t minIndex, size_t maxIndex, Analysed *analysed) {
+	for (int wave = 0; wave < COMPONENT; wave++) {
 		fftw_execute(data.plan[wave]);
 	}
 	for (int wave = HP1; wave < HP2; wave++) {
 		orthonormalise(data.inFrequency[2 * wave], data.inFrequency[2 * wave + 1], data.norm, minIndex, maxIndex,
 		        data.inFrequency[2 * wave]);
 	}
-	for (int wave = 0; wave < WAVE; wave++) {
+	for (int wave = 0; wave < COMPONENT; wave++) {
 		memset(data.product, 0, data.size * sizeof(complex));
 		crossProduct(data.inFrequency[wave / 2], data.inFrequency[wave % 2 + 2], data.norm, minIndex, maxIndex,
 		        data.product);
 		fftw_execute(data.iplan[wave]);
 	}
-	matches(data.correlated, minIndex, maxIndex, typ, best, minimax);
+	matches(data.correlated, minIndex, maxIndex, &analysed->match[TYPICAL], &analysed->match[BEST],
+	        &analysed->match[WORST]);
+}
+
+void countPeriods(Analysed *analysed) {
+	for (ushort wave = 0; wave < 2; wave++) {
+		analysed->period[wave] = 0;
+		for (size_t index = 1; index < data.length[wave]; index++) {
+			double product = data.wave->H[wave][index - 1] * data.wave->H[wave][index];
+			if (product < 0.0) {
+				analysed->period[wave]++;
+			} else if (product == 0.0) {
+				analysed->period[wave]++;
+				index++;
+			}
+		}
+		analysed->period[wave]--;
+		analysed->period[wave] /= 2;
+	}
 }
