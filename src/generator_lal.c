@@ -87,18 +87,18 @@ static int convertSpinFromAnglesToXyz(Spin *spin, double inclination) {
 	return (SUCCESS);
 }
 
-static int fillOutput(TimeSeries *timeSeries, Output*output) {
-	for (size_t index = 0; index < output->length; index++) {
+static int fillOutput(TimeSeries timeSeries[NUMBER_OF_WAVES], Output*output) {
+	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
 		for (int blackhole = 0; blackhole < BH; blackhole++) {
-			output->h[blackhole][index] = timeSeries->h[blackhole]->data->data[index];
+			memcpy(output->h[wave][blackhole], timeSeries[wave].h[blackhole]->data->data, output->length[wave]);
 		}
-		output->V[index] = timeSeries->V->data->data[index];
-		output->Phi[index] = timeSeries->Phi->data->data[index];
+		memcpy(output->V[wave], timeSeries->V->data->data, output->length[wave]);
+		memcpy(output->Phi[wave], timeSeries[wave].Phi->data->data, output->length[wave]);
 		for (int dimension = X; dimension < DIMENSION; dimension++) {
-			output->S1[dimension][index] = timeSeries->S1[dimension]->data->data[index];
-			output->S2[dimension][index] = timeSeries->S2[dimension]->data->data[index];
-			output->E1[dimension][index] = timeSeries->E1[dimension]->data->data[index];
-			output->E3[dimension][index] = timeSeries->E3[dimension]->data->data[index];
+			memcpy(output->S1[wave][dimension], timeSeries[wave].S1[dimension]->data->data, output->length[wave]);
+			memcpy(output->S2[wave][dimension], timeSeries[wave].S2[dimension]->data->data, output->length[wave]);
+			memcpy(output->E1[wave][dimension], timeSeries[wave].E1[dimension]->data->data, output->length[wave]);
+			memcpy(output->E3[wave][dimension], timeSeries[wave].E3[dimension]->data->data, output->length[wave]);
 		}
 	}
 	return (SUCCESS);
@@ -110,19 +110,26 @@ static int fillOutput(TimeSeries *timeSeries, Output*output) {
  * @param[out] output     ?
  * @return failure code
  */
-static int createOutput(TimeSeries *timeSeries, Output *output) {
+static int createOutput(TimeSeries timeSeries[NUMBER_OF_WAVES], Output *output) {
 	int failure = SUCCESS;
-	output->length = timeSeries->h[HP]->data->length;
-	for (int blackhole = 0; blackhole < BH; blackhole++) {
-		output->h[blackhole] = malloc(output->length * sizeof(double));
-	}
-	output->V = malloc(output->length * sizeof(double));
-	output->Phi = malloc(output->length * sizeof(double));
-	for (int dimension = X; dimension < DIMENSION; dimension++) {
-		output->S1[dimension] = malloc(output->length * sizeof(double));
-		output->S2[dimension] = malloc(output->length * sizeof(double));
-		output->E1[dimension] = malloc(output->length * sizeof(double));
-		output->E3[dimension] = malloc(output->length * sizeof(double));
+	output->size =
+	        timeSeries[FIRST].h[HP]->data->length > timeSeries[SECOND].h[HP]->data->length ?
+	                timeSeries[FIRST].h[HP]->data->length : timeSeries[SECOND].h[HP]->data->length;
+	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
+		output->length[wave] = timeSeries[wave].h[HP]->data->length;
+		size_t size = output->length[wave] * sizeof(double);
+		output->length[wave] = timeSeries[wave].h[HP]->data->length;
+		for (int blackhole = 0; blackhole < BH; blackhole++) {
+			output->h[wave][blackhole] = malloc(size);
+		}
+		output->V[wave] = malloc(size);
+		output->Phi[wave] = malloc(size);
+		for (int dimension = X; dimension < DIMENSION; dimension++) {
+			output->S1[wave][dimension] = malloc(size);
+			output->S2[wave][dimension] = malloc(size);
+			output->E1[wave][dimension] = malloc(size);
+			output->E3[wave][dimension] = malloc(size);
+		}
 	}
 	failure = fillOutput(timeSeries, output);
 	return (failure);
@@ -145,48 +152,53 @@ static void cleanLAL(TimeSeries *timeSeries) {
 	}
 }
 
-int generate(Wave *wave, Output *output, double initialFrequency, double samplingTime) {
+static int generate(Wave *wave, double initialFrequency, double samplingTime, TimeSeries *timeSeries) {
 	int failure = SUCCESS;
 	convertSpinFromAnglesToXyz(&wave->binary.spin, wave->binary.inclination);
-	TimeSeries timeSeries;
-	memset(&timeSeries, 0, sizeof(TimeSeries));
 	REAL8 e1[DIMENSION] = { +cos(wave->binary.inclination), 0.0, -sin(wave->binary.inclination) };
 	REAL8 e3[DIMENSION] = { +sin(wave->binary.inclination), 0.0, +cos(wave->binary.inclination) };
 	LALSimInspiralInteraction interactionFlags = getInteraction(wave->method.spin);
-	printWaveParameter(stdout, wave);
-	failure = XLALSimInspiralSpinQuadTaylorEvolveAll(&timeSeries.h[HP], &timeSeries.h[HC], &timeSeries.V,
-	        &timeSeries.Phi, &timeSeries.S1[X], &timeSeries.S1[Y], &timeSeries.S1[Z], &timeSeries.S2[X],
-	        &timeSeries.S2[Y], &timeSeries.S2[Z], &timeSeries.E3[X], &timeSeries.E3[Y], &timeSeries.E3[Z],
-	        &timeSeries.E1[X], &timeSeries.E1[Y], &timeSeries.E1[Z], wave->binary.mass[0] * LAL_MSUN_SI,
+	failure = XLALSimInspiralSpinQuadTaylorEvolveAll(&timeSeries->h[HP], &timeSeries->h[HC], &timeSeries->V,
+	        &timeSeries->Phi, &timeSeries->S1[X], &timeSeries->S1[Y], &timeSeries->S1[Z], &timeSeries->S2[X],
+	        &timeSeries->S2[Y], &timeSeries->S2[Z], &timeSeries->E3[X], &timeSeries->E3[Y], &timeSeries->E3[Z],
+	        &timeSeries->E1[X], &timeSeries->E1[Y], &timeSeries->E1[Z], wave->binary.mass[0] * LAL_MSUN_SI,
 	        wave->binary.mass[1] * LAL_MSUN_SI, 1.0, 1.0, wave->binary.spin.component[0][X],
 	        wave->binary.spin.component[0][Y], wave->binary.spin.component[0][Z], wave->binary.spin.component[1][X],
 	        wave->binary.spin.component[1][Y], wave->binary.spin.component[1][Z], e3[X], e3[Y], e3[Z], e1[X], e1[Y],
 	        e1[Z], wave->binary.distance * MEGA * LAL_PC_SI, 0.0, initialFrequency, 0.0, samplingTime,
 	        wave->method.phase, wave->method.amplitude, interactionFlags);
-	if (!failure) {
-		failure = createOutput(&timeSeries, output);
-	}
-	cleanLAL(&timeSeries);
 	return (failure);
 }
 
-void cleanOutput(Output *output) {
-	output->length = 0;
-	for (int blackhole = 0; blackhole < BH; blackhole++) {
-		free(output->h[blackhole]);
+int generateWaveformPair(Wave parameter[], double initialFrequency, double samplingTime, Output *output) {
+	TimeSeries timeSeries[NUMBER_OF_WAVES];
+	memset(timeSeries, 0, 2 * sizeof(TimeSeries));
+	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
+		generate(&parameter[wave], initialFrequency, samplingTime, &timeSeries[wave]);
 	}
-	free(output->V);
-	free(output->Phi);
-	for (int dimension = X; dimension < DIMENSION; dimension++) {
-		free(output->S1[dimension]);
-		free(output->S2[dimension]);
-		free(output->E1[dimension]);
-		free(output->E3[dimension]);
+	createOutput(timeSeries, output);
+	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
+		cleanLAL(&timeSeries[wave]);
+	}
+}
+
+void cleanOutput(Output *output) {
+	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
+		for (int blackhole = 0; blackhole < BH; blackhole++) {
+			free(output->h[wave][blackhole]);
+		}
+		free(output->V[wave]);
+		free(output->Phi[wave]);
+		for (int dimension = X; dimension < DIMENSION; dimension++) {
+			free(output->S1[wave][dimension]);
+			free(output->S2[wave][dimension]);
+			free(output->E1[wave][dimension]);
+			free(output->E3[wave][dimension]);
+		}
 	}
 }
 
 int printOutput(FILE *file, Output *output, Wave *wave, double samplingTime) {
-	double sqrt2p2 = M_SQRT2 / 2.0;
 	double M = wave->binary.mass[0] + wave->binary.mass[1];
 	double eta = wave->binary.mass[0] * wave->binary.mass[1] / (M * M);
 	fprintf(file, "#mass %11.5g %11.5g %11.5g %11.5g\n", wave->binary.mass[0], wave->binary.mass[1], M, eta);
@@ -195,19 +207,35 @@ int printOutput(FILE *file, Output *output, Wave *wave, double samplingTime) {
 		        degreeFromRadian(wave->binary.spin.inclination[blackhole]),
 		        degreeFromRadian(wave->binary.spin.azimuth[blackhole]));
 	}
-	fprintf(file, "%11.5s %11.5s %11.5s %11.5s %11.5s %11.5s ", "t", "h", "hp", "hc", "phi", "omega");
-	fprintf(file, "%11.5s %11.5s %11.5s ", "s1x", "s1y", "s1z");
-	fprintf(file, "%11.5s %11.5s %11.5s ", "s2x", "s2y", "s2z");
-	fprintf(file, "%11.5s %11.5s %11.5s ", "e1x", "e1y", "e1z");
-	fprintf(file, "%11.5s %11.5s %11.5s\n", "e3x", "e3y", "e3z");
-	for (size_t index = 0; index < output->length; index++) {
-		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * samplingTime,
-		        sqrt2p2 * (output->h[HP][index] + output->h[HC][index]), output->h[HP][index], output->h[HC][index],
-		        output->Phi[index], output->V[index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S1[X][index], output->S1[Y][index], output->S1[Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S2[X][index], output->S2[Y][index], output->S2[Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->E1[X][index], output->E1[Y][index], output->E1[Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", output->E3[X][index], output->E3[Y][index], output->E3[Z][index]);
+	fprintf(file, "%11.5s %11.5s %11.5s %11.5s %11.5s ", "t", "phi1", "phi2", "omega1", "omega2");
+	fprintf(file, "%11.5s %11.5s %11.5s ", "1s1x", "1s1y", "1s1z");
+	fprintf(file, "%11.5s %11.5s %11.5s ", "2s1x", "2s1y", "2s1z");
+	fprintf(file, "%11.5s %11.5s %11.5s ", "1s2x", "1s2y", "1s2z");
+	fprintf(file, "%11.5s %11.5s %11.5s ", "2s2x", "2s2y", "2s2z");
+	fprintf(file, "%11.5s %11.5s %11.5s ", "1e1x", "1e1y", "1e1z");
+	fprintf(file, "%11.5s %11.5s %11.5s ", "2e1x", "2e1y", "2e1z");
+	fprintf(file, "%11.5s %11.5s %11.5s ", "1e3x", "1e3y", "1e3z");
+	fprintf(file, "%11.5s %11.5s %11.5s\n", "2e3x", "2e3y", "2e3z");
+	int shorter = output->length[FIRST] < output->length[SECOND] ? FIRST : SECOND;
+	for (size_t index = 0; index < output->length[shorter]; index++) {
+		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * samplingTime, output->Phi[FIRST][index],
+		        output->Phi[SECOND][index], output->V[FIRST][index], output->V[SECOND][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S1[FIRST][X][index], output->S1[FIRST][Y][index],
+		        output->S1[FIRST][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S1[SECOND][X][index], output->S1[SECOND][Y][index],
+		        output->S1[SECOND][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S2[FIRST][X][index], output->S2[FIRST][Y][index],
+		        output->S2[FIRST][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S2[SECOND][X][index], output->S2[SECOND][Y][index],
+		        output->S2[SECOND][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->E1[FIRST][X][index], output->E1[FIRST][Y][index],
+		        output->E1[FIRST][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->E1[SECOND][X][index], output->E1[SECOND][Y][index],
+		        output->E1[SECOND][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", output->E3[FIRST][X][index], output->E3[FIRST][Y][index],
+		        output->E3[FIRST][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", output->E3[SECOND][X][index], output->E3[SECOND][Y][index],
+		        output->E3[SECOND][Z][index]);
 	}
 	return (SUCCESS);
 }

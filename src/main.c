@@ -27,7 +27,8 @@ int main(int argc, char *argv[]) {
 		Output output;
 		memset(&output, 0, sizeof(Output));
 		for (size_t index = 0; index < parameter.length; index++) {
-			failure &= generate(&parameter.wave[index], &output, parameter.initialFrequency, parameter.samplingTime);
+			generateWaveformPair(&parameter.wave[2 * index], parameter.initialFrequency, parameter.samplingTime,
+			        &output);
 			FILE *file = safelyOpenForWriting("out/all.txt");
 			//failure &= printOutput(file, &output, &parameter.wave[0], parameter.samplingTime);
 			fclose(file);

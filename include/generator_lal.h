@@ -12,18 +12,19 @@
 
 /** Various constants. */
 enum {
-	HP, HC, WAVE,
+	HP, HC, WAVE, FIRST = 0, SECOND, NUMBER_OF_WAVES,
 };
 
 typedef struct {
-	size_t length;
-	double *h[WAVE];
-	double *V;
-	double *Phi;
-	double *S1[DIMENSION];
-	double *S2[DIMENSION];
-	double *E1[DIMENSION];
-	double *E3[DIMENSION];
+	double *h[NUMBER_OF_WAVES][WAVE];
+	double *V[NUMBER_OF_WAVES];
+	double *Phi[NUMBER_OF_WAVES];
+	double *S1[NUMBER_OF_WAVES][DIMENSION];
+	double *S2[NUMBER_OF_WAVES][DIMENSION];
+	double *E1[NUMBER_OF_WAVES][DIMENSION];
+	double *E3[NUMBER_OF_WAVES][DIMENSION];
+	size_t length[NUMBER_OF_WAVES];
+	size_t size;
 } Output;
 
 /**
@@ -34,7 +35,7 @@ typedef struct {
  * @param[in] samplingTime     sampling time
  * @return failure code
  */
-int generate(Wave *wave, Output *output, double initialFrequency, double samplingTime);
+int generateWaveformPair(Wave wave[], double initialFrequency, double samplingTime, Output *output);
 
 /**
  * Frees the allocated memory.
