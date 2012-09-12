@@ -26,7 +26,7 @@ typedef struct {
 	double *E3[NUMBER_OF_WAVES][DIMENSION];
 	size_t length[NUMBER_OF_WAVES];
 	size_t size;
-} Output;
+} Variable;
 
 /**
  * Generates a waveform.
@@ -36,13 +36,13 @@ typedef struct {
  * @param[in] samplingTime     sampling time
  * @return failure code
  */
-int generateWaveformPair(Wave wave[], double initialFrequency, double samplingTime, Output *output);
+Variable* generateWaveformPair(Wave parameter[], double initialFrequency, double samplingTime);
 
 /**
  * Frees the allocated memory.
  * @param[in] output memories to free.
  */
-void cleanOutput(Output *output);
+void destroyOutput(Variable **output);
 
 /**
  * Prints the generated values to a file.
@@ -52,6 +52,6 @@ void cleanOutput(Output *output);
  * @param[in] samplingTime sampling time
  * @return success code
  */
-int printOutput(FILE *file, Output *output, Wave *wave, double samplingTime);
+int printOutput(FILE *file, Variable *output, Wave *wave, double samplingTime);
 
 #endif /* GENERATOR_LAL_H_ */

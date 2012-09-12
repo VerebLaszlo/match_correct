@@ -18,17 +18,6 @@ enum {
 	MEGA = 1000000,
 };
 
-/** Structure containing the output vectors. */
-typedef struct {
-	REAL8TimeSeries *h[WAVE];
-	REAL8TimeSeries *V;
-	REAL8TimeSeries *Phi;
-	REAL8TimeSeries *S1[DIMENSION];
-	REAL8TimeSeries *S2[DIMENSION];
-	REAL8TimeSeries *E1[DIMENSION];
-	REAL8TimeSeries *E3[DIMENSION];
-} TimeSeries;
-
 /**
  * Gets the interaction from strig.
  * @param[in] interaction interaction string.
@@ -87,58 +76,22 @@ static int convertSpinFromAnglesToXyz(Spin *spin, double inclination) {
 	return (SUCCESS);
 }
 
-static int fillOutput(TimeSeries timeSeries[NUMBER_OF_WAVES], Output*output) {
-	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
-		for (int blackhole = 0; blackhole < BH; blackhole++) {
-			memcpy(output->wave->h[2 * blackhole + wave], timeSeries[wave].h[blackhole]->data->data,
-			        output->length[wave]);
-		}
-		memcpy(output->V[wave], timeSeries->V->data->data, output->length[wave]);
-		memcpy(output->Phi[wave], timeSeries[wave].Phi->data->data, output->length[wave]);
-		for (int dimension = X; dimension < DIMENSION; dimension++) {
-			memcpy(output->S1[wave][dimension], timeSeries[wave].S1[dimension]->data->data, output->length[wave]);
-			memcpy(output->S2[wave][dimension], timeSeries[wave].S2[dimension]->data->data, output->length[wave]);
-			memcpy(output->E1[wave][dimension], timeSeries[wave].E1[dimension]->data->data, output->length[wave]);
-			memcpy(output->E3[wave][dimension], timeSeries[wave].E3[dimension]->data->data, output->length[wave]);
-		}
-	}
-	return (SUCCESS);
-}
-
-/**
- * Creates outputs.
- * @param[in]  timeSeries generated time series.
- * @param[out] output     ?
- * @return failure code
- */
-static int createOutput(TimeSeries timeSeries[NUMBER_OF_WAVES], Output *output) {
-	int failure = SUCCESS;
-	output->size =
-	        timeSeries[FIRST].h[HP]->data->length > timeSeries[SECOND].h[HP]->data->length ?
-	                timeSeries[FIRST].h[HP]->data->length : timeSeries[SECOND].h[HP]->data->length;
-	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
-		output->length[wave] = timeSeries[wave].h[HP]->data->length;
-		size_t size = output->length[wave] * sizeof(double);
-		output->length[wave] = timeSeries[wave].h[HP]->data->length;
-		output->V[wave] = malloc(size);
-		output->Phi[wave] = malloc(size);
-		for (int dimension = X; dimension < DIMENSION; dimension++) {
-			output->S1[wave][dimension] = malloc(size);
-			output->S2[wave][dimension] = malloc(size);
-			output->E1[wave][dimension] = malloc(size);
-			output->E3[wave][dimension] = malloc(size);
-		}
-	}
-	output->wave = createWaveform(output->length[FIRST], output->length[SECOND]);
-	failure = fillOutput(timeSeries, output);
-	return (failure);
-}
+/** Structure containing the variable vectors. */
+typedef struct {
+	REAL8TimeSeries *h[WAVE];
+	REAL8TimeSeries *V;
+	REAL8TimeSeries *Phi;
+	REAL8TimeSeries *S1[DIMENSION];
+	REAL8TimeSeries *S2[DIMENSION];
+	REAL8TimeSeries *E1[DIMENSION];
+	REAL8TimeSeries *E3[DIMENSION];
+} TimeSeries;
 
 /**
  * Cleans the structure.
  * @param[in] timeSeries memories to clean.
  */
-static void cleanLAL(TimeSeries *timeSeries) {
+static void destroyTimeSeries(TimeSeries *timeSeries) {
 	XLALDestroyREAL8TimeSeries(timeSeries->h[HP]);
 	XLALDestroyREAL8TimeSeries(timeSeries->h[HC]);
 	XLALDestroyREAL8TimeSeries(timeSeries->V);
@@ -149,6 +102,66 @@ static void cleanLAL(TimeSeries *timeSeries) {
 		XLALDestroyREAL8TimeSeries(timeSeries->E1[dimension]);
 		XLALDestroyREAL8TimeSeries(timeSeries->E3[dimension]);
 	}
+}
+
+/**
+ * Creates outputs.
+ * @param[in]  timeSeries generated time series.
+ * @param[out] variable     ?
+ * @return failure code
+ */
+static Variable *createOutput(TimeSeries timeSeries[NUMBER_OF_WAVES]) {
+	Variable *variable = calloc(1, sizeof(Variable));
+	variable->size =
+	        timeSeries[FIRST].h[HP]->data->length > timeSeries[SECOND].h[HP]->data->length ?
+	                timeSeries[FIRST].h[HP]->data->length : timeSeries[SECOND].h[HP]->data->length;
+	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
+		variable->length[wave] = timeSeries[wave].h[HP]->data->length;
+		size_t size = variable->length[wave] * sizeof(double);
+		variable->length[wave] = timeSeries[wave].h[HP]->data->length;
+		variable->V[wave] = malloc(size);
+		variable->Phi[wave] = malloc(size);
+		for (int dimension = X; dimension < DIMENSION; dimension++) {
+			variable->S1[wave][dimension] = malloc(size);
+			variable->S2[wave][dimension] = malloc(size);
+			variable->E1[wave][dimension] = malloc(size);
+			variable->E3[wave][dimension] = malloc(size);
+		}
+	}
+	variable->wave = createWaveform(variable->length[FIRST], variable->length[SECOND]);
+	return (variable);
+}
+
+void destroyOutput(Variable **variable) {
+	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
+		free((*variable)->V[wave]);
+		free((*variable)->Phi[wave]);
+		for (int dimension = X; dimension < DIMENSION; dimension++) {
+			free((*variable)->S1[wave][dimension]);
+			free((*variable)->S2[wave][dimension]);
+			free((*variable)->E1[wave][dimension]);
+			free((*variable)->E3[wave][dimension]);
+		}
+	}
+	free(*variable);
+}
+
+static int fillOutput(TimeSeries timeSeries[NUMBER_OF_WAVES], Variable*variable) {
+	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
+		for (int component = 0; component < WAVE; component++) {
+			memcpy(variable->wave->h[2 * component + wave], timeSeries[wave].h[component]->data->data,
+			        variable->length[wave]);
+		}
+		memcpy(variable->V[wave], timeSeries->V->data->data, variable->length[wave]);
+		memcpy(variable->Phi[wave], timeSeries[wave].Phi->data->data, variable->length[wave]);
+		for (int dimension = X; dimension < DIMENSION; dimension++) {
+			memcpy(variable->S1[wave][dimension], timeSeries[wave].S1[dimension]->data->data, variable->length[wave]);
+			memcpy(variable->S2[wave][dimension], timeSeries[wave].S2[dimension]->data->data, variable->length[wave]);
+			memcpy(variable->E1[wave][dimension], timeSeries[wave].E1[dimension]->data->data, variable->length[wave]);
+			memcpy(variable->E3[wave][dimension], timeSeries[wave].E3[dimension]->data->data, variable->length[wave]);
+		}
+	}
+	return (SUCCESS);
 }
 
 static int generate(Wave *wave, double initialFrequency, double samplingTime, TimeSeries *timeSeries) {
@@ -169,33 +182,21 @@ static int generate(Wave *wave, double initialFrequency, double samplingTime, Ti
 	return (failure);
 }
 
-int generateWaveformPair(Wave parameter[], double initialFrequency, double samplingTime, Output *output) {
+Variable* generateWaveformPair(Wave parameter[], double initialFrequency, double samplingTime) {
 	TimeSeries timeSeries[NUMBER_OF_WAVES];
 	memset(timeSeries, 0, 2 * sizeof(TimeSeries));
 	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
 		generate(&parameter[wave], initialFrequency, samplingTime, &timeSeries[wave]);
 	}
-	createOutput(timeSeries, output);
+	Variable *variable = createOutput(timeSeries);
+	fillOutput(timeSeries, variable);
 	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
-		cleanLAL(&timeSeries[wave]);
+		destroyTimeSeries(&timeSeries[wave]);
 	}
-	return (SUCCESS);
+	return (variable);
 }
 
-void cleanOutput(Output *output) {
-	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
-		free(output->V[wave]);
-		free(output->Phi[wave]);
-		for (int dimension = X; dimension < DIMENSION; dimension++) {
-			free(output->S1[wave][dimension]);
-			free(output->S2[wave][dimension]);
-			free(output->E1[wave][dimension]);
-			free(output->E3[wave][dimension]);
-		}
-	}
-}
-
-int printOutput(FILE *file, Output *output, Wave *wave, double samplingTime) {
+int printOutput(FILE *file, Variable *variable, Wave *wave, double samplingTime) {
 	double M = wave->binary.mass[0] + wave->binary.mass[1];
 	double eta = wave->binary.mass[0] * wave->binary.mass[1] / (M * M);
 	fprintf(file, "#mass %11.5g %11.5g %11.5g %11.5g\n", wave->binary.mass[0], wave->binary.mass[1], M, eta);
@@ -213,26 +214,26 @@ int printOutput(FILE *file, Output *output, Wave *wave, double samplingTime) {
 	fprintf(file, "%11.5s %11.5s %11.5s ", "2e1x", "2e1y", "2e1z");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "1e3x", "1e3y", "1e3z");
 	fprintf(file, "%11.5s %11.5s %11.5s\n", "2e3x", "2e3y", "2e3z");
-	int shorter = output->length[FIRST] < output->length[SECOND] ? FIRST : SECOND;
-	for (size_t index = 0; index < output->length[shorter]; index++) {
-		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * samplingTime, output->Phi[FIRST][index],
-		        output->Phi[SECOND][index], output->V[FIRST][index], output->V[SECOND][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S1[FIRST][X][index], output->S1[FIRST][Y][index],
-		        output->S1[FIRST][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S1[SECOND][X][index], output->S1[SECOND][Y][index],
-		        output->S1[SECOND][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S2[FIRST][X][index], output->S2[FIRST][Y][index],
-		        output->S2[FIRST][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->S2[SECOND][X][index], output->S2[SECOND][Y][index],
-		        output->S2[SECOND][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->E1[FIRST][X][index], output->E1[FIRST][Y][index],
-		        output->E1[FIRST][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", output->E1[SECOND][X][index], output->E1[SECOND][Y][index],
-		        output->E1[SECOND][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", output->E3[FIRST][X][index], output->E3[FIRST][Y][index],
-		        output->E3[FIRST][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", output->E3[SECOND][X][index], output->E3[SECOND][Y][index],
-		        output->E3[SECOND][Z][index]);
+	int shorter = variable->length[FIRST] < variable->length[SECOND] ? FIRST : SECOND;
+	for (size_t index = 0; index < variable->length[shorter]; index++) {
+		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * samplingTime, variable->Phi[FIRST][index],
+		        variable->Phi[SECOND][index], variable->V[FIRST][index], variable->V[SECOND][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->S1[FIRST][X][index], variable->S1[FIRST][Y][index],
+		        variable->S1[FIRST][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->S1[SECOND][X][index], variable->S1[SECOND][Y][index],
+		        variable->S1[SECOND][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->S2[FIRST][X][index], variable->S2[FIRST][Y][index],
+		        variable->S2[FIRST][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->S2[SECOND][X][index], variable->S2[SECOND][Y][index],
+		        variable->S2[SECOND][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->E1[FIRST][X][index], variable->E1[FIRST][Y][index],
+		        variable->E1[FIRST][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->E1[SECOND][X][index], variable->E1[SECOND][Y][index],
+		        variable->E1[SECOND][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", variable->E3[FIRST][X][index], variable->E3[FIRST][Y][index],
+		        variable->E3[FIRST][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", variable->E3[SECOND][X][index], variable->E3[SECOND][Y][index],
+		        variable->E3[SECOND][Z][index]);
 	}
 	return (SUCCESS);
 }

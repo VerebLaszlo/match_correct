@@ -24,16 +24,15 @@ int main(int argc, char *argv[]) {
 	failure &= parse(input, &parameter);
 	failure &= parseWaves(input, &parameter);
 	if (!failure) {
-		Output output;
-		memset(&output, 0, sizeof(Output));
+		Variable *variable;
 		for (size_t index = 0; index < parameter.length; index++) {
-			generateWaveformPair(&parameter.wave[2 * index], parameter.initialFrequency, parameter.samplingTime,
-			        &output);
+			variable = generateWaveformPair(&parameter.wave[2 * index], parameter.initialFrequency,
+			        parameter.samplingTime);
 			FILE *file = safelyOpenForWriting("out/all.txt");
 			//failure &= printOutput(file, &output, &parameter.wave[0], parameter.samplingTime);
 			fclose(file);
-			destroyWaveform(&output.wave);
-			cleanOutput(&output);
+			destroyWaveform(&variable->wave);
+			destroyOutput(&variable);
 		}
 	}
 	cleanParameter(&parameter);
