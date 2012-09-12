@@ -32,6 +32,7 @@ int main(int argc, char *argv[]) {
 			FILE *file = safelyOpenForWriting("out/all.txt");
 			//failure &= printOutput(file, &output, &parameter.wave[0], parameter.samplingTime);
 			fclose(file);
+			destroyWaveform(&output.wave);
 			cleanOutput(&output);
 		}
 	}

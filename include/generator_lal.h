@@ -9,14 +9,15 @@
 
 #include <stdio.h>
 #include "parser_confuse.h"
+#include "match_fftw.h"
 
 /** Various constants. */
 enum {
-	HP, HC, WAVE, FIRST = 0, SECOND, NUMBER_OF_WAVES,
+	FIRST = 0, SECOND, NUMBER_OF_WAVES,
 };
 
 typedef struct {
-	double *h[NUMBER_OF_WAVES][WAVE];
+	Waveform *wave;
 	double *V[NUMBER_OF_WAVES];
 	double *Phi[NUMBER_OF_WAVES];
 	double *S1[NUMBER_OF_WAVES][DIMENSION];

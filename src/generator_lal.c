@@ -90,7 +90,8 @@ static int convertSpinFromAnglesToXyz(Spin *spin, double inclination) {
 static int fillOutput(TimeSeries timeSeries[NUMBER_OF_WAVES], Output*output) {
 	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
 		for (int blackhole = 0; blackhole < BH; blackhole++) {
-			memcpy(output->h[wave][blackhole], timeSeries[wave].h[blackhole]->data->data, output->length[wave]);
+			memcpy(output->wave->h[2 * blackhole + wave], timeSeries[wave].h[blackhole]->data->data,
+			        output->length[wave]);
 		}
 		memcpy(output->V[wave], timeSeries->V->data->data, output->length[wave]);
 		memcpy(output->Phi[wave], timeSeries[wave].Phi->data->data, output->length[wave]);
@@ -119,9 +120,6 @@ static int createOutput(TimeSeries timeSeries[NUMBER_OF_WAVES], Output *output) 
 		output->length[wave] = timeSeries[wave].h[HP]->data->length;
 		size_t size = output->length[wave] * sizeof(double);
 		output->length[wave] = timeSeries[wave].h[HP]->data->length;
-		for (int blackhole = 0; blackhole < BH; blackhole++) {
-			output->h[wave][blackhole] = malloc(size);
-		}
 		output->V[wave] = malloc(size);
 		output->Phi[wave] = malloc(size);
 		for (int dimension = X; dimension < DIMENSION; dimension++) {
@@ -131,6 +129,7 @@ static int createOutput(TimeSeries timeSeries[NUMBER_OF_WAVES], Output *output) 
 			output->E3[wave][dimension] = malloc(size);
 		}
 	}
+	output->wave = createWaveform(output->length[FIRST], output->length[SECOND]);
 	failure = fillOutput(timeSeries, output);
 	return (failure);
 }
@@ -180,13 +179,11 @@ int generateWaveformPair(Wave parameter[], double initialFrequency, double sampl
 	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
 		cleanLAL(&timeSeries[wave]);
 	}
+	return (SUCCESS);
 }
 
 void cleanOutput(Output *output) {
 	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
-		for (int blackhole = 0; blackhole < BH; blackhole++) {
-			free(output->h[wave][blackhole]);
-		}
 		free(output->V[wave]);
 		free(output->Phi[wave]);
 		for (int dimension = X; dimension < DIMENSION; dimension++) {
