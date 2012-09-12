@@ -39,7 +39,7 @@ void prepairMatch(Waveform *waveform, double *norm);
 
 void cleanMatch(void);
 
-void calcMatches(size_t minIndex, size_t maxIndex, Analysed *analysed);
+void calcMatches(size_t minIndex, size_t maxIndex, size_t length, Analysed *analysed);
 
 void countPeriods(Analysed *analysed);
 

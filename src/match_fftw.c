@@ -47,10 +47,10 @@ inline static double innerProduct(complex left[], complex right[], double norm[]
  * @param[in]  maxIndex ending index
  * @param[out] out      normalised vector
  */
-inline static void normalise(complex *in, double *norm, size_t minIndex, size_t maxIndex, complex *out) {
+inline static void normalise(complex *in, double *norm, size_t minIndex, size_t maxIndex, size_t length, complex *out) {
 	double normalising_Constant;
 	normalising_Constant = sqrt(innerProduct(in, in, norm, minIndex, maxIndex));
-	for (size_t j = minIndex; j < maxIndex; j++) {
+	for (size_t j = 0; j < length; j++) {
 		out[j] /= normalising_Constant;
 	}
 }
@@ -68,10 +68,10 @@ inline static void normalise(complex *in, double *norm, size_t minIndex, size_t 
  * @param[out] out      orthonormalised vector
  */
 inline static void orthogonalise(complex *plus, complex *cross, double *norm, size_t minIndex, size_t maxIndex,
-        complex *out) {
+        size_t length, complex *out) {
 	double pp = innerProduct(plus, plus, norm, minIndex, maxIndex);
 	double pc = innerProduct(plus, cross, norm, minIndex, maxIndex);
-	for (size_t index = minIndex; index < maxIndex; index++) {
+	for (size_t index = 0; index < length; index++) {
 		out[index] = cross[index] - plus[index] * pc / pp;
 	}
 }
@@ -85,10 +85,11 @@ inline static void orthogonalise(complex *plus, complex *cross, double *norm, si
  * @param[in]  maxIndex ending index
  * @param[out] out      orthonormalised vector
  */
-static void orthonormalise(complex *plus, complex *cross, double *norm, size_t minIndex, size_t maxIndex, complex *out) {
-	normalise(plus, norm, minIndex, maxIndex, plus);
-	normalise(cross, norm, minIndex, maxIndex, cross);
-	orthogonalise(plus, cross, norm, minIndex, maxIndex, out);
+static void orthonormalise(complex *plus, complex *cross, double *norm, size_t minIndex, size_t maxIndex, size_t length,
+        complex *out) {
+	normalise(plus, norm, minIndex, maxIndex, length, plus);
+	normalise(cross, norm, minIndex, maxIndex, length, cross);
+	orthogonalise(plus, cross, norm, minIndex, maxIndex, length, out);
 }
 
 /**
@@ -219,13 +220,13 @@ void cleanMatch(void) {
 	fftw_free(data.product);
 }
 
-void calcMatches(size_t minIndex, size_t maxIndex, Analysed *analysed) {
+void calcMatches(size_t minIndex, size_t maxIndex, size_t length, Analysed *analysed) {
 	for (int wave = 0; wave < COMPONENT; wave++) {
 		fftw_execute(data.plan[wave]);
 	}
 	for (int wave = HP1; wave < HP2; wave++) {
 		orthonormalise(data.inFrequency[2 * wave], data.inFrequency[2 * wave + 1], data.norm, minIndex, maxIndex,
-		        data.inFrequency[2 * wave]);
+		        length, data.inFrequency[2 * wave]);
 	}
 	for (int wave = 0; wave < COMPONENT; wave++) {
 		memset(data.product, 0, data.size * sizeof(complex));
