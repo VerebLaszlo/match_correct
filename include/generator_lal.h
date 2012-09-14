@@ -44,6 +44,9 @@ Variable* generateWaveformPair(Wave parameter[], double initialFrequency, double
  */
 void destroyOutput(Variable **output);
 
+void printSpins(FILE *file, Variable *variable, Wave *wave, double samplingTime);
+
+void printSystem(FILE *file, Variable *variable, Wave *wave, double samplingTime);
 /**
  * Prints the generated values to a file.
  * @param[in] file         where to print.

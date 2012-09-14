@@ -28,8 +28,14 @@ int main(int argc, char *argv[]) {
 		for (size_t index = 0; index < parameter.length; index++) {
 			variable = generateWaveformPair(&parameter.wave[2 * index], parameter.initialFrequency,
 			        parameter.samplingTime);
-			FILE *file = safelyOpenForWriting("out/all.txt");
-			//failure &= printOutput(file, &output, &parameter.wave[0], parameter.samplingTime);
+			FILE *file = safelyOpenForWriting("out/spin.txt");
+			printSpins(file, variable, &parameter.wave[0], parameter.samplingTime);
+			fclose(file);
+			file = safelyOpenForWriting("out/system.txt");
+			printSystem(file, variable, &parameter.wave[0], parameter.samplingTime);
+			fclose(file);
+			file = safelyOpenForWriting("out/wave.txt");
+			printOutput(file, variable, &parameter.wave[0], parameter.samplingTime);
 			fclose(file);
 			destroyWaveform(&variable->wave);
 			destroyOutput(&variable);
