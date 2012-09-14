@@ -33,6 +33,8 @@ typedef struct {
 
 void indexFromFrequency(double min, double max, double step, size_t *minIndex, size_t *maxIndex);
 
+void generatePSD(double initialFrequency, double samplingFrequency);
+
 void initMatch(size_t lengthFirst, size_t lengthSecond);
 
 void prepairMatch(Waveform *waveform, double *norm);

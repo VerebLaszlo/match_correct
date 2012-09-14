@@ -23,20 +23,33 @@ int main(int argc, char *argv[]) {
 	initParser();
 	failure &= parse(input, &parameter);
 	failure &= parseWaves(input, &parameter);
+	size_t minIndex, maxIndex;
+	indexFromFrequency(parameter.initialFrequency, parameter.endingFrequency, parameter.samplingFrequency, &minIndex,
+	        &maxIndex);
+	double *norm;
 	if (!failure) {
 		Variable *variable;
 		for (size_t index = 0; index < parameter.length; index++) {
 			variable = generateWaveformPair(&parameter.wave[2 * index], parameter.initialFrequency,
 			        parameter.samplingTime);
-			FILE *file = safelyOpenForWriting("out/spin.txt");
-			printSpins(file, variable, &parameter.wave[0], parameter.samplingTime);
-			fclose(file);
-			file = safelyOpenForWriting("out/system.txt");
-			printSystem(file, variable, &parameter.wave[0], parameter.samplingTime);
-			fclose(file);
-			file = safelyOpenForWriting("out/wave.txt");
-			printOutput(file, variable, &parameter.wave[0], parameter.samplingTime);
-			fclose(file);
+			prepairMatch(variable->wave, norm);
+			initMatch(variable->length[FIRST], variable->length[SECOND]);
+			generatePSD(parameter.initialFrequency, parameter.samplingFrequency);
+			Analysed analysed;
+			calcMatches(minIndex, maxIndex, variable->size, &analysed);
+			countPeriods(&analysed);
+			printf("%g %g %g\n%d %d\n", analysed.match[TYPICAL], analysed.match[WORST], analysed.match[BEST], analysed.period[0],
+			        analysed.period[1]);
+			//prepairMatch(&parameter.wave[2 * index], norm);
+			/*FILE *file = safelyOpenForWriting("out/spin.txt");
+			 printSpins(file, variable, &parameter.wave[0], parameter.samplingTime);
+			 fclose(file);
+			 file = safelyOpenForWriting("out/system.txt");
+			 printSystem(file, variable, &parameter.wave[0], parameter.samplingTime);
+			 fclose(file);
+			 file = safelyOpenForWriting("out/wave.txt");
+			 printOutput(file, variable, &parameter.wave[0], parameter.samplingTime);
+			 fclose(file);*/
 			destroyWaveform(&variable->wave);
 			destroyOutput(&variable);
 		}

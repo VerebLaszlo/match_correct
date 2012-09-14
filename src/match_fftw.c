@@ -8,6 +8,9 @@
 #include <fftw3.h>
 #include <stdlib.h>
 #include <string.h>
+#include <lal/LALSimNoise.h>
+#include <lal/FrequencySeries.h>
+#include <lal/Units.h>
 #include "match_fftw.h"
 #include "util_math.h"
 
@@ -189,18 +192,28 @@ void indexFromFrequency(double min, double max, double step, size_t *minIndex, s
 	}
 }
 
+void generatePSD(double initialFrequency, double samplingFrequency) {
+	LIGOTimeGPS epoch;
+	memset(&epoch, 0, sizeof(LIGOTimeGPS));
+	REAL8FrequencySeries *psd = XLALCreateREAL8FrequencySeries("aLIGO", &epoch, 0.0, samplingFrequency / data.size / 2,
+	        &lalSecondUnit, data.size);
+	XLALSimNoisePSD(psd, initialFrequency, XLALSimNoisePSDaLIGOHighFrequency);
+	XLALDestroyREAL8FrequencySeries(psd);
+}
+
 void initMatch(size_t lengthFirst, size_t lengthSecond) {
 	data.length[0] = lengthFirst;
 	data.length[1] = lengthSecond;
 	data.size = max(data.length[0], data.length[1]);
+	data.product = fftw_alloc_complex(data.size);
 	for (int wave = HP1; wave < COMPONENT; wave++) {
 		data.inFrequency[wave] = fftw_alloc_complex(data.size);
 		data.plan[wave] = fftw_plan_dft_r2c_1d((int) data.size, data.wave->h[wave], data.inFrequency[wave],
 		        FFTW_ESTIMATE);
+		data.correlated[wave] = fftw_alloc_real(data.size);
 		data.iplan[wave] = fftw_plan_dft_c2r_1d((int) data.size, data.product, data.correlated[wave], FFTW_ESTIMATE);
 	}
 	data.norm = fftw_alloc_real(data.size);
-	data.product = fftw_alloc_complex(data.size);
 }
 
 void prepairMatch(Waveform *waveform, double *norm) {
@@ -228,7 +241,7 @@ void calcMatches(size_t minIndex, size_t maxIndex, size_t length, Analysed *anal
 		orthonormalise(data.inFrequency[2 * wave], data.inFrequency[2 * wave + 1], data.norm, minIndex, maxIndex,
 		        length, data.inFrequency[2 * wave]);
 	}
-	for (int wave = 0; wave < COMPONENT; wave++) {
+	for (int wave = HP1; wave < COMPONENT; wave++) {
 		memset(data.product, 0, data.size * sizeof(complex));
 		crossProduct(data.inFrequency[wave / 2], data.inFrequency[wave % 2 + 2], data.norm, minIndex, maxIndex,
 		        data.product);
