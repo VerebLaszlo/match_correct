@@ -113,12 +113,11 @@ static void destroyTimeSeries(TimeSeries *timeSeries) {
 static Variable *createOutput(TimeSeries timeSeries[NUMBER_OF_WAVES]) {
 	Variable *variable = calloc(1, sizeof(Variable));
 	variable->size =
-	        timeSeries[FIRST].h[HP]->data->length > timeSeries[SECOND].h[HP]->data->length ?
-	                timeSeries[FIRST].h[HP]->data->length : timeSeries[SECOND].h[HP]->data->length;
+	        timeSeries[FIRST].h[HP]->data->length > timeSeries[SECOND].h[HC]->data->length ?
+	                timeSeries[FIRST].h[HP]->data->length : timeSeries[SECOND].h[HC]->data->length;
 	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
 		variable->length[wave] = timeSeries[wave].h[HP]->data->length;
 		size_t size = variable->length[wave] * sizeof(double);
-		variable->length[wave] = timeSeries[wave].h[HP]->data->length;
 		variable->V[wave] = malloc(size);
 		variable->Phi[wave] = malloc(size);
 		for (int dimension = X; dimension < DIMENSION; dimension++) {
@@ -147,18 +146,23 @@ void destroyOutput(Variable **variable) {
 }
 
 static int fillOutput(TimeSeries timeSeries[NUMBER_OF_WAVES], Variable*variable) {
+	size_t size = sizeof(double);
 	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
 		for (int component = 0; component < WAVE; component++) {
 			memcpy(variable->wave->h[2 * component + wave], timeSeries[wave].h[component]->data->data,
-			        variable->length[wave]);
+			        variable->length[wave] * size);
 		}
-		memcpy(variable->V[wave], timeSeries->V->data->data, variable->length[wave]);
-		memcpy(variable->Phi[wave], timeSeries[wave].Phi->data->data, variable->length[wave]);
+		memcpy(variable->V[wave], timeSeries->V->data->data, variable->length[wave] * size);
+		memcpy(variable->Phi[wave], timeSeries[wave].Phi->data->data, variable->length[wave] * size);
 		for (int dimension = X; dimension < DIMENSION; dimension++) {
-			memcpy(variable->S1[wave][dimension], timeSeries[wave].S1[dimension]->data->data, variable->length[wave]);
-			memcpy(variable->S2[wave][dimension], timeSeries[wave].S2[dimension]->data->data, variable->length[wave]);
-			memcpy(variable->E1[wave][dimension], timeSeries[wave].E1[dimension]->data->data, variable->length[wave]);
-			memcpy(variable->E3[wave][dimension], timeSeries[wave].E3[dimension]->data->data, variable->length[wave]);
+			memcpy(variable->S1[wave][dimension], timeSeries[wave].S1[dimension]->data->data,
+			        variable->length[wave] * size);
+			memcpy(variable->S2[wave][dimension], timeSeries[wave].S2[dimension]->data->data,
+			        variable->length[wave] * size);
+			memcpy(variable->E1[wave][dimension], timeSeries[wave].E1[dimension]->data->data,
+			        variable->length[wave] * size);
+			memcpy(variable->E3[wave][dimension], timeSeries[wave].E3[dimension]->data->data,
+			        variable->length[wave] * size);
 		}
 	}
 	return (SUCCESS);
