@@ -73,10 +73,10 @@ inline static void normalise(complex *in, double *norm, size_t minIndex, size_t 
  */
 inline static void orthogonalise(complex *plus, complex *cross, double *norm, size_t minIndex, size_t maxIndex,
         size_t length, complex *out) {
-	double pp = innerProduct(plus, plus, norm, minIndex, maxIndex);
 	double pc = innerProduct(plus, cross, norm, minIndex, maxIndex);
+	double constant = 1.0 / sqrt(1.0 - square(pc));
 	for (size_t index = 0; index < length; index++) {
-		out[index] = cross[index] - plus[index] * pc / pp;
+		out[index] = (cross[index] - plus[index] * pc) / constant;
 	}
 }
 
