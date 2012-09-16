@@ -149,7 +149,7 @@ static int fillOutput(TimeSeries timeSeries[NUMBER_OF_WAVES], Variable*variable)
 	size_t size = sizeof(double);
 	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
 		for (int component = 0; component < WAVE; component++) {
-			memcpy(variable->wave->h[2 * component + wave], timeSeries[wave].h[component]->data->data,
+			memcpy(variable->wave->h[2 * wave + component], timeSeries[wave].h[component]->data->data,
 			        variable->length[wave] * size);
 		}
 		memcpy(variable->V[wave], timeSeries->V->data->data, variable->length[wave] * size);

@@ -8,6 +8,7 @@
 #include <fftw3.h>
 #include <stdlib.h>
 #include <string.h>
+#include <lal/Date.h>
 #include <lal/LALSimNoise.h>
 #include <lal/FrequencySeries.h>
 #include <lal/Units.h>
@@ -115,13 +116,12 @@ enum {
 	PP, PC, CP, CC, PRODUCT,
 };
 
-static void matches(double *product[PRODUCT], size_t minIndex, size_t maxIndex, double *typ, double *best,
-        double *minimax) {
+static void matches(double *product[PRODUCT], size_t size, double *typ, double *best, double *minimax) {
 	double A, B, C;
 	double match_typ, max_Typ = 0.0;
 	double match_best, max_Best = 0.0;
 	double match_minimax, max_Minimax = 0.0;
-	for (size_t index = minIndex; index < maxIndex; index++) {
+	for (size_t index = 0; index < size; index++) {
 		A = square(product[PP][index]) + square(product[PC][index]);
 		B = square(product[CP][index]) + square(product[CC][index]);
 		C = product[PP][index] * product[CP][index] + product[PC][index] * product[CC][index];
@@ -194,10 +194,11 @@ void indexFromFrequency(double min, double max, double step, size_t *minIndex, s
 
 void generatePSD(double initialFrequency, double samplingFrequency) {
 	LIGOTimeGPS epoch;
-	memset(&epoch, 0, sizeof(LIGOTimeGPS));
-	REAL8FrequencySeries *psd = XLALCreateREAL8FrequencySeries("aLIGO", &epoch, 0.0, samplingFrequency / data.size / 2,
-	        &lalSecondUnit, data.size);
+	XLALGPSSetREAL8(&epoch, 1.0);
+	REAL8FrequencySeries *psd = XLALCreateREAL8FrequencySeries("aLIGO", &epoch, initialFrequency,
+	        samplingFrequency / data.size, &lalSecondUnit, data.size);
 	XLALSimNoisePSD(psd, initialFrequency, XLALSimNoisePSDaLIGOHighFrequency);
+	memcpy(data.norm, psd->data->data, data.size * sizeof(double));
 	XLALDestroyREAL8FrequencySeries(psd);
 }
 
@@ -212,14 +213,17 @@ void initMatch(size_t lengthFirst, size_t lengthSecond) {
 		        FFTW_ESTIMATE);
 		data.correlated[wave] = fftw_alloc_real(data.size);
 		data.iplan[wave] = fftw_plan_dft_c2r_1d((int) data.size, data.product, data.correlated[wave], FFTW_ESTIMATE);
+		memset(data.inFrequency[wave], 0, data.size * sizeof(complex));
+		memset(data.correlated[wave], 0, data.size * sizeof(double));
 	}
+	memset(data.product, 0, data.size * sizeof(double));
 	data.norm = fftw_alloc_real(data.size);
 }
 
 void prepairMatch(Waveform *waveform, double *norm) {
-	size_t size = data.size * sizeof(double);
-	memset(data.norm, 0, size);
-	memcpy(data.norm, norm, size);
+	//size_t size = data.size * sizeof(double);
+	//memset(data.norm, 0, size);
+	//memcpy(data.norm, norm, size);
 	data.wave = waveform;
 }
 
@@ -233,13 +237,13 @@ void cleanMatch(void) {
 	fftw_free(data.product);
 }
 
-void calcMatches(size_t minIndex, size_t maxIndex, size_t length, Analysed *analysed) {
-	for (int wave = 0; wave < COMPONENT; wave++) {
+void calcMatches(size_t minIndex, size_t maxIndex, Analysed *analysed) {
+	for (int wave = HP1; wave < COMPONENT; wave++) {
 		fftw_execute(data.plan[wave]);
 	}
 	for (int wave = HP1; wave < HP2; wave++) {
 		orthonormalise(data.inFrequency[2 * wave], data.inFrequency[2 * wave + 1], data.norm, minIndex, maxIndex,
-		        length, data.inFrequency[2 * wave]);
+		        data.size, data.inFrequency[2 * wave + 1]);
 	}
 	for (int wave = HP1; wave < COMPONENT; wave++) {
 		memset(data.product, 0, data.size * sizeof(complex));
@@ -247,8 +251,7 @@ void calcMatches(size_t minIndex, size_t maxIndex, size_t length, Analysed *anal
 		        data.product);
 		fftw_execute(data.iplan[wave]);
 	}
-	matches(data.correlated, minIndex, maxIndex, &analysed->match[TYPICAL], &analysed->match[BEST],
-	        &analysed->match[WORST]);
+	matches(data.correlated, data.size, &analysed->match[TYPICAL], &analysed->match[BEST], &analysed->match[WORST]);
 }
 
 void countPeriods(Analysed *analysed) {
