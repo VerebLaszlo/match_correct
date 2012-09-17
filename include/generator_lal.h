@@ -11,20 +11,15 @@
 #include "parser_confuse.h"
 #include "match_fftw.h"
 
-/** Various constants. */
-enum {
-	FIRST = 0, SECOND, NUMBER_OF_WAVES,
-};
-
 typedef struct {
 	Waveform *wave;
-	double *V[NUMBER_OF_WAVES];
-	double *Phi[NUMBER_OF_WAVES];
-	double *S1[NUMBER_OF_WAVES][DIMENSION];
-	double *S2[NUMBER_OF_WAVES][DIMENSION];
-	double *E1[NUMBER_OF_WAVES][DIMENSION];
-	double *E3[NUMBER_OF_WAVES][DIMENSION];
-	size_t length[NUMBER_OF_WAVES];
+	double *V[NUMBER_OF_WAVE];
+	double *Phi[NUMBER_OF_WAVE];
+	double *S1[NUMBER_OF_WAVE][DIMENSION];
+	double *S2[NUMBER_OF_WAVE][DIMENSION];
+	double *E1[NUMBER_OF_WAVE][DIMENSION];
+	double *E3[NUMBER_OF_WAVE][DIMENSION];
+	size_t length[NUMBER_OF_WAVE];
 	size_t size;
 } Variable;
 

@@ -110,12 +110,12 @@ static void destroyTimeSeries(TimeSeries *timeSeries) {
  * @param[out] variable     ?
  * @return failure code
  */
-static Variable *createOutput(TimeSeries timeSeries[NUMBER_OF_WAVES]) {
+static Variable *createOutput(TimeSeries timeSeries[NUMBER_OF_WAVE]) {
 	Variable *variable = calloc(1, sizeof(Variable));
 	variable->size =
-	        timeSeries[FIRST].h[HP]->data->length > timeSeries[SECOND].h[HC]->data->length ?
-	                timeSeries[FIRST].h[HP]->data->length : timeSeries[SECOND].h[HC]->data->length;
-	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
+	        timeSeries[FIRST_WAVE].h[HP]->data->length > timeSeries[SECOND_WAVE].h[HC]->data->length ?
+	                timeSeries[FIRST_WAVE].h[HP]->data->length : timeSeries[SECOND_WAVE].h[HC]->data->length;
+	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		variable->length[wave] = timeSeries[wave].h[HP]->data->length;
 		size_t size = variable->length[wave] * sizeof(double);
 		variable->V[wave] = malloc(size);
@@ -127,12 +127,12 @@ static Variable *createOutput(TimeSeries timeSeries[NUMBER_OF_WAVES]) {
 			variable->E3[wave][dimension] = malloc(size);
 		}
 	}
-	variable->wave = createWaveform(variable->length[FIRST], variable->length[SECOND]);
+	variable->wave = createWaveform(variable->length[FIRST_WAVE], variable->length[SECOND_WAVE]);
 	return (variable);
 }
 
 void destroyOutput(Variable **variable) {
-	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
+	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		free((*variable)->V[wave]);
 		free((*variable)->Phi[wave]);
 		for (int dimension = X; dimension < DIMENSION; dimension++) {
@@ -145,10 +145,10 @@ void destroyOutput(Variable **variable) {
 	free(*variable);
 }
 
-static int fillOutput(TimeSeries timeSeries[NUMBER_OF_WAVES], Variable*variable) {
+static int fillOutput(TimeSeries timeSeries[NUMBER_OF_WAVE], Variable*variable) {
 	size_t size = sizeof(double);
-	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
-		for (int component = 0; component < WAVE; component++) {
+	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
+		for (int component = HP; component < WAVE; component++) {
 			memcpy(variable->wave->h[2 * wave + component], timeSeries[wave].h[component]->data->data,
 			        variable->length[wave] * size);
 		}
@@ -187,14 +187,14 @@ static int generate(Wave *wave, double initialFrequency, double samplingTime, Ti
 }
 
 Variable* generateWaveformPair(Wave parameter[], double initialFrequency, double samplingTime) {
-	TimeSeries timeSeries[NUMBER_OF_WAVES];
+	TimeSeries timeSeries[NUMBER_OF_WAVE];
 	memset(timeSeries, 0, 2 * sizeof(TimeSeries));
-	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
+	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		generate(&parameter[wave], initialFrequency, samplingTime, &timeSeries[wave]);
 	}
 	Variable *variable = createOutput(timeSeries);
 	fillOutput(timeSeries, variable);
-	for (int wave = FIRST; wave < NUMBER_OF_WAVES; wave++) {
+	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		destroyTimeSeries(&timeSeries[wave]);
 	}
 	return (variable);
@@ -218,17 +218,17 @@ void printSpins(FILE *file, Variable *variable, Wave *wave, double samplingTime)
 	fprintf(file, "%11.5s %11.5s %11.5s ", "2s1x", "2s1y", "2s1z");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "1s2x", "1s2y", "1s2z");
 	fprintf(file, "%11.5s %11.5s %11.5s\n", "2s2x", "2s2y", "2s2z");
-	int shorter = variable->length[FIRST] < variable->length[SECOND] ? FIRST : SECOND;
+	int shorter = variable->length[FIRST_WAVE] < variable->length[SECOND_WAVE] ? FIRST_WAVE : SECOND_WAVE;
 	for (size_t index = 0; index < variable->length[shorter]; index++) {
 		fprintf(file, "% 11.5g ", index * samplingTime);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->S1[FIRST][X][index], variable->S1[FIRST][Y][index],
-		        variable->S1[FIRST][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->S1[SECOND][X][index], variable->S1[SECOND][Y][index],
-		        variable->S1[SECOND][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->S2[FIRST][X][index], variable->S2[FIRST][Y][index],
-		        variable->S2[FIRST][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", variable->S2[SECOND][X][index], variable->S2[SECOND][Y][index],
-		        variable->S2[SECOND][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->S1[FIRST_WAVE][X][index],
+		        variable->S1[FIRST_WAVE][Y][index], variable->S1[FIRST_WAVE][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->S1[SECOND_WAVE][X][index],
+		        variable->S1[SECOND_WAVE][Y][index], variable->S1[SECOND_WAVE][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->S2[FIRST_WAVE][X][index],
+		        variable->S2[FIRST_WAVE][Y][index], variable->S2[FIRST_WAVE][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", variable->S2[SECOND_WAVE][X][index],
+		        variable->S2[SECOND_WAVE][Y][index], variable->S2[SECOND_WAVE][Z][index]);
 	}
 }
 
@@ -239,17 +239,17 @@ void printSystem(FILE *file, Variable *variable, Wave *wave, double samplingTime
 	fprintf(file, "%11.5s %11.5s %11.5s ", "2e1x", "2e1y", "2e1z");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "1e3x", "1e3y", "1e3z");
 	fprintf(file, "%11.5s %11.5s %11.5s\n", "2e3x", "2e3y", "2e3z");
-	int shorter = variable->length[FIRST] < variable->length[SECOND] ? FIRST : SECOND;
+	int shorter = variable->length[FIRST_WAVE] < variable->length[SECOND_WAVE] ? FIRST_WAVE : SECOND_WAVE;
 	for (size_t index = 0; index < variable->length[shorter]; index++) {
 		fprintf(file, "% 11.5g ", index * samplingTime);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->E1[FIRST][X][index], variable->E1[FIRST][Y][index],
-		        variable->E1[FIRST][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->E1[SECOND][X][index], variable->E1[SECOND][Y][index],
-		        variable->E1[SECOND][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->E3[FIRST][X][index], variable->E3[FIRST][Y][index],
-		        variable->E3[FIRST][Z][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", variable->E3[SECOND][X][index], variable->E3[SECOND][Y][index],
-		        variable->E3[SECOND][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->E1[FIRST_WAVE][X][index],
+		        variable->E1[FIRST_WAVE][Y][index], variable->E1[FIRST_WAVE][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->E1[SECOND_WAVE][X][index],
+		        variable->E1[SECOND_WAVE][Y][index], variable->E1[SECOND_WAVE][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g ", variable->E3[FIRST_WAVE][X][index],
+		        variable->E3[FIRST_WAVE][Y][index], variable->E3[FIRST_WAVE][Z][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", variable->E3[SECOND_WAVE][X][index],
+		        variable->E3[SECOND_WAVE][Y][index], variable->E3[SECOND_WAVE][Z][index]);
 	}
 }
 
@@ -257,13 +257,14 @@ int printOutput(FILE *file, Variable *variable, Wave *wave, double samplingTime)
 	printHeader(file, wave);
 	fprintf(file, "%11.5s %11.5s %11.5s %11.5s %11.5s %11.5s %11.5s %11.5s %11.5s %11.5s %11.5s\n", "t", "h1", "h2",
 	        "hp1", "hc1", "hp2", "hc2", "phi1", "phi2", "omega1", "omega2");
-	int shorter = variable->length[FIRST] < variable->length[SECOND] ? FIRST : SECOND;
+	int shorter = variable->length[FIRST_WAVE] < variable->length[SECOND_WAVE] ? FIRST_WAVE : SECOND_WAVE;
 	for (size_t index = 0; index < variable->length[shorter]; index++) {
 		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * samplingTime,
-		        variable->wave->H[HP][index], variable->wave->H[HC][index], variable->wave->h[HP1][index],
-		        variable->wave->h[HC1][index], variable->wave->h[HP2][index], variable->wave->h[HC2][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g\n", variable->Phi[FIRST][index], variable->Phi[SECOND][index],
-		        variable->V[FIRST][index], variable->V[SECOND][index]);
+		        variable->wave->H[FIRST_WAVE][index], variable->wave->H[SECOND_WAVE][index],
+		        variable->wave->h[HP1][index], variable->wave->h[HC1][index], variable->wave->h[HP2][index],
+		        variable->wave->h[HC2][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g\n", variable->Phi[FIRST_WAVE][index],
+		        variable->Phi[SECOND_WAVE][index], variable->V[FIRST_WAVE][index], variable->V[SECOND_WAVE][index]);
 	}
 	return (SUCCESS);
 }
