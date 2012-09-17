@@ -24,21 +24,19 @@ int main(int argc, char *argv[]) {
 	failure &= parse(input, &parameter);
 	failure &= parseWaves(input, &parameter);
 	size_t minIndex, maxIndex;
-	double *norm;
 	if (!failure) {
 		Variable *variable;
 		for (size_t index = 0; index < parameter.length; index++) {
 			variable = generateWaveformPair(&parameter.wave[2 * index], parameter.initialFrequency,
 			        parameter.samplingTime);
-			prepairMatch(variable->wave, norm);
-			initMatch(variable->length[FIRST], variable->length[SECOND]);
+			initMatch(variable->wave);
 			generatePSD(parameter.initialFrequency, parameter.samplingFrequency);
 			indexFromFrequency(parameter.initialFrequency, parameter.endingFrequency,
 			        parameter.samplingFrequency / variable->size, &minIndex, &maxIndex);
 			Analysed analysed;
 			calcMatches(minIndex, maxIndex, &analysed);
 			countPeriods(&analysed);
-			printf("%g %g %g\n%d %d\n", analysed.match[TYPICAL], analysed.match[WORST], analysed.match[BEST],
+			printf("w:%g t:%g b:%g\n%d %d\n", analysed.match[WORST], analysed.match[TYPICAL], analysed.match[BEST],
 			        analysed.period[0], analysed.period[1]);
 			/*FILE *file = safelyOpenForWriting("out/spin.txt");
 			 printSpins(file, variable, &parameter.wave[0], parameter.samplingTime);

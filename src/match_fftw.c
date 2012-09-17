@@ -143,10 +143,10 @@ inline static size_t max(size_t first, size_t second) {
 
 Waveform *createWaveform(size_t firstLength, size_t secondLength) {
 	Waveform *waveform = calloc(1, sizeof(Waveform));
-	waveform->length[HP] = firstLength;
-	waveform->length[HC] = secondLength;
-	waveform->size = max(waveform->length[HP], waveform->length[HC]);
-	for (int wave = HP; wave < WAVE; wave++) {
+	waveform->length[FIRST_WAVE] = firstLength;
+	waveform->length[SECOND_WAVE] = secondLength;
+	waveform->size = max(waveform->length[FIRST_WAVE], waveform->length[SECOND_WAVE]);
+	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		waveform->H[wave] = calloc(waveform->size, sizeof(double));
 	}
 	for (int wave = HP1; wave < COMPONENT; wave++) {
@@ -156,7 +156,7 @@ Waveform *createWaveform(size_t firstLength, size_t secondLength) {
 }
 
 void destroyWaveform(Waveform **waveform) {
-	for (int wave = HP; wave < WAVE; wave++) {
+	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		free((*waveform)->H[wave]);
 	}
 	for (int wave = HP1; wave < COMPONENT; wave++) {
@@ -202,9 +202,11 @@ void generatePSD(double initialFrequency, double samplingFrequency) {
 	XLALDestroyREAL8FrequencySeries(psd);
 }
 
-void initMatch(size_t lengthFirst, size_t lengthSecond) {
-	data.length[0] = lengthFirst;
-	data.length[1] = lengthSecond;
+void initMatch(Waveform *waveform) {
+	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
+		data.length[wave] = waveform->length[wave];
+	}
+	data.wave = waveform;
 	data.size = max(data.length[0], data.length[1]);
 	data.product = fftw_alloc_complex(data.size);
 	for (int wave = HP1; wave < COMPONENT; wave++) {
@@ -218,13 +220,6 @@ void initMatch(size_t lengthFirst, size_t lengthSecond) {
 	}
 	memset(data.product, 0, data.size * sizeof(double));
 	data.norm = fftw_alloc_real(data.size);
-}
-
-void prepairMatch(Waveform *waveform, double *norm) {
-	//size_t size = data.size * sizeof(double);
-	//memset(data.norm, 0, size);
-	//memcpy(data.norm, norm, size);
-	data.wave = waveform;
 }
 
 void cleanMatch(void) {

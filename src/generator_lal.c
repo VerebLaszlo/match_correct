@@ -15,7 +15,7 @@
 
 /** Various constants. */
 enum {
-	MEGA = 1000000,
+	HP, HC, WAVE, MEGA = 1000000,
 };
 
 /**

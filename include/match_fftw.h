@@ -8,11 +8,11 @@
 #define MATCH_FFTW_H_
 
 enum {
-	HP, HC, WAVE, HP1 = 0, HC1, HP2, HC2, COMPONENT,
+	HP1, HC1, HP2, HC2, COMPONENT, FIRST_WAVE = 0, SECOND_WAVE, NUMBER_OF_WAVE,
 };
 
 typedef struct {
-	double *H[WAVE];
+	double *H[NUMBER_OF_WAVE];
 	double *h[COMPONENT];
 	size_t length[2];
 	size_t size;
@@ -35,9 +35,7 @@ void indexFromFrequency(double min, double max, double step, size_t *minIndex, s
 
 void generatePSD(double initialFrequency, double samplingFrequency);
 
-void initMatch(size_t lengthFirst, size_t lengthSecond);
-
-void prepairMatch(Waveform *waveform, double *norm);
+void initMatch(Waveform *waveform);
 
 void cleanMatch(void);
 
