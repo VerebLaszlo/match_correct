@@ -146,10 +146,15 @@ void destroyOutput(Variable **variable) {
 
 static int fillOutput(TimeSeries timeSeries[NUMBER_OF_WAVE], Variable*variable) {
 	size_t size = sizeof(double);
+	double sqt2_2 = M_SQRT2 / 2.0;
 	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		for (int component = HP; component < WAVE; component++) {
 			memcpy(variable->wave->h[2 * wave + component], timeSeries[wave].h[component]->data->data,
 			        variable->length[wave] * size);
+		}
+		for (size_t index = 0; index < variable->wave->length[wave]; index++) {
+			variable->wave->H[wave][index] = sqt2_2
+			        * (variable->wave->h[2 * wave][index] + variable->wave->h[2 * wave + 1][index]);
 		}
 		memcpy(variable->V[wave], timeSeries[wave].V->data->data, variable->length[wave] * size);
 		memcpy(variable->Phi[wave], timeSeries[wave].Phi->data->data, variable->length[wave] * size);
