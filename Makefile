@@ -81,9 +81,7 @@ main : $(objects) -lfftw3 -lm
 	@echo -e $(end)'Finished linking: $@'$(reset)
 	@echo ' '
 
-$(objdir)/%.o : %.h
-
-$(objdir)/%.o : %.c | $(objdir)
+$(objdir)/%.o : %.c %.h | $(objdir)
 	@echo -e $(start)'Building file: $<'$(reset)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(includes) $(macros) -c -MMD -MF$(@:%.o=%.d) -MT$(@:%.o=%.d) $< -o $@
 	@echo -e $(end)'Finished building: $<'$(reset)
