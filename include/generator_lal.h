@@ -39,9 +39,9 @@ Variable* generateWaveformPair(Wave parameter[], double initialFrequency, double
  */
 void destroyOutput(Variable **output);
 
-void printSpins(FILE *file, Variable *variable, Wave *wave, double samplingTime);
+void printSpins(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime);
 
-void printSystem(FILE *file, Variable *variable, Wave *wave, double samplingTime);
+void printSystem(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime);
 /**
  * Prints the generated values to a file.
  * @param[in] file         where to print.
@@ -50,6 +50,6 @@ void printSystem(FILE *file, Variable *variable, Wave *wave, double samplingTime
  * @param[in] samplingTime sampling time
  * @return success code
  */
-int printOutput(FILE *file, Variable *output, Wave *wave, double samplingTime);
+int printOutput(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime);
 
 #endif /* GENERATOR_LAL_H_ */

@@ -47,6 +47,39 @@ static LALSimInspiralInteraction getInteraction(const char * const interaction) 
 	return (spin);
 }
 
+/*
+ static void getStringInteraction(LALSimInspiralInteraction interaction, char *spin) {
+ string text = "";
+ strcpy(spin, "");
+ switch (interaction) {
+ case LAL_SIM_INSPIRAL_INTERACTION_NONE:
+ strcpy(spin, "NO");
+ break;
+ case LAL_SIM_INSPIRAL_INTERACTION_SPIN_ORBIT_15PN | LAL_SIM_INSPIRAL_INTERACTION_SPIN_SPIN_2PN
+ | LAL_SIM_INSPIRAL_INTERACTION_SPIN_SPIN_SELF_2PN | LAL_SIM_INSPIRAL_INTERACTION_QUAD_MONO_2PN:
+ strcpy(spin, "ALL");
+ break;
+ case LAL_SIM_INSPIRAL_INTERACTION_SPIN_ORBIT_15PN:
+ strcpy(text, "SO");
+ strcpy(spin, text);
+ // no break
+ case LAL_SIM_INSPIRAL_INTERACTION_SPIN_SPIN_2PN:
+ sprintf(text, "%s%s", spin, "SS");
+ strcpy(spin, text);
+ // no break
+ case LAL_SIM_INSPIRAL_INTERACTION_SPIN_SPIN_SELF_2PN:
+ sprintf(text, "%s%s", spin, "SE");
+ strcpy(spin, text);
+ // no break
+ case LAL_SIM_INSPIRAL_INTERACTION_QUAD_MONO_2PN:
+ sprintf(text, "%s%s", spin, "QM");
+ strcpy(spin, text);
+ break;
+ default:
+ break;
+ }
+ }
+ */
 /**
  * Converts spin from precessing angle representation to fixed component representation.
  * @param[in,out] spin    angles, magnitude, and components
@@ -204,19 +237,37 @@ Variable* generateWaveformPair(Wave parameter[], double initialFrequency, double
 	return (variable);
 }
 
-static void printHeader(FILE *file, Wave *wave) {
-	double M = wave->binary.mass[0] + wave->binary.mass[1];
-	double eta = wave->binary.mass[0] * wave->binary.mass[1] / (M * M);
-	fprintf(file, "#mass %11.5g %11.5g %11.5g %11.5g\n", wave->binary.mass[0], wave->binary.mass[1], M, eta);
-	for (int blackhole = 0; blackhole < BH; blackhole++) {
-		fprintf(file, "#spin %11.5g %11.5g %11.5g\n", wave->binary.spin.magnitude[blackhole],
-		        degreeFromRadian(wave->binary.spin.inclination[blackhole]),
-		        degreeFromRadian(wave->binary.spin.azimuth[blackhole]));
+static void printHeader(FILE *file, Wave parameter[2], Analysed *analysed) {
+	double M[NUMBER_OF_WAVE] = {
+	    parameter[FIRST_WAVE].binary.mass[0] + parameter[FIRST_WAVE].binary.mass[1],
+	    parameter[SECOND_WAVE].binary.mass[0] + parameter[SECOND_WAVE].binary.mass[1] };
+	double eta[NUMBER_OF_WAVE] = { parameter[FIRST_WAVE].binary.mass[0] * parameter[FIRST_WAVE].binary.mass[1]
+	        / square(M[FIRST_WAVE]), parameter[SECOND_WAVE].binary.mass[0] * parameter[SECOND_WAVE].binary.mass[1]
+	        / square(M[SECOND_WAVE]) };
+	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
+		fprintf(file, "#%d mass  [m1,m2,M,eta] %11.5g %11.5g %11.5g %11.5g\n", wave, parameter[wave].binary.mass[0],
+		        parameter[wave].binary.mass[1], M[wave], eta[wave]);
 	}
+	for (int blackhole = 0; blackhole < BH; blackhole++) {
+		for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
+			fprintf(file, "#%d spin%d [mag,inc,azi] %11.5g %11.5g %11.5g\n", wave, blackhole,
+			        parameter[wave].binary.spin.magnitude[blackhole],
+			        degreeFromRadian(parameter[wave].binary.spin.inclination[blackhole]),
+			        degreeFromRadian(parameter[wave].binary.spin.azimuth[blackhole]));
+		}
+	}
+	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
+		fprintf(file, "#%d method[int, pn,amp] %11s %11d %11d\n", wave, parameter[wave].method.spin,
+		        parameter[wave].method.phase, parameter[wave].method.amplitude);
+	}
+	fprintf(file, "#  match [typ,max,min] %11.5g %11.5g %11.5g\n", analysed->match[TYPICAL], analysed->match[BEST],
+	        analysed->match[WORST]);
+	fprintf(file, "#  period[ 1., 2.,rel] %11d %11d %11.5g\n", analysed->period[FIRST_WAVE],
+	        analysed->period[SECOND_WAVE], analysed->relativePeriod);
 }
 
-void printSpins(FILE *file, Variable *variable, Wave *wave, double samplingTime) {
-	printHeader(file, wave);
+void printSpins(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime) {
+	printHeader(file, wave, analysed);
 	fprintf(file, "%11.5s ", "t");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "1s1x", "1s1y", "1s1z");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "2s1x", "2s1y", "2s1z");
@@ -236,8 +287,8 @@ void printSpins(FILE *file, Variable *variable, Wave *wave, double samplingTime)
 	}
 }
 
-void printSystem(FILE *file, Variable *variable, Wave *wave, double samplingTime) {
-	printHeader(file, wave);
+void printSystem(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime) {
+	printHeader(file, wave, analysed);
 	fprintf(file, "%11.5s ", "t");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "1e1x", "1e1y", "1e1z");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "2e1x", "2e1y", "2e1z");
@@ -257,10 +308,10 @@ void printSystem(FILE *file, Variable *variable, Wave *wave, double samplingTime
 	}
 }
 
-int printOutput(FILE *file, Variable *variable, Wave *wave, double samplingTime) {
-	printHeader(file, wave);
-	fprintf(file, "%11.5s %11.5s %11.5s %11.5s %11.5s %11.5s %11.5s %11.5s %11.5s %11.5s %11.5s\n", "t", "h1", "h2",
-	        "hp1", "hc1", "hp2", "hc2", "phi1", "phi2", "omega1", "omega2");
+int printOutput(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime) {
+	printHeader(file, wave, analysed);
+	fprintf(file, "%11s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n", "t", "h1", "h2", "hp1", "hc1", "hp2",
+	        "hc2", "phi1", "phi2", "omega1", "omega2");
 	int shorter = variable->length[FIRST_WAVE] < variable->length[SECOND_WAVE] ? FIRST_WAVE : SECOND_WAVE;
 	for (size_t index = 0; index < variable->length[shorter]; index++) {
 		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * samplingTime,

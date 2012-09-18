@@ -9,20 +9,20 @@
 #include "generator_lal.h"
 #include "util_IO.h"
 
-void print(Variable *variable, Wave *parameter, string name, double samplingTime) {
+void print(Variable *variable, Wave parameter[2], Analysed *analysed, string name, double samplingTime) {
 	string path;
 	FILE *file;
 	sprintf(path, "out/%s_spin.txt", name);
 	file = safelyOpenForWriting(path);
-	printSpins(file, variable, parameter, samplingTime);
+	printSpins(file, variable, parameter, analysed, samplingTime);
 	fclose(file);
 	sprintf(path, "out/%s_system.txt", name);
 	file = safelyOpenForWriting(path);
-	printSystem(file, variable, parameter, samplingTime);
+	printSystem(file, variable, parameter, analysed, samplingTime);
 	fclose(file);
 	sprintf(path, "out/%s_wave.txt", name);
 	file = safelyOpenForWriting(path);
-	printOutput(file, variable, parameter, samplingTime);
+	printOutput(file, variable, parameter, analysed, samplingTime);
 	fclose(file);
 }
 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 			countPeriods(&analysed);
 			printf("w:%g t:%g b:%g\n%d %d %g%%\n", analysed.match[WORST], analysed.match[TYPICAL], analysed.match[BEST],
 			        analysed.period[0], analysed.period[1], analysed.relativePeriod * 100.0);
-			print(variable, &parameter.wave[2 * index], parameter.name[index], parameter.samplingTime);
+			print(variable, &parameter.wave[2 * index], &analysed, parameter.name[index], parameter.samplingTime);
 			cleanMatch();
 			destroyWaveform(&variable->wave);
 			destroyOutput(&variable);
