@@ -252,7 +252,7 @@ void calcMatches(size_t minIndex, size_t maxIndex, Analysed *analysed) {
 }
 
 void countPeriods(Analysed *analysed) {
-	for (ushort wave = 0; wave < 2; wave++) {
+	for (ushort wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		analysed->period[wave] = 0;
 		for (size_t index = 1; index < data.length[wave]; index++) {
 			double product = data.wave->H[wave][index - 1] * data.wave->H[wave][index];
@@ -266,4 +266,6 @@ void countPeriods(Analysed *analysed) {
 		analysed->period[wave]--;
 		analysed->period[wave] /= 2;
 	}
+	analysed->relativePeriod = fabs((double) analysed->period[FIRST_WAVE] - (double) analysed->period[SECOND_WAVE])
+	        / (double) analysed->period[FIRST_WAVE];
 }

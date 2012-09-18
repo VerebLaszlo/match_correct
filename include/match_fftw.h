@@ -29,6 +29,7 @@ enum {
 typedef struct {
 	double match[MATCH];
 	size_t period[2];
+	double relativePeriod;
 } Analysed;
 
 void indexFromFrequency(double min, double max, double step, size_t *minIndex, size_t *maxIndex);
