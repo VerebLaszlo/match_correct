@@ -117,14 +117,13 @@ static Variable *createOutput(TimeSeries timeSeries[NUMBER_OF_WAVE]) {
 	                timeSeries[FIRST_WAVE].h[HP]->data->length : timeSeries[SECOND_WAVE].h[HC]->data->length;
 	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		variable->length[wave] = timeSeries[wave].h[HP]->data->length;
-		size_t size = variable->length[wave] * sizeof(double);
-		variable->V[wave] = malloc(size);
-		variable->Phi[wave] = malloc(size);
+		variable->V[wave] = calloc(variable->length[wave], sizeof(double));
+		variable->Phi[wave] = calloc(variable->length[wave], sizeof(double));
 		for (int dimension = X; dimension < DIMENSION; dimension++) {
-			variable->S1[wave][dimension] = malloc(size);
-			variable->S2[wave][dimension] = malloc(size);
-			variable->E1[wave][dimension] = malloc(size);
-			variable->E3[wave][dimension] = malloc(size);
+			variable->S1[wave][dimension] = calloc(variable->length[wave], sizeof(double));
+			variable->S2[wave][dimension] = calloc(variable->length[wave], sizeof(double));
+			variable->E1[wave][dimension] = calloc(variable->length[wave], sizeof(double));
+			variable->E3[wave][dimension] = calloc(variable->length[wave], sizeof(double));
 		}
 	}
 	variable->wave = createWaveform(variable->length[FIRST_WAVE], variable->length[SECOND_WAVE]);
@@ -152,7 +151,7 @@ static int fillOutput(TimeSeries timeSeries[NUMBER_OF_WAVE], Variable*variable) 
 			memcpy(variable->wave->h[2 * wave + component], timeSeries[wave].h[component]->data->data,
 			        variable->length[wave] * size);
 		}
-		memcpy(variable->V[wave], timeSeries->V->data->data, variable->length[wave] * size);
+		memcpy(variable->V[wave], timeSeries[wave].V->data->data, variable->length[wave] * size);
 		memcpy(variable->Phi[wave], timeSeries[wave].Phi->data->data, variable->length[wave] * size);
 		for (int dimension = X; dimension < DIMENSION; dimension++) {
 			memcpy(variable->S1[wave][dimension], timeSeries[wave].S1[dimension]->data->data,

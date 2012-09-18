@@ -52,8 +52,7 @@ inline static double innerProduct(complex left[], complex right[], double norm[]
  * @param[out] out      normalised vector
  */
 inline static void normalise(complex *in, double *norm, size_t minIndex, size_t maxIndex, size_t length, complex *out) {
-	double normalising_Constant;
-	normalising_Constant = sqrt(innerProduct(in, in, norm, minIndex, maxIndex));
+	double normalising_Constant = sqrt(innerProduct(in, in, norm, minIndex, maxIndex));
 	for (size_t j = 0; j < length; j++) {
 		out[j] /= normalising_Constant;
 	}
@@ -148,9 +147,11 @@ Waveform *createWaveform(size_t firstLength, size_t secondLength) {
 	waveform->size = max(waveform->length[FIRST_WAVE], waveform->length[SECOND_WAVE]);
 	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		waveform->H[wave] = calloc(waveform->size, sizeof(double));
+		memset(waveform->H[wave], 0, waveform->size * sizeof(double));
 	}
 	for (int wave = HP1; wave < COMPONENT; wave++) {
 		waveform->h[wave] = fftw_alloc_real(waveform->size);
+		memset(waveform->h[wave], 0, waveform->size * sizeof(double));
 	}
 	return (waveform);
 }
@@ -225,6 +226,7 @@ void initMatch(Waveform *waveform) {
 void cleanMatch(void) {
 	for (int wave = HP1; wave < COMPONENT; wave++) {
 		fftw_free(data.inFrequency[wave]);
+		fftw_free(data.correlated[wave]);
 		fftw_destroy_plan(data.plan[wave]);
 		fftw_destroy_plan(data.iplan[wave]);
 	}

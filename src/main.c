@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
 			printf("w:%g t:%g b:%g\n%d %d\n", analysed.match[WORST], analysed.match[TYPICAL], analysed.match[BEST],
 			        analysed.period[0], analysed.period[1]);
 			print(variable, &parameter.wave[2 * index], parameter.name[index], parameter.samplingTime);
+			cleanMatch();
 			destroyWaveform(&variable->wave);
 			destroyOutput(&variable);
 		}
