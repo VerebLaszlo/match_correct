@@ -257,8 +257,22 @@ Option option = {	//
     }
 };
 
+static int parse(char *file, Parameter *parameters) {
+	int failure = SUCCESS;
+	cfg_t *config = cfg_init(option.option, CFGF_NONE);
+	failure = cfg_parse(config, file) == CFG_PARSE_ERROR;
+	if (!failure) {
+		failure = parseFrequency(config, parameters);
+		cfg_t *wave = cfg_getsec(config, optionName[WAVEX]);
+		failure &= parseWave(wave, &defaultWave);
+	}
+	cfg_free(config);
+	return (failure);
+}
+
 int parseWaves(char *file, Parameter *parameter) {
 	int failure = SUCCESS;
+	failure = parse(file, parameter);
 	string mass, magnitude, inclination, azimuth;
 	createList(defaultWave.binary.mass[0], defaultWave.binary.mass[1], mass);
 	createList(defaultWave.binary.spin.magnitude[0], defaultWave.binary.spin.magnitude[1], magnitude);
@@ -322,19 +336,6 @@ int parseWaves(char *file, Parameter *parameter) {
 
 void cleanParameter(Parameter *parameter) {
 	destroyExact(&parameter->exact);
-}
-
-int parse(char *file, Parameter *parameters) {
-	int failure = SUCCESS;
-	cfg_t *config = cfg_init(option.option, CFGF_NONE);
-	failure = cfg_parse(config, file) == CFG_PARSE_ERROR;
-	if (!failure) {
-		failure = parseFrequency(config, parameters);
-		cfg_t *wave = cfg_getsec(config, optionName[WAVEX]);
-		failure &= parseWave(wave, &defaultWave);
-	}
-	cfg_free(config);
-	return (failure);
 }
 
 static int printWaveParameter(FILE *file, Wave *wave) {

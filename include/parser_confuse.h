@@ -86,13 +86,6 @@ void initParser(void);
 
 int parseWaves(char *file, Parameter *parameter);
 
-/**
- * Parse the config file.
- * @param[in] file name of the configuratin file
- * @return error code
- */
-int parse(char *file, Parameter *parameters);
-
 void cleanParameter(Parameter *parameter);
 
 /**

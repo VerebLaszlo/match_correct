@@ -38,7 +38,6 @@ int main(int argc, char *argv[]) {
 	memset(&parameter, 0, sizeof(Parameter));
 	int failure = SUCCESS;
 	initParser();
-	failure &= parse(input, &parameter);
 	failure &= parseWaves(input, &parameter);
 	size_t minIndex, maxIndex;
 	if (!failure) {
