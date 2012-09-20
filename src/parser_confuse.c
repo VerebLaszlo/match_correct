@@ -138,6 +138,20 @@ static int parseWave(cfg_t *config, Wave *parameters) {
 	return (failure);
 }
 
+static Exact *createExact(size_t length) {
+	Exact *exact = calloc(1, sizeof(Exact));
+	exact->length = length;
+	exact->wave = calloc(2 * exact->length, sizeof(Wave));
+	exact->name = calloc(exact->length, sizeof(string));
+	return (exact);
+}
+
+static void destroyExact(Exact **exact) {
+	free((*exact)->wave);
+	free((*exact)->name);
+	free(*exact);
+}
+
 static Step *createStep(size_t length) {
 	Step *step = calloc(1, sizeof(Step));
 	step->length = length;
@@ -295,13 +309,11 @@ int parseWaves(char *file, Parameter *parameter) {
 	cfg_t *config = cfg_init(options, CFGF_NONE);
 	failure = cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
-		parameter->length = cfg_size(config, optionName[PAIR]);
-		parameter->wave = calloc(2 * parameter->length, sizeof(Wave));
-		parameter->name = (string*) calloc(parameter->length, sizeof(string));
-		for (size_t current = 0; current < parameter->length; current++) {
+		parameter->exact = createExact(cfg_size(config, optionName[PAIR]));
+		for (size_t current = 0; current < parameter->exact->length; current++) {
 			cfg_t *pair = cfg_getnsec(config, optionName[PAIR], current);
-			sprintf(parameter->name[current], "%s", cfg_title(pair));
-			failure |= parsePair(pair, &parameter->wave[2 * current]);
+			sprintf(parameter->exact->name[current], "%s", cfg_title(pair));
+			failure |= parsePair(pair, &parameter->exact->wave[2 * current]);
 		}
 	}
 	cfg_free(config);
@@ -309,8 +321,7 @@ int parseWaves(char *file, Parameter *parameter) {
 }
 
 void cleanParameter(Parameter *parameter) {
-	free(parameter->name);
-	free(parameter->wave);
+	destroyExact(&parameter->exact);
 }
 
 int parse(char *file, Parameter *parameters) {
@@ -347,7 +358,7 @@ int printParameter(FILE *file, Parameter *parameter, int from, int to) {
 	fprintf(file, "% 11.5g % 11.5g % 11.5g\n", parameter->initialFrequency, parameter->endingFrequency,
 	        parameter->samplingFrequency);
 	for (int current = from; current < to; current++) {
-		failure |= printWaveParameter(file, &parameter->wave[current]);
+		failure |= printWaveParameter(file, &parameter->exact->wave[current]);
 	}
 	return (failure);
 }

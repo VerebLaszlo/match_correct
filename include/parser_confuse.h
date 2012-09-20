@@ -59,6 +59,12 @@ typedef struct {
 	size_t length;	///< number of waveform pairs.
 	Wave *wave;	///< default wave parameters.
 	string *name;	///< name of the waveform pairs.
+} Exact;
+
+typedef struct {
+	size_t length;	///< number of waveform pairs.
+	Wave *wave;	///< default wave parameters.
+	string *name;	///< name of the waveform pairs.
 	string *variable;
 	double *difference;
 } Step;
@@ -69,9 +75,7 @@ typedef struct {
 	double endingFrequency;	///< ending frequency.
 	double samplingFrequency;	///< sampling frequency.
 	double samplingTime;	///< sampling time.
-	size_t length;	///< number of waveform pairs.
-	Wave *wave;	///< default wave parameters.
-	string *name;	///< name of the waveform pairs.
+	Exact *exact;
 	Step *step;
 } Parameter;
 

@@ -43,8 +43,8 @@ int main(int argc, char *argv[]) {
 	size_t minIndex, maxIndex;
 	if (!failure) {
 		Variable *variable;
-		for (size_t index = 0; index < parameter.length; index++) {
-			variable = generateWaveformPair(&parameter.wave[2 * index], parameter.initialFrequency,
+		for (size_t index = 0; index < parameter.exact->length; index++) {
+			variable = generateWaveformPair(&parameter.exact->wave[2 * index], parameter.initialFrequency,
 			        parameter.samplingTime);
 			initMatch(variable->wave);
 			generatePSD(parameter.initialFrequency, parameter.samplingFrequency);
@@ -55,7 +55,8 @@ int main(int argc, char *argv[]) {
 			countPeriods(&analysed);
 			printf("w:%g t:%g b:%g\n%d %d %g%%\n", analysed.match[WORST], analysed.match[TYPICAL], analysed.match[BEST],
 			        analysed.period[0], analysed.period[1], analysed.relativePeriod * 100.0);
-			print(variable, &parameter.wave[2 * index], &analysed, parameter.name[index], parameter.samplingTime);
+			print(variable, &parameter.exact->wave[2 * index], &analysed, parameter.exact->name[index],
+			        parameter.samplingTime);
 			cleanMatch();
 			destroyWaveform(&variable->wave);
 			destroyOutput(&variable);
