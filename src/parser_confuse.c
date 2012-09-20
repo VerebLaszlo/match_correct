@@ -37,6 +37,9 @@ enum {
 	NAME,
 	WAVEX,
 	PAIR,
+	VARIABLE,
+	DIFF,
+	STEP,
 	OPTIONS,
 };
 
@@ -61,7 +64,10 @@ char optionName[OPTIONS][STRING_LENGTH] = {
     "number",
     "name",
     "wave",
-    "pair", };
+    "pair",
+    "variable",
+    "diff",
+    "step" };
 
 /** Structure containing the options hierarchy. */
 typedef struct {
@@ -132,6 +138,24 @@ static int parseWave(cfg_t *config, Wave *parameters) {
 	return (failure);
 }
 
+static Step *createStep(size_t length) {
+	Step *step = calloc(1, sizeof(Step));
+	step->length = length;
+	step->wave = calloc(2 * step->length, sizeof(Wave));
+	step->name = calloc(step->length, sizeof(string));
+	step->variable = calloc(step->length, sizeof(string));
+	step->difference = calloc(2 * step->length, sizeof(double));
+	return (step);
+}
+
+static void destroyStep(Step **step) {
+	free((*step)->wave);
+	free((*step)->name);
+	free((*step)->variable);
+	free((*step)->difference);
+	free(*step);
+}
+
 void initParser(void) {
 	memset(&defaultWave, 0, sizeof(Wave));
 	sprintf(defaultWave.name, "wave");
@@ -155,6 +179,24 @@ static int parsePair(cfg_t *config, Wave wave[]) {
 	for (size_t current = 0; current < cfg_size(config, optionName[WAVEX]); current++) {
 		cfg_t *waveConfig = cfg_getnsec(config, optionName[WAVEX], current);
 		failure &= parseWave(waveConfig, &wave[current]);
+	}
+	return (failure);
+}
+
+static int parseStep(cfg_t *config, Step **parameter) {
+	int failure = SUCCESS;
+	*parameter = createStep(cfg_size(config, optionName[STEP]));
+	for (size_t current = 0; current < (*parameter)->length; current++) {
+		cfg_t *step = cfg_getnsec(config, optionName[STEP], current);
+		sprintf((*parameter)->name[current], "%s", cfg_title(step));
+		for (size_t wave = 0; wave < cfg_size(step, optionName[WAVEX]); wave++) {
+			cfg_t *waveConfig = cfg_getnsec(step, optionName[WAVEX], wave);
+			failure &= parseWave(waveConfig, &(*parameter)->wave[2 * current + wave]);
+		}
+		strcpy((*parameter)->variable[current], cfg_getstr(step, optionName[VARIABLE]));
+		for (int index = 0; index < 2; index++) {
+			(*parameter)->difference[2 * current + index] = cfg_getnfloat(step, optionName[DIFF], index);
+		}
 	}
 	return (failure);
 }
@@ -284,7 +326,7 @@ int parse(char *file, Parameter *parameters) {
 	return (failure);
 }
 
-int printWaveParameter(FILE *file, Wave *wave) {
+static int printWaveParameter(FILE *file, Wave *wave) {
 	fprintf(file, "%11.5s %11.0u\n", wave->name, wave->number);
 	fprintf(file, "%11.5s %11.5s % 11.0d % 11.0d\n", wave->method.approximant, wave->method.spin, wave->method.phase,
 	        wave->method.amplitude);

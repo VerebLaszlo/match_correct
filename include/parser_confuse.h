@@ -55,6 +55,14 @@ typedef struct {
 	char name[STRING_LENGTH];	///< name of the generated waveform.
 } Wave;
 
+typedef struct {
+	size_t length;	///< number of waveform pairs.
+	Wave *wave;	///< default wave parameters.
+	string *name;	///< name of the waveform pairs.
+	string *variable;
+	double *difference;
+} Step;
+
 /** Parameters to generate waveforms. */
 typedef struct {
 	double initialFrequency;	///< initial frequency.
@@ -64,6 +72,7 @@ typedef struct {
 	size_t length;	///< number of waveform pairs.
 	Wave *wave;	///< default wave parameters.
 	string *name;	///< name of the waveform pairs.
+	Step *step;
 } Parameter;
 
 /**
@@ -79,8 +88,6 @@ int parseWaves(char *file, Parameter *parameter);
  * @return error code
  */
 int parse(char *file, Parameter *parameters);
-
-int printWaveParameter(FILE *file, Wave *wave);
 
 void cleanParameter(Parameter *parameter);
 
