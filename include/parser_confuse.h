@@ -41,7 +41,6 @@ typedef struct {
 
 /** Waveform generation method. */
 typedef struct {
-	char approximant[STRING_LENGTH];	///< approximant to use.
 	char spin[STRING_LENGTH];	///< spin contribution to use.
 	int phase;	///< double of the PN order in phase.
 	int amplitude;	///< double of the PN order in amplitude.
@@ -52,7 +51,8 @@ typedef struct {
 	Binary binary;	///< parameters of the binary emitting the waveform.
 	Method method;	///< waveform generating method.
 	size_t number;	///< number of the runs.
-	char name[STRING_LENGTH];	///< name of the generated waveform.
+	string name;	///< name of the generated waveform.
+	double diff[2];
 } Wave;
 
 typedef struct {
