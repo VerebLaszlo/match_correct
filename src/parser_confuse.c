@@ -246,9 +246,8 @@ static int parse(char *file, Parameter *parameters) {
 	return (failure);
 }
 
-int parseWaves(char *file, Parameter *parameter) {
-	int failure = SUCCESS;
-	failure = parse(file, parameter);
+static int initOptions(char *file, Parameter *parameter, cfg_t **config) {
+	int failure = parse(file, parameter);
 	string magnitude, inclination, azimuth;
 	createList(defaultWave.binary.spin.magnitude[FIRST], defaultWave.binary.spin.magnitude[SECOND], magnitude);
 	createList(degreeFromRadian(defaultWave.binary.spin.inclination[FIRST]),
@@ -303,8 +302,15 @@ int parseWaves(char *file, Parameter *parameter) {
 	        CFG_SEC(optionName[STEP], step, CFGF_TITLE | CFGF_MULTI),
 	        CFG_END()
         };
-	cfg_t *config = cfg_init(options, CFGF_NONE);
-	failure = cfg_parse(config, file) == CFG_PARSE_ERROR;
+	*config = cfg_init(options, CFGF_NONE);
+	return (failure);
+}
+
+int parseWaves(char *file, Parameter *parameter) {
+	int failure = SUCCESS;
+	cfg_t *config = calloc(1, sizeof(cfg_t));
+	failure = initOptions(file, parameter, &config);
+	failure &= cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
 		parameter->exact = createWavePair(cfg_size(config, optionName[PAIR]));
 		for (size_t current = FIRST; current < parameter->exact->length; current++) {
@@ -319,63 +325,9 @@ int parseWaves(char *file, Parameter *parameter) {
 
 static int parseStep(char *file, Parameter *parameter) {
 	int failure = SUCCESS;
-	failure = parse(file, parameter);
-	string magnitude, inclination, azimuth;
-	createList(defaultWave.binary.spin.magnitude[FIRST], defaultWave.binary.spin.magnitude[SECOND], magnitude);
-	createList(degreeFromRadian(defaultWave.binary.spin.inclination[FIRST]),
-	        degreeFromRadian(defaultWave.binary.spin.inclination[SECOND]), inclination);
-	createList(degreeFromRadian(defaultWave.binary.spin.azimuth[FIRST]),
-	        degreeFromRadian(defaultWave.binary.spin.azimuth[SECOND]), azimuth);
-	cfg_opt_t spin[SPIN_SIZE] = { //
-	        CFG_FLOAT_LIST(optionName[MAGNITUDE], magnitude, CFGF_NONE),
-	        CFG_FLOAT_LIST(optionName[INCLINATION], inclination, CFGF_NONE),
-	        CFG_FLOAT_LIST(optionName[AZIMUTH], azimuth, CFGF_NONE),
-	        CFG_STR(optionName[COORDINATE_SYSTEM], coordinateSystemConstant, CFGF_NONE),
-	        CFG_END()
-        };
-	string mass;
-	createList(defaultWave.binary.mass[FIRST], defaultWave.binary.mass[SECOND], mass);
-	cfg_opt_t binary[BINARY_SIZE] = { //
-	        CFG_FLOAT_LIST(optionName[MASS], mass, CFGF_NONE),
-	        CFG_SEC(optionName[SPIN], spin, CFGF_NONE),
-	        CFG_FLOAT(optionName[INCLINATION], defaultWave.binary.inclination, CFGF_NONE),
-	        CFG_FLOAT(optionName[DISTANCE], defaultWave.binary.distance, CFGF_NONE),
-	        CFG_END()
-        };
-	cfg_opt_t method[METHOD_SIZE] = { //
-	        CFG_STR(optionName[SPIN], defaultWave.method.spin, CFGF_NONE),
-	        CFG_INT(optionName[PHASE], defaultWave.method.phase, CFGF_NONE),
-	        CFG_INT(optionName[AMPLITUDE], defaultWave.method.amplitude, CFGF_NONE),
-	        CFG_END()
-        };
-	string diff;
-	createList(defaultWave.diff[FIRST], defaultWave.diff[SECOND], diff);
-	cfg_opt_t wave[WAVE_SIZE] = { //
-	        CFG_SEC(optionName[BINARY], binary, CFGF_NONE),
-	        CFG_SEC(optionName[METHOD], method, CFGF_NONE),
-	        CFG_INT(optionName[NUMBER], numberConstant, CFGF_NONE),
-	        CFG_FLOAT_LIST(optionName[DIFF], diff, CFGF_NONE),
-	        CFG_END()
-        };
-	cfg_opt_t pair[PAIR_SIZE] = {	//
-	        CFG_SEC(optionName[WAVEX], wave, CFGF_MULTI),
-	        CFG_END()
-        };
-	cfg_opt_t step[STEP_SIZE] = {	//
-	        CFG_SEC(optionName[WAVEX], wave, CFGF_MULTI),
-	        CFG_END()
-        };
-	cfg_opt_t options[OPTION_SIZE] = {	//
-	        CFG_SEC(optionName[UNIT], option.units, CFGF_NONE),
-	        CFG_FLOAT_LIST(optionName[BOUNDARY_FREQUENCY], boundaryFrequencyConstant, CFGF_NONE),
-	        CFG_FLOAT(optionName[SAMPLING_FREQUENCY], samplingFrequencyConstant, CFGF_NONE),
-	        CFG_SEC(optionName[WAVEX], option.defaultWave, CFGF_TITLE | CFGF_MULTI),
-	        CFG_SEC(optionName[PAIR], pair, CFGF_TITLE | CFGF_MULTI),
-	        CFG_SEC(optionName[STEP], step, CFGF_TITLE | CFGF_MULTI),
-	        CFG_END()
-        };
-	cfg_t *config = cfg_init(options, CFGF_NONE);
-	failure = cfg_parse(config, file) == CFG_PARSE_ERROR;
+	cfg_t *config = calloc(1, sizeof(cfg_t));
+	failure = initOptions(file, parameter, &config);
+	failure &= cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
 		parameter->step = createWavePair(cfg_size(config, optionName[WAVEX]) - 1);
 		for (size_t current = FIRST, index = FIRST; current < parameter->step->length; current++) {
