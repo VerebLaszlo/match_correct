@@ -14,7 +14,7 @@ typedef char string[STRING_LENGTH];
 
 /** Parameter specific constants. */
 enum {
-	BH = 2,	///< number of blackholes in the binary system.
+	FIRST, SECOND, THIRD, BH = THIRD,	///< number of blackholes in the binary system.
 };
 
 /** Coordinate system conventions. */

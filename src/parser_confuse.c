@@ -58,16 +58,28 @@ char optionName[OPTIONS][STRING_LENGTH] = {
     "pair",
     "step" };
 
+enum {
+	UNIT_SIZE = 4,
+	SPIN_SIZE = 5,
+	NUMBER_POSITION = 3,
+	BINARY_SIZE = 5,
+	METHOD_SIZE = 4,
+	WAVE_SIZE = 5,
+	PAIR_SIZE = 2,
+	STEP_SIZE = 2,
+	OPTION_SIZE = 7,
+};
+
 /** Structure containing the options hierarchy. */
 typedef struct {
-	cfg_opt_t units[4];	///< Unit options.
-	cfg_opt_t spin[5];	///< Second spin parameters.
-	cfg_opt_t binary[5];	///< Second spin parameters.
-	cfg_opt_t method[4];	///< Generation method.
-	cfg_opt_t defaultWave[5];	///< Default parameters.
-	cfg_opt_t pair[2];	///< Default parameters.
-	cfg_opt_t step[2];	///< Default parameters.
-	cfg_opt_t option[7];	///< Group of the unit options.
+	cfg_opt_t units[UNIT_SIZE];	///< Unit options.
+	cfg_opt_t spin[SPIN_SIZE];	///< Second spin parameters.
+	cfg_opt_t binary[BINARY_SIZE];	///< Second spin parameters.
+	cfg_opt_t method[METHOD_SIZE];	///< Generation method.
+	cfg_opt_t defaultWave[WAVE_SIZE];	///< Default parameters.
+	cfg_opt_t pair[PAIR_SIZE];	///< Default parameters.
+	cfg_opt_t step[STEP_SIZE];	///< Default parameters.
+	cfg_opt_t option[OPTION_SIZE];	///< Group of the unit options.
 } Option;
 
 Wave defaultWave;	///< default wave parameters.
@@ -81,7 +93,7 @@ static int parseFrequency(cfg_t *config, Parameter *parameters) {
 }
 
 static int parseSpin(cfg_t *config, Spin *spin) {
-	for (int blackhole = 0; blackhole < BH; blackhole++) {
+	for (int blackhole = FIRST; blackhole < BH; blackhole++) {
 		spin->magnitude[blackhole] = cfg_getnfloat(config, optionName[MAGNITUDE], blackhole);
 		spin->inclination[blackhole] = cfg_getnfloat(config, optionName[INCLINATION], blackhole);
 		spin->inclination[blackhole] = radianFromDegree(spin->inclination[blackhole]);
@@ -103,7 +115,7 @@ static int parseGeneration(cfg_t *config, Method *method) {
 static int parseBinary(cfg_t *config, Binary *binary) {
 	int failure = SUCCESS;
 	cfg_t *spin = cfg_getsec(config, optionName[SPIN]);
-	for (int blackhole = MIN; blackhole < BH; blackhole++) {
+	for (int blackhole = FIRST; blackhole < BH; blackhole++) {
 		binary->mass[blackhole] = cfg_getnfloat(config, optionName[MASS], blackhole);
 	}
 	binary->inclination = cfg_getfloat(config, optionName[INCLINATION]);
@@ -116,7 +128,7 @@ static int parseBinary(cfg_t *config, Binary *binary) {
 static int parseWave(cfg_t *config, Wave *parameters) {
 	int failure = SUCCESS;
 	parameters->number = cfg_getint(config, optionName[NUMBER]);
-	for (int correct = 0; correct < 2; correct++) {
+	for (int correct = FIRST; correct < THIRD; correct++) {
 		parameters->diff[correct] = cfg_getnfloat(config, optionName[DIFF], correct);
 	}
 	cfg_t *binary = cfg_getsec(config, optionName[BINARY]);
@@ -148,8 +160,8 @@ void initParser(void) {
 	defaultWave.method.phase = 4;
 	defaultWave.method.amplitude = 2;
 	defaultWave.binary.distance = 1.0;
-	defaultWave.binary.mass[0] = 3.0;
-	defaultWave.binary.mass[1] = 3.0;
+	defaultWave.binary.mass[FIRST] = 3.0;
+	defaultWave.binary.mass[SECOND] = 3.0;
 }
 
 static int createList(double first, double second, char *text) {
@@ -159,12 +171,17 @@ static int createList(double first, double second, char *text) {
 
 static int parsePair(cfg_t *config, Wave wave[]) {
 	int failure = SUCCESS;
-	for (size_t current = 0; current < cfg_size(config, optionName[WAVEX]); current++) {
+	for (size_t current = FIRST; current < cfg_size(config, optionName[WAVEX]); current++) {
 		cfg_t *waveConfig = cfg_getnsec(config, optionName[WAVEX], current);
 		failure &= parseWave(waveConfig, &wave[current]);
 	}
 	return (failure);
 }
+
+#define samplingFrequencyConstant 10240
+#define boundaryFrequencyConstant "{20.0, 2000.0}"
+#define coordinateSystemConstant "precessing"
+#define numberConstant 1
 
 Option option = {	//
         { CFG_STR(optionName[ANGLE], "deg", CFGF_NONE),
@@ -175,7 +192,7 @@ Option option = {	//
         CFG_FLOAT_LIST(optionName[MAGNITUDE], "{1.0, 1.0}", CFGF_NONE),
         CFG_FLOAT_LIST(optionName[INCLINATION], "{0.0, 0.0}", CFGF_NONE),
         CFG_FLOAT_LIST(optionName[AZIMUTH], "{0.0, 0.0}", CFGF_NONE),
-        CFG_STR(optionName[COORDINATE_SYSTEM], "precessing", CFGF_NONE),
+        CFG_STR(optionName[COORDINATE_SYSTEM], coordinateSystemConstant, CFGF_NONE),
         CFG_END()
     }, {
         CFG_FLOAT_LIST(optionName[MASS], "{3.0, 3.0}", CFGF_NONE),
@@ -192,7 +209,7 @@ Option option = {	//
         CFG_SEC(optionName[BINARY], option.binary, CFGF_NONE),
         CFG_SEC(optionName[METHOD], option.method, CFGF_NONE),
         CFG_FLOAT_LIST(optionName[DIFF], "{0.1, 0.1}", CFGF_NONE),
-        CFG_INT(optionName[NUMBER], 1, CFGF_NONE),
+        CFG_INT(optionName[NUMBER], numberConstant, CFGF_NONE),
         CFG_END()
     }, {
         CFG_SEC(optionName[WAVEX], option.defaultWave, CFGF_MULTI),
@@ -202,8 +219,8 @@ Option option = {	//
         CFG_END()
     }, {
         CFG_SEC(optionName[UNIT], option.units, CFGF_NONE),
-        CFG_FLOAT_LIST(optionName[BOUNDARY_FREQUENCY], "{20.0, 2000.0}", CFGF_NONE),
-        CFG_FLOAT(optionName[SAMPLING_FREQUENCY], 10240, CFGF_NONE),
+        CFG_FLOAT_LIST(optionName[BOUNDARY_FREQUENCY], boundaryFrequencyConstant, CFGF_NONE),
+        CFG_FLOAT(optionName[SAMPLING_FREQUENCY], samplingFrequencyConstant, CFGF_NONE),
         CFG_SEC(optionName[WAVEX], option.defaultWave, CFGF_TITLE | CFGF_MULTI),
         CFG_SEC(optionName[PAIR], option.pair, CFGF_TITLE | CFGF_MULTI),
         CFG_SEC(optionName[STEP], option.step, CFGF_TITLE | CFGF_MULTI),
@@ -217,7 +234,7 @@ static int parse(char *file, Parameter *parameters) {
 	failure = cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
 		failure = parseFrequency(config, parameters);
-		for (size_t current = 0; current < cfg_size(config, optionName[WAVEX]); current++) {
+		for (size_t current = FIRST; current < cfg_size(config, optionName[WAVEX]); current++) {
 			cfg_t *wave = cfg_getsec(config, optionName[WAVEX]);
 			if (strstr("default", cfg_title(wave))) {
 				failure &= parseWave(wave, &defaultWave);
@@ -232,53 +249,55 @@ static int parse(char *file, Parameter *parameters) {
 int parseWaves(char *file, Parameter *parameter) {
 	int failure = SUCCESS;
 	failure = parse(file, parameter);
-	string mass, magnitude, inclination, azimuth, diff;
-	createList(defaultWave.binary.mass[0], defaultWave.binary.mass[1], mass);
-	createList(defaultWave.binary.spin.magnitude[0], defaultWave.binary.spin.magnitude[1], magnitude);
-	createList(degreeFromRadian(defaultWave.binary.spin.inclination[0]),
-	        degreeFromRadian(defaultWave.binary.spin.inclination[1]), inclination);
-	createList(degreeFromRadian(defaultWave.binary.spin.azimuth[0]),
-	        degreeFromRadian(defaultWave.binary.spin.azimuth[1]), azimuth);
-	createList(defaultWave.diff[0], defaultWave.diff[1], diff);
-	cfg_opt_t spin[5] = { //
+	string magnitude, inclination, azimuth;
+	createList(defaultWave.binary.spin.magnitude[FIRST], defaultWave.binary.spin.magnitude[SECOND], magnitude);
+	createList(degreeFromRadian(defaultWave.binary.spin.inclination[FIRST]),
+	        degreeFromRadian(defaultWave.binary.spin.inclination[SECOND]), inclination);
+	createList(degreeFromRadian(defaultWave.binary.spin.azimuth[FIRST]),
+	        degreeFromRadian(defaultWave.binary.spin.azimuth[SECOND]), azimuth);
+	cfg_opt_t spin[SPIN_SIZE] = { //
 	        CFG_FLOAT_LIST(optionName[MAGNITUDE], magnitude, CFGF_NONE),
 	        CFG_FLOAT_LIST(optionName[INCLINATION], inclination, CFGF_NONE),
 	        CFG_FLOAT_LIST(optionName[AZIMUTH], azimuth, CFGF_NONE),
-	        CFG_STR(optionName[COORDINATE_SYSTEM], "precessing", CFGF_NONE),
+	        CFG_STR(optionName[COORDINATE_SYSTEM], coordinateSystemConstant, CFGF_NONE),
 	        CFG_END()
         };
-	cfg_opt_t binary[5] = { //
+	string mass;
+	createList(defaultWave.binary.mass[FIRST], defaultWave.binary.mass[SECOND], mass);
+	cfg_opt_t binary[BINARY_SIZE] = { //
 	        CFG_FLOAT_LIST(optionName[MASS], mass, CFGF_NONE),
 	        CFG_SEC(optionName[SPIN], spin, CFGF_NONE),
 	        CFG_FLOAT(optionName[INCLINATION], defaultWave.binary.inclination, CFGF_NONE),
 	        CFG_FLOAT(optionName[DISTANCE], defaultWave.binary.distance, CFGF_NONE),
 	        CFG_END()
         };
-	cfg_opt_t method[4] = { //
+	cfg_opt_t method[METHOD_SIZE] = { //
 	        CFG_STR(optionName[SPIN], defaultWave.method.spin, CFGF_NONE),
 	        CFG_INT(optionName[PHASE], defaultWave.method.phase, CFGF_NONE),
 	        CFG_INT(optionName[AMPLITUDE], defaultWave.method.amplitude, CFGF_NONE),
 	        CFG_END()
         };
-	cfg_opt_t wave[5] = { //
+	string diff;
+	createList(defaultWave.diff[FIRST], defaultWave.diff[SECOND], diff);
+	cfg_opt_t wave[WAVE_SIZE] = { //
 	        CFG_SEC(optionName[BINARY], binary, CFGF_NONE),
 	        CFG_SEC(optionName[METHOD], method, CFGF_NONE),
-	        CFG_INT(optionName[NUMBER], 1, CFGF_NONE),
+	        CFG_INT(optionName[NUMBER], numberConstant, CFGF_NONE),
 	        CFG_FLOAT_LIST(optionName[DIFF], diff, CFGF_NONE),
 	        CFG_END()
         };
-	cfg_opt_t pair[2] = {	//
+	cfg_opt_t pair[PAIR_SIZE] = {	//
 	        CFG_SEC(optionName[WAVEX], wave, CFGF_MULTI),
 	        CFG_END()
         };
-	cfg_opt_t step[2] = {	//
+	cfg_opt_t step[STEP_SIZE] = {	//
 	        CFG_SEC(optionName[WAVEX], wave, CFGF_MULTI),
 	        CFG_END()
         };
-	cfg_opt_t options[7] = {	//
+	cfg_opt_t options[OPTION_SIZE] = {	//
 	        CFG_SEC(optionName[UNIT], option.units, CFGF_NONE),
-	        CFG_FLOAT_LIST(optionName[BOUNDARY_FREQUENCY], "{20.0, 2000.0}", CFGF_NONE),
-	        CFG_FLOAT(optionName[SAMPLING_FREQUENCY], 10240, CFGF_NONE),
+	        CFG_FLOAT_LIST(optionName[BOUNDARY_FREQUENCY], boundaryFrequencyConstant, CFGF_NONE),
+	        CFG_FLOAT(optionName[SAMPLING_FREQUENCY], samplingFrequencyConstant, CFGF_NONE),
 	        CFG_SEC(optionName[WAVEX], option.defaultWave, CFGF_TITLE | CFGF_MULTI),
 	        CFG_SEC(optionName[PAIR], pair, CFGF_TITLE | CFGF_MULTI),
 	        CFG_SEC(optionName[STEP], step, CFGF_TITLE | CFGF_MULTI),
@@ -288,7 +307,7 @@ int parseWaves(char *file, Parameter *parameter) {
 	failure = cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
 		parameter->exact = createWavePair(cfg_size(config, optionName[PAIR]));
-		for (size_t current = 0; current < parameter->exact->length; current++) {
+		for (size_t current = FIRST; current < parameter->exact->length; current++) {
 			cfg_t *pair = cfg_getnsec(config, optionName[PAIR], current);
 			sprintf(parameter->exact->name[current], "%s", cfg_title(pair));
 			failure |= parsePair(pair, &parameter->exact->wave[2 * current]);
@@ -302,54 +321,54 @@ static int parseStep(char *file, Parameter *parameter) {
 	int failure = SUCCESS;
 	failure = parse(file, parameter);
 	string magnitude, inclination, azimuth;
-	createList(defaultWave.binary.spin.magnitude[0], defaultWave.binary.spin.magnitude[1], magnitude);
-	createList(degreeFromRadian(defaultWave.binary.spin.inclination[0]),
-	        degreeFromRadian(defaultWave.binary.spin.inclination[1]), inclination);
-	createList(degreeFromRadian(defaultWave.binary.spin.azimuth[0]),
-	        degreeFromRadian(defaultWave.binary.spin.azimuth[1]), azimuth);
-	cfg_opt_t spin[5] = { //
+	createList(defaultWave.binary.spin.magnitude[FIRST], defaultWave.binary.spin.magnitude[SECOND], magnitude);
+	createList(degreeFromRadian(defaultWave.binary.spin.inclination[FIRST]),
+	        degreeFromRadian(defaultWave.binary.spin.inclination[SECOND]), inclination);
+	createList(degreeFromRadian(defaultWave.binary.spin.azimuth[FIRST]),
+	        degreeFromRadian(defaultWave.binary.spin.azimuth[SECOND]), azimuth);
+	cfg_opt_t spin[SPIN_SIZE] = { //
 	        CFG_FLOAT_LIST(optionName[MAGNITUDE], magnitude, CFGF_NONE),
 	        CFG_FLOAT_LIST(optionName[INCLINATION], inclination, CFGF_NONE),
 	        CFG_FLOAT_LIST(optionName[AZIMUTH], azimuth, CFGF_NONE),
-	        CFG_STR(optionName[COORDINATE_SYSTEM], "precessing", CFGF_NONE),
+	        CFG_STR(optionName[COORDINATE_SYSTEM], coordinateSystemConstant, CFGF_NONE),
 	        CFG_END()
         };
 	string mass;
-	createList(defaultWave.binary.mass[0], defaultWave.binary.mass[1], mass);
-	cfg_opt_t binary[5] = { //
+	createList(defaultWave.binary.mass[FIRST], defaultWave.binary.mass[SECOND], mass);
+	cfg_opt_t binary[BINARY_SIZE] = { //
 	        CFG_FLOAT_LIST(optionName[MASS], mass, CFGF_NONE),
 	        CFG_SEC(optionName[SPIN], spin, CFGF_NONE),
 	        CFG_FLOAT(optionName[INCLINATION], defaultWave.binary.inclination, CFGF_NONE),
 	        CFG_FLOAT(optionName[DISTANCE], defaultWave.binary.distance, CFGF_NONE),
 	        CFG_END()
         };
-	cfg_opt_t method[4] = { //
+	cfg_opt_t method[METHOD_SIZE] = { //
 	        CFG_STR(optionName[SPIN], defaultWave.method.spin, CFGF_NONE),
 	        CFG_INT(optionName[PHASE], defaultWave.method.phase, CFGF_NONE),
 	        CFG_INT(optionName[AMPLITUDE], defaultWave.method.amplitude, CFGF_NONE),
 	        CFG_END()
         };
 	string diff;
-	createList(defaultWave.diff[0], defaultWave.diff[1], diff);
-	cfg_opt_t wave[5] = { //
+	createList(defaultWave.diff[FIRST], defaultWave.diff[SECOND], diff);
+	cfg_opt_t wave[WAVE_SIZE] = { //
 	        CFG_SEC(optionName[BINARY], binary, CFGF_NONE),
 	        CFG_SEC(optionName[METHOD], method, CFGF_NONE),
-	        CFG_INT(optionName[NUMBER], 1, CFGF_NONE),
+	        CFG_INT(optionName[NUMBER], numberConstant, CFGF_NONE),
 	        CFG_FLOAT_LIST(optionName[DIFF], diff, CFGF_NONE),
 	        CFG_END()
         };
-	cfg_opt_t pair[2] = {	//
+	cfg_opt_t pair[PAIR_SIZE] = {	//
 	        CFG_SEC(optionName[WAVEX], wave, CFGF_MULTI),
 	        CFG_END()
         };
-	cfg_opt_t step[2] = {	//
+	cfg_opt_t step[STEP_SIZE] = {	//
 	        CFG_SEC(optionName[WAVEX], wave, CFGF_MULTI),
 	        CFG_END()
         };
-	cfg_opt_t options[7] = {	//
+	cfg_opt_t options[OPTION_SIZE] = {	//
 	        CFG_SEC(optionName[UNIT], option.units, CFGF_NONE),
-	        CFG_FLOAT_LIST(optionName[BOUNDARY_FREQUENCY], "{20.0, 2000.0}", CFGF_NONE),
-	        CFG_FLOAT(optionName[SAMPLING_FREQUENCY], 10240, CFGF_NONE),
+	        CFG_FLOAT_LIST(optionName[BOUNDARY_FREQUENCY], boundaryFrequencyConstant, CFGF_NONE),
+	        CFG_FLOAT(optionName[SAMPLING_FREQUENCY], samplingFrequencyConstant, CFGF_NONE),
 	        CFG_SEC(optionName[WAVEX], option.defaultWave, CFGF_TITLE | CFGF_MULTI),
 	        CFG_SEC(optionName[PAIR], pair, CFGF_TITLE | CFGF_MULTI),
 	        CFG_SEC(optionName[STEP], step, CFGF_TITLE | CFGF_MULTI),
@@ -359,7 +378,7 @@ static int parseStep(char *file, Parameter *parameter) {
 	failure = cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
 		parameter->step = createWavePair(cfg_size(config, optionName[WAVEX]) - 1);
-		for (size_t current = 0, index = 0; current < parameter->step->length; current++) {
+		for (size_t current = FIRST, index = FIRST; current < parameter->step->length; current++) {
 			cfg_t *step = cfg_getnsec(config, optionName[WAVEX], current);
 			if (!strstr("default", cfg_title(step))) {
 				sprintf(parameter->step->name[current], "%s", cfg_title(step));
@@ -381,7 +400,7 @@ static int printWaveParameter(FILE *file, Wave *wave) {
 	fprintf(file, "%11.5s % 11.0d % 11.0d\n", wave->method.spin, wave->method.phase, wave->method.amplitude);
 	fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g\n", wave->binary.mass[0], wave->binary.mass[1],
 	        wave->binary.inclination, wave->binary.distance);
-	for (int blackhole = 0; blackhole < BH; blackhole++) {
+	for (int blackhole = FIRST; blackhole < BH; blackhole++) {
 		fprintf(file, "% 11.5g % 11.5g % 11.5g\n", wave->binary.spin.magnitude[blackhole],
 		        degreeFromRadian(wave->binary.spin.inclination[blackhole]),
 		        degreeFromRadian(wave->binary.spin.azimuth[blackhole]));
