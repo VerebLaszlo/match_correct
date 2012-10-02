@@ -120,9 +120,9 @@ clean : cleanobj
 
 cleanall : cleanobj
 	-rm $(objdir)/*.d
-	-rm main test
-	clear
+	-rm main
+#	clear
 
 cleanobj :
 	-rm $(objdir)/*.o
-	clear
+#	clear
