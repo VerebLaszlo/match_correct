@@ -26,18 +26,10 @@ void print(Variable *variable, Wave parameter[2], Analysed *analysed, string nam
 	fclose(file);
 }
 
-/**
- * Main program function.
- * @param[in] argc number of arguments
- * @param[in] argv arguments
- * @return	error code
- */
-int main(int argc, char *argv[]) {
-	char *input = argc > 1 ? argv[1] : "test.conf";
+static int generateWaveforms(char *input) {
 	Parameter parameter;
 	memset(&parameter, 0, sizeof(Parameter));
 	int failure = SUCCESS;
-	initParser();
 	failure &= parseWaves(input, &parameter);
 	size_t minIndex, maxIndex;
 	if (!failure) {
@@ -62,6 +54,19 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	cleanParameter(&parameter);
+	return (failure);
+}
+
+/**
+ * Main program function.
+ * @param[in] argc number of arguments
+ * @param[in] argv arguments
+ * @return	error code
+ */
+int main(int argc, char *argv[]) {
+	char *input = argc > 1 ? argv[1] : "test.conf";
+	initParser();
+	int failure = generateWaveforms(input);
 	if (!failure) {
 		puts("OK!");
 	} else {
