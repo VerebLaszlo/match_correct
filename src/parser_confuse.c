@@ -126,18 +126,18 @@ static int parseWave(cfg_t *config, Wave *parameters) {
 	return (failure);
 }
 
-static Exact *createExact(size_t length) {
-	Exact *exact = calloc(1, sizeof(Exact));
-	exact->length = length;
-	exact->wave = calloc(2 * exact->length, sizeof(Wave));
-	exact->name = calloc(exact->length, sizeof(string));
-	return (exact);
+static WavePair *createWavePair(size_t length) {
+	WavePair *pair = calloc(1, sizeof(WavePair));
+	pair->length = length;
+	pair->wave = calloc(2 * pair->length, sizeof(Wave));
+	pair->name = calloc(pair->length, sizeof(string));
+	return (pair);
 }
 
-static void destroyExact(Exact **exact) {
-	free((*exact)->wave);
-	free((*exact)->name);
-	free(*exact);
+static void destroyWavePair(WavePair **pair) {
+	free((*pair)->wave);
+	free((*pair)->name);
+	free(*pair);
 }
 
 void initParser(void) {
@@ -287,7 +287,7 @@ int parseWaves(char *file, Parameter *parameter) {
 	cfg_t *config = cfg_init(options, CFGF_NONE);
 	failure = cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
-		parameter->exact = createExact(cfg_size(config, optionName[PAIR]));
+		parameter->exact = createWavePair(cfg_size(config, optionName[PAIR]));
 		for (size_t current = 0; current < parameter->exact->length; current++) {
 			cfg_t *pair = cfg_getnsec(config, optionName[PAIR], current);
 			sprintf(parameter->exact->name[current], "%s", cfg_title(pair));
@@ -358,7 +358,7 @@ static int parseStep(char *file, Parameter *parameter) {
 	cfg_t *config = cfg_init(options, CFGF_NONE);
 	failure = cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
-		parameter->step = createExact(cfg_size(config, optionName[WAVEX]) - 1);
+		parameter->step = createWavePair(cfg_size(config, optionName[WAVEX]) - 1);
 		for (size_t current = 0, index = 0; current < parameter->step->length; current++) {
 			cfg_t *step = cfg_getnsec(config, optionName[WAVEX], current);
 			if (!strstr("default", cfg_title(step))) {
@@ -373,7 +373,7 @@ static int parseStep(char *file, Parameter *parameter) {
 }
 
 void cleanParameter(Parameter *parameter) {
-	destroyExact(&parameter->exact);
+	destroyWavePair(&parameter->exact);
 }
 
 static int printWaveParameter(FILE *file, Wave *wave) {
