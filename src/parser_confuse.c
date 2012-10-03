@@ -27,8 +27,6 @@ enum {
 	PHASE,
 	AMPLITUDE,
 	METHOD,
-	DIFF,
-	NUMBER,
 	WAVEX,
 	PAIR,
 	STEP,
@@ -52,8 +50,6 @@ char optionName[OPTIONS][STRING_LENGTH] = {
     "phase",
     "amplitude",
     "method",
-    "diff",
-    "number",
     "wave",
     "pair",
     "step" };
@@ -64,7 +60,7 @@ enum {
 	NUMBER_POSITION = 3,
 	BINARY_SIZE = 5,
 	METHOD_SIZE = 4,
-	WAVE_SIZE = 5,
+	WAVE_SIZE = 3,
 	PAIR_SIZE = 2,
 	STEP_SIZE = 2,
 	OPTION_SIZE = 7,
@@ -127,10 +123,6 @@ static int parseBinary(cfg_t *config, Binary *binary) {
 
 static int parseWave(cfg_t *config, Wave *parameters) {
 	int failure = SUCCESS;
-	parameters->number = cfg_getint(config, optionName[NUMBER]);
-	for (int correct = FIRST; correct < THIRD; correct++) {
-		parameters->diff[correct] = cfg_getnfloat(config, optionName[DIFF], correct);
-	}
 	cfg_t *binary = cfg_getsec(config, optionName[BINARY]);
 	failure &= parseBinary(binary, &parameters->binary);
 	cfg_t *generation = cfg_getsec(config, optionName[METHOD]);
@@ -155,7 +147,6 @@ static void destroyWavePair(WavePair **pair) {
 void initParser(void) {
 	memset(&defaultWave, 0, sizeof(Wave));
 	sprintf(defaultWave.name, "wave");
-	defaultWave.number = 1;
 	sprintf(defaultWave.method.spin, "ALL");
 	defaultWave.method.phase = 4;
 	defaultWave.method.amplitude = 2;
@@ -208,8 +199,6 @@ Option option = {	//
     }, {
         CFG_SEC(optionName[BINARY], option.binary, CFGF_NONE),
         CFG_SEC(optionName[METHOD], option.method, CFGF_NONE),
-        CFG_FLOAT_LIST(optionName[DIFF], "{0.1, 0.1}", CFGF_NONE),
-        CFG_INT(optionName[NUMBER], numberConstant, CFGF_NONE),
         CFG_END()
     }, {
         CFG_SEC(optionName[WAVEX], option.defaultWave, CFGF_MULTI),
@@ -276,13 +265,9 @@ static int initOptions(char *file, Parameter *parameter, cfg_t **config) {
 	        CFG_INT(optionName[AMPLITUDE], defaultWave.method.amplitude, CFGF_NONE),
 	        CFG_END()
         };
-	string diff;
-	createList(defaultWave.diff[FIRST], defaultWave.diff[SECOND], diff);
 	cfg_opt_t wave[WAVE_SIZE] = { //
 	        CFG_SEC(optionName[BINARY], binary, CFGF_NONE),
 	        CFG_SEC(optionName[METHOD], method, CFGF_NONE),
-	        CFG_INT(optionName[NUMBER], numberConstant, CFGF_NONE),
-	        CFG_FLOAT_LIST(optionName[DIFF], diff, CFGF_NONE),
 	        CFG_END()
         };
 	cfg_opt_t pair[PAIR_SIZE] = {	//
@@ -348,7 +333,7 @@ void cleanParameter(Parameter *parameter) {
 }
 
 static int printWaveParameter(FILE *file, Wave *wave) {
-	fprintf(file, "%11.5s %11.0u\n", wave->name, wave->number);
+	fprintf(file, "%11.5s\n", wave->name);
 	fprintf(file, "%11.5s % 11.0d % 11.0d\n", wave->method.spin, wave->method.phase, wave->method.amplitude);
 	fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g\n", wave->binary.mass[0], wave->binary.mass[1],
 	        wave->binary.inclination, wave->binary.distance);

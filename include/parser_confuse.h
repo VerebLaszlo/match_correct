@@ -50,9 +50,7 @@ typedef struct {
 typedef struct {
 	Binary binary;	///< parameters of the binary emitting the waveform.
 	Method method;	///< waveform generating method.
-	size_t number;	///< number of the runs.
 	string name;	///< name of the generated waveform.
-	double diff[2];
 } Wave;
 
 typedef struct {
