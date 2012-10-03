@@ -43,9 +43,11 @@ static int generateWaveforms(char *input) {
 			        parameter.samplingFrequency / variable->size, &minIndex, &maxIndex);
 			Analysed analysed;
 			calcMatches(minIndex, maxIndex, &analysed);
-			countPeriods(&analysed);
-			printf("w:%g t:%g b:%g\n%d %d %g%%\n", analysed.match[WORST], analysed.match[TYPICAL], analysed.match[BEST],
-			        analysed.period[0], analysed.period[1], analysed.relativePeriod * 100.0);
+			countPeriods(parameter.samplingTime, &analysed);
+			printf("w:%g t:%g b:%g\n%d %d %g%%\n%g %g %g%%\n", analysed.match[WORST], analysed.match[TYPICAL],
+			        analysed.match[BEST], analysed.period[FIRST_WAVE], analysed.period[SECOND_WAVE],
+			        analysed.relativePeriod * 100.0, analysed.length[FIRST_WAVE], analysed.length[SECOND_WAVE],
+			        analysed.relativeLength * 100.0);
 			print(variable, &parameter.exact->wave[2 * index], &analysed, parameter.exact->name[index],
 			        parameter.samplingTime);
 			cleanMatch();

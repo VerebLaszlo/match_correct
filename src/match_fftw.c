@@ -251,7 +251,7 @@ void calcMatches(size_t minIndex, size_t maxIndex, Analysed *analysed) {
 	matches(data.correlated, data.size, &analysed->match[TYPICAL], &analysed->match[BEST], &analysed->match[WORST]);
 }
 
-void countPeriods(Analysed *analysed) {
+void countPeriods(double samplingTime, Analysed *analysed) {
 	for (ushort wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		analysed->period[wave] = 0;
 		for (size_t index = 1; index < data.length[wave]; index++) {
@@ -265,7 +265,10 @@ void countPeriods(Analysed *analysed) {
 		}
 		analysed->period[wave]--;
 		analysed->period[wave] /= 2;
+		analysed->length[wave] = data.length[wave] * samplingTime;
 	}
 	analysed->relativePeriod = fabs((double) analysed->period[FIRST_WAVE] - (double) analysed->period[SECOND_WAVE])
 	        / (double) analysed->period[FIRST_WAVE];
+	analysed->relativeLength = fabs(analysed->length[FIRST_WAVE] - analysed->length[SECOND_WAVE])
+	        / analysed->length[FIRST_WAVE];
 }

@@ -28,8 +28,10 @@ enum {
 
 typedef struct {
 	double match[MATCH];
-	size_t period[2];
+	size_t period[NUMBER_OF_WAVE];
 	double relativePeriod;
+	double length[NUMBER_OF_WAVE];
+	double relativeLength;
 } Analysed;
 
 void indexFromFrequency(double min, double max, double step, size_t *minIndex, size_t *maxIndex);
@@ -42,6 +44,6 @@ void cleanMatch(void);
 
 void calcMatches(size_t minIndex, size_t maxIndex, Analysed *analysed);
 
-void countPeriods(Analysed *analysed);
+void countPeriods(double samplingTime, Analysed *analysed);
 
 #endif /* MATCH_FFTW_H_ */

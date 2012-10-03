@@ -264,6 +264,8 @@ static void printHeader(FILE *file, Wave parameter[2], Analysed *analysed) {
 	        analysed->match[WORST]);
 	fprintf(file, "#  period[ 1., 2.,rel] %11d %11d %11.5g\n", analysed->period[FIRST_WAVE],
 	        analysed->period[SECOND_WAVE], analysed->relativePeriod);
+	fprintf(file, "#  length[ 1., 2.,rel] %11.5g %11.5g %11.5g\n", analysed->length[FIRST_WAVE],
+	        analysed->length[SECOND_WAVE], analysed->relativeLength);
 }
 
 void printSpins(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime) {
