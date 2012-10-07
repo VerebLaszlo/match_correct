@@ -28,6 +28,7 @@ enum {
 	AMPLITUDE,
 	METHOD,
 	WAVEX,
+	DIFF,
 	PAIR,
 	STEP,
 	OPTIONS,
@@ -51,6 +52,7 @@ char optionName[OPTIONS][STRING_LENGTH] = {
     "amplitude",
     "method",
     "wave",
+    "diff",
     "pair",
     "step" };
 
@@ -62,7 +64,7 @@ enum {
 	METHOD_SIZE = 4,
 	WAVE_SIZE = 3,
 	PAIR_SIZE = 2,
-	STEP_SIZE = 2,
+	STEP_SIZE = 3,
 	OPTION_SIZE = 7,
 };
 
@@ -173,6 +175,7 @@ static int parsePair(cfg_t *config, Wave wave[]) {
 #define boundaryFrequencyConstant "{20.0, 2000.0}"
 #define coordinateSystemConstant "precessing"
 #define numberConstant 1
+#define differenceConstant "{0.1, 0.1}"
 
 Option option = {	//
         { CFG_STR(optionName[ANGLE], "deg", CFGF_NONE),
@@ -205,6 +208,7 @@ Option option = {	//
         CFG_END()
     }, {
         CFG_SEC(optionName[WAVEX], option.defaultWave, CFGF_MULTI),
+        CFG_FLOAT_LIST(optionName[DIFF], differenceConstant, CFGF_NONE),
         CFG_END()
     }, {
         CFG_SEC(optionName[UNIT], option.units, CFGF_NONE),
@@ -276,6 +280,7 @@ static int initOptions(char *file, Parameter *parameter, cfg_t **config) {
         };
 	cfg_opt_t step[STEP_SIZE] = {	//
 	        CFG_SEC(optionName[WAVEX], wave, CFGF_MULTI),
+	        CFG_FLOAT_LIST(optionName[DIFF], differenceConstant, CFGF_NONE),
 	        CFG_END()
         };
 	cfg_opt_t options[OPTION_SIZE] = {	//
@@ -293,7 +298,7 @@ static int initOptions(char *file, Parameter *parameter, cfg_t **config) {
 
 int parseWaves(char *file, Parameter *parameter) {
 	int failure = SUCCESS;
-	cfg_t *config = calloc(1, sizeof(cfg_t));
+	cfg_t *config;
 	failure = initOptions(file, parameter, &config);
 	failure &= cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
