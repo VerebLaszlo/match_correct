@@ -59,6 +59,19 @@ static int generateWaveforms(char *input) {
 	return (failure);
 }
 
+static int generateStatistic(char *input) {
+	Parameter parameter;
+	memset(&parameter, 0, sizeof(Parameter));
+	int failure = SUCCESS;
+	failure &= parseStep(input, &parameter);
+	if (!failure) {
+		printParameter(stdout, &parameter, 0, 0);
+	}
+	cleanParameter(&parameter);
+	return (failure);
+
+}
+
 /**
  * Main program function.
  * @param[in] argc number of arguments
@@ -69,6 +82,7 @@ int main(int argc, char *argv[]) {
 	char *input = argc > 1 ? argv[1] : "test.conf";
 	initParser();
 	int failure = generateWaveforms(input);
+	failure |= generateStatistic(input);
 	if (!failure) {
 		puts("OK!");
 	} else {

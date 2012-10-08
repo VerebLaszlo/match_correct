@@ -66,6 +66,7 @@ typedef struct {
 	double samplingFrequency;	///< sampling frequency.
 	double samplingTime;	///< sampling time.
 	WavePair *exact;
+	Wave boundary[MINMAX];
 	WavePair *step;
 } Parameter;
 
@@ -75,6 +76,8 @@ typedef struct {
 void initParser(void);
 
 int parseWaves(char *file, Parameter *parameter);
+
+int parseStep(char *file, Parameter *parameter);
 
 void cleanParameter(Parameter *parameter);
 
