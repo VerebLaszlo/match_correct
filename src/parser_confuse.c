@@ -141,9 +141,15 @@ static WavePair *createWavePair(size_t length) {
 }
 
 static void destroyWavePair(WavePair **pair) {
-	free((*pair)->wave);
-	free((*pair)->name);
-	free(*pair);
+	if (*pair) {
+		if ((*pair)->wave) {
+			free((*pair)->wave);
+		}
+		if ((*pair)->name) {
+			free((*pair)->name);
+		}
+		free(*pair);
+	}
 }
 
 void initParser(void) {
