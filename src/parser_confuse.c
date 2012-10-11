@@ -298,7 +298,9 @@ static int initOptions(char *file, Parameter *parameter, cfg_t **config) {
 	return (failure);
 }
 
-void initParser(void) {
+cfg_t *config;
+
+int initParser(char *file, Parameter *parameter) {
 	memset(&defaultWave, 0, sizeof(Wave));
 	sprintf(defaultWave.name, "wave");
 	sprintf(defaultWave.method.spin, "ALL");
@@ -307,12 +309,12 @@ void initParser(void) {
 	defaultWave.binary.distance = 1.0;
 	defaultWave.binary.mass[FIRST] = 3.0;
 	defaultWave.binary.mass[SECOND] = 3.0;
+	int failure = initOptions(file, parameter, &config);
+	return (failure);
 }
 
 int parseWaves(char *file, Parameter *parameter) {
 	int failure = SUCCESS;
-	cfg_t *config;
-	failure = initOptions(file, parameter, &config);
 	failure &= cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
 		parameter->exact = createWavePair(cfg_size(config, optionName[PAIR]));
@@ -322,14 +324,11 @@ int parseWaves(char *file, Parameter *parameter) {
 			failure |= parsePair(pair, &parameter->exact->wave[2 * current]);
 		}
 	}
-	cfg_free(config);
 	return (failure);
 }
 
 int parseStep(char *file, Parameter *parameter) {
 	int failure = SUCCESS;
-	cfg_t *config = calloc(1, sizeof(cfg_t));
-	failure = initOptions(file, parameter, &config);
 	failure &= cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
 		parameter->step = createWavePair(cfg_size(config, optionName[WAVEX]) - 1);
@@ -342,12 +341,13 @@ int parseStep(char *file, Parameter *parameter) {
 			}
 		}
 	}
-	cfg_free(config);
 	return (failure);
 }
 
 void cleanParameter(Parameter *parameter) {
 	destroyWavePair(&parameter->exact);
+	destroyWavePair(&parameter->step);
+	cfg_free(config);
 }
 
 static int printWaveParameter(FILE *file, Wave *wave) {
