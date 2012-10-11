@@ -152,17 +152,6 @@ static void destroyWavePair(WavePair **pair) {
 	}
 }
 
-void initParser(void) {
-	memset(&defaultWave, 0, sizeof(Wave));
-	sprintf(defaultWave.name, "wave");
-	sprintf(defaultWave.method.spin, "ALL");
-	defaultWave.method.phase = 4;
-	defaultWave.method.amplitude = 2;
-	defaultWave.binary.distance = 1.0;
-	defaultWave.binary.mass[FIRST] = 3.0;
-	defaultWave.binary.mass[SECOND] = 3.0;
-}
-
 static int createList(double first, double second, char *text) {
 	sprintf(text, "{%g, %g}", first, second);
 	return (SUCCESS);
@@ -307,6 +296,17 @@ static int initOptions(char *file, Parameter *parameter, cfg_t **config) {
         };
 	*config = cfg_init(options, CFGF_NONE);
 	return (failure);
+}
+
+void initParser(void) {
+	memset(&defaultWave, 0, sizeof(Wave));
+	sprintf(defaultWave.name, "wave");
+	sprintf(defaultWave.method.spin, "ALL");
+	defaultWave.method.phase = 4;
+	defaultWave.method.amplitude = 2;
+	defaultWave.binary.distance = 1.0;
+	defaultWave.binary.mass[FIRST] = 3.0;
+	defaultWave.binary.mass[SECOND] = 3.0;
 }
 
 int parseWaves(char *file, Parameter *parameter) {
