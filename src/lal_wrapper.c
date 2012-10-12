@@ -162,5 +162,5 @@ int generateWaveformPair(SystemParameter *parameters, SignalStruct *signal, bool
 		XLALDestroyREAL8TimeSeries(h[system][HC]);
 	}
 	LALCheckMemoryLeaks();
-	return FOUND;
+	return (FOUND);
 }

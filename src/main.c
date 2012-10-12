@@ -9,7 +9,7 @@
 #include "generator_lal.h"
 #include "util_IO.h"
 
-void print(Variable *variable, Wave parameter[2], Analysed *analysed, string name, double samplingTime) {
+void print(Variable *variable, Wave parameter[2], Analysed *analysed, char *name, double samplingTime) {
 	string path;
 	FILE *file;
 	sprintf(path, "out/%s_spin.txt", name);
