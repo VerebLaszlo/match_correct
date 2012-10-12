@@ -331,12 +331,12 @@ int parseStep(char *file, Parameter *parameter) {
 	int failure = SUCCESS;
 	failure &= cfg_parse(config, file) == CFG_PARSE_ERROR;
 	if (!failure) {
-		parameter->step = createWavePair(cfg_size(config, optionName[WAVEX]) - 1);
-		for (size_t current = FIRST, index = FIRST; current < parameter->step->length; current++) {
-			cfg_t *step = cfg_getnsec(config, optionName[WAVEX], current);
+		parameter->step = createWavePair(cfg_size(config, optionName[STEP]) - 1);
+		for (size_t current = FIRST, index = FIRST; current < parameter->step->length + 1; current++) {
+			cfg_t *step = cfg_getnsec(config, optionName[STEP], current);
 			if (!strstr("default", cfg_title(step))) {
-				sprintf(parameter->step->name[current], "%s", cfg_title(step));
-				failure |= parseWave(step, &parameter->step->wave[2 * index]);
+				sprintf(parameter->step->name[index], "%s", cfg_title(step));
+				failure |= parsePair(step, &parameter->step->wave[2 * index]);
 				index++;
 			}
 		}
@@ -352,7 +352,7 @@ void cleanParameter(Parameter *parameter) {
 
 static int printWaveParameter(FILE *file, Wave *wave) {
 	fprintf(file, "%11.5s\n", wave->name);
-	fprintf(file, "%11.5s % 11.0d % 11.0d\n", wave->method.spin, wave->method.phase, wave->method.amplitude);
+	fprintf(file, "%11s % 11.0d % 11.0d\n", wave->method.spin, wave->method.phase, wave->method.amplitude);
 	fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g\n", wave->binary.mass[0], wave->binary.mass[1],
 	        degreeFromRadian(wave->binary.inclination), wave->binary.distance);
 	for (int blackhole = FIRST; blackhole < BH; blackhole++) {
@@ -375,6 +375,9 @@ int printParameter(FILE *file, Parameter *parameter, int from, int to) {
 	puts("Step:");
 	for (int boundary = MIN; boundary < MINMAX; boundary++) {
 		failure |= printWaveParameter(file, &parameter->boundary[boundary]);
+	}
+	for (int current = from; current < to; current++) {
+		failure |= printWaveParameter(file, &parameter->step->wave[current]);
 	}
 	return (failure);
 }

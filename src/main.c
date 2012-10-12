@@ -60,7 +60,7 @@ static int generateStatistic(char *input, Parameter *parameter) {
 	int failure = SUCCESS;
 	failure &= parseStep(input, parameter);
 	if (!failure) {
-		printParameter(stdout, parameter, 0, 0);
+		printParameter(stdout, parameter, 0, 2);
 	}
 	return (failure);
 
