@@ -68,6 +68,7 @@ typedef struct {
 	WavePair *exact;
 	Wave boundary[MINMAX];
 	WavePair *step;
+	double diff[BH];
 } Parameter;
 
 /**

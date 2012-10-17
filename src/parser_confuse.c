@@ -233,6 +233,9 @@ static int parse(char *file, Parameter *parameters) {
 			cfg_t *step = cfg_getsec(config, optionName[STEP]);
 			if (strstr("default", cfg_title(step))) {
 				failure &= parsePair(step, parameters->boundary);
+				for (int current = FIRST; current < BH; current++) {
+					parameters->diff[current] = cfg_getnfloat(step, optionName[DIFF], current);
+				}
 				break;
 			}
 		}
