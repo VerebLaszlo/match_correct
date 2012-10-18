@@ -99,6 +99,7 @@ static int generateStatistic(char *input, Parameter *parameter) {
 		bounds[boundary][AZIMUTH][FIRST] = parameter->boundary[boundary].binary.spin.azimuth[FIRST];
 		bounds[boundary][AZIMUTH][SECOND] = parameter->boundary[boundary].binary.spin.azimuth[SECOND];
 	}
+	size_t minIndex, maxIndex;
 	Wave pair[NUMBER_OF_WAVE];
 	Variable *generated;
 	for (size_t current = FIRST; current < parameter->step->length; current++) {
@@ -115,7 +116,17 @@ static int generateStatistic(char *input, Parameter *parameter) {
 				while (value[SECOND] < bounds[MAX][variable][SECOND] + diff[SECOND]) {
 					generated = generateWaveformPair(&parameter->step->wave[2 * current], parameter->initialFrequency,
 					        parameter->samplingTime);
-					// match
+					initMatch(generated->wave);
+					generatePSD(parameter->initialFrequency, parameter->samplingFrequency);
+					indexFromFrequency(parameter->initialFrequency, parameter->endingFrequency,
+					        parameter->samplingFrequency / generated->size, &minIndex, &maxIndex);
+					Analysed analysed;
+					calcMatches(minIndex, maxIndex, &analysed);
+					countPeriods(parameter->samplingTime, &analysed);
+					printf("%11.5g %11.5g %11.5g %11.5g %11.5g %11.5g %11.5g\n", value[FIRST], value[SECOND],
+					        analysed.match[WORST], analysed.match[TYPICAL], analysed.match[BEST],
+					        analysed.relativePeriod, analysed.relativeLength);
+					cleanMatch();
 					destroyWaveform(&generated->wave);
 					destroyOutput(&generated);
 					value[SECOND] += diff[SECOND];
