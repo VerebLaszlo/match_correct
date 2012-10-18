@@ -31,7 +31,7 @@ static int generateWaveforms(char *input, Parameter *parameter) {
 	failure &= parseWaves(input, parameter);
 	size_t minIndex, maxIndex;
 	if (!failure) {
-		Variable *variable;
+		Variable * variable;
 		for (size_t index = 0; index < parameter->exact->length; index++) {
 			variable = generateWaveformPair(&parameter->exact->wave[2 * index], parameter->initialFrequency,
 			        parameter->samplingTime);
@@ -56,11 +56,70 @@ static int generateWaveforms(char *input, Parameter *parameter) {
 	return (failure);
 }
 
+typedef enum {
+	MASS, MAGNITUDE, INCLINATION, AZIMUTH, NUMBER_OF_VARIABLE,
+} Value;
+
+static void set(Value variable, Wave *pair, double *value) {
+	for (int current = FIRST; current < THIRD; current++) {
+		switch (variable) {
+		case MASS:
+			pair[FIRST].binary.mass[current] = value[current];
+			pair[SECOND].binary.mass[current] = value[current];
+			break;
+		case MAGNITUDE:
+			pair[FIRST].binary.spin.magnitude[current] = value[current];
+			pair[SECOND].binary.spin.magnitude[current] = value[current];
+			break;
+		case INCLINATION:
+			pair[FIRST].binary.spin.inclination[current] = value[current];
+			pair[SECOND].binary.spin.inclination[current] = value[current];
+			break;
+		case AZIMUTH:
+			pair[FIRST].binary.spin.azimuth[current] = value[current];
+			pair[SECOND].binary.spin.azimuth[current] = value[current];
+			break;
+		default:
+			break;
+		}
+	}
+}
+
 static int generateStatistic(char *input, Parameter *parameter) {
 	int failure = SUCCESS;
 	failure &= parseStep(input, parameter);
-	if (!failure) {
-		printParameter(stdout, parameter, 0, 2);
+	double bounds[MINMAX][NUMBER_OF_VARIABLE][BH];
+	for (int boundary = MIN; boundary < MINMAX; boundary++) {
+		bounds[boundary][MASS][FIRST] = parameter->boundary[boundary].binary.mass[FIRST];
+		bounds[boundary][MASS][SECOND] = parameter->boundary[boundary].binary.mass[SECOND];
+		bounds[boundary][MAGNITUDE][FIRST] = parameter->boundary[boundary].binary.spin.magnitude[FIRST];
+		bounds[boundary][MAGNITUDE][SECOND] = parameter->boundary[boundary].binary.spin.magnitude[SECOND];
+		bounds[boundary][INCLINATION][FIRST] = parameter->boundary[boundary].binary.spin.inclination[FIRST];
+		bounds[boundary][INCLINATION][SECOND] = parameter->boundary[boundary].binary.spin.inclination[SECOND];
+		bounds[boundary][AZIMUTH][FIRST] = parameter->boundary[boundary].binary.spin.azimuth[FIRST];
+		bounds[boundary][AZIMUTH][SECOND] = parameter->boundary[boundary].binary.spin.azimuth[SECOND];
+	}
+	Wave pair[NUMBER_OF_WAVE];
+	Variable *generated;
+	for (size_t current = FIRST; current < parameter->step->length; current++) {
+		memcpy(pair, &parameter->step->wave[2 * current], 2 * sizeof(Wave));
+		for (int variable = MASS; variable < NUMBER_OF_VARIABLE; variable++) {
+			double value[THIRD] = { bounds[MIN][variable][FIRST], bounds[MIN][variable][SECOND] };
+			set(variable, pair, value);
+			while (value[FIRST] < bounds[MAX][variable][FIRST] + parameter->diff[FIRST]) {
+				value[SECOND] = bounds[MIN][variable][SECOND];
+				set(variable, pair, value);
+				while (value[SECOND] < bounds[MAX][variable][SECOND] + parameter->diff[SECOND]) {
+					generated = generateWaveformPair(&parameter->step->wave[2 * current], parameter->initialFrequency,
+					        parameter->samplingTime);
+					// match
+					destroyWaveform(&generated->wave);
+					destroyOutput(&generated);
+					value[SECOND] += parameter->diff[SECOND];
+				}
+				value[FIRST] += parameter->diff[FIRST];
+			}
+		}
 	}
 	return (failure);
 
