@@ -105,19 +105,22 @@ static int generateStatistic(char *input, Parameter *parameter) {
 		memcpy(pair, &parameter->step->wave[2 * current], 2 * sizeof(Wave));
 		for (int variable = MASS; variable < NUMBER_OF_VARIABLE; variable++) {
 			double value[THIRD] = { bounds[MIN][variable][FIRST], bounds[MIN][variable][SECOND] };
+			double diff[THIRD] = { (bounds[MAX][variable][FIRST] - bounds[MIN][variable][FIRST])
+			        / (parameter->numberOfStep[FIRST] - 1), (bounds[MAX][variable][SECOND]
+			        - bounds[MIN][variable][SECOND]) / (parameter->numberOfStep[SECOND] - 1) };
 			set(variable, pair, value);
-			while (value[FIRST] < bounds[MAX][variable][FIRST] + parameter->diff[FIRST]) {
+			while (value[FIRST] < bounds[MAX][variable][FIRST] + diff[FIRST]) {
 				value[SECOND] = bounds[MIN][variable][SECOND];
 				set(variable, pair, value);
-				while (value[SECOND] < bounds[MAX][variable][SECOND] + parameter->diff[SECOND]) {
+				while (value[SECOND] < bounds[MAX][variable][SECOND] + diff[SECOND]) {
 					generated = generateWaveformPair(&parameter->step->wave[2 * current], parameter->initialFrequency,
 					        parameter->samplingTime);
 					// match
 					destroyWaveform(&generated->wave);
 					destroyOutput(&generated);
-					value[SECOND] += parameter->diff[SECOND];
+					value[SECOND] += diff[SECOND];
 				}
-				value[FIRST] += parameter->diff[FIRST];
+				value[FIRST] += diff[FIRST];
 			}
 		}
 	}

@@ -170,7 +170,7 @@ static int parsePair(cfg_t *config, Wave wave[]) {
 #define boundaryFrequencyConstant "{20.0, 2000.0}"
 #define coordinateSystemConstant "precessing"
 #define numberConstant 1
-#define differenceConstant "{0.1, 0.1}"
+#define differenceConstant "{2, 2}"
 
 Option option = {	//
         { CFG_STR(optionName[ANGLE], "deg", CFGF_NONE),
@@ -203,7 +203,7 @@ Option option = {	//
         CFG_END()
     }, {
         CFG_SEC(optionName[WAVEX], option.defaultWave, CFGF_MULTI),
-        CFG_FLOAT_LIST(optionName[DIFF], differenceConstant, CFGF_NONE),
+        CFG_INT_LIST(optionName[DIFF], differenceConstant, CFGF_NONE),
         CFG_END()
     }, {
         CFG_SEC(optionName[UNIT], option.units, CFGF_NONE),
@@ -234,7 +234,10 @@ static int parse(char *file, Parameter *parameters) {
 			if (strstr("default", cfg_title(step))) {
 				failure &= parsePair(step, parameters->boundary);
 				for (int current = FIRST; current < BH; current++) {
-					parameters->diff[current] = cfg_getnfloat(step, optionName[DIFF], current);
+					parameters->numberOfStep[current] = cfg_getnint(step, optionName[DIFF], current);
+					if (parameters->numberOfStep[current] < 2) {
+						parameters->numberOfStep[current] = 2;
+					}
 				}
 				break;
 			}
@@ -285,7 +288,7 @@ static int initOptions(char *file, Parameter *parameter, cfg_t **config) {
         };
 	cfg_opt_t step[STEP_SIZE] = {	//
 	        CFG_SEC(optionName[WAVEX], wave, CFGF_MULTI),
-	        CFG_FLOAT_LIST(optionName[DIFF], differenceConstant, CFGF_NONE),
+	        CFG_INT_LIST(optionName[DIFF], differenceConstant, CFGF_NONE),
 	        CFG_END()
         };
 	cfg_opt_t options[OPTION_SIZE] = {	//
