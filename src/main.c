@@ -114,7 +114,8 @@ static int generateStatistic(char *input, Parameter *parameter) {
 				value[SECOND] = bounds[MIN][variable][SECOND];
 				set(variable, pair, value);
 				while (value[SECOND] < bounds[MAX][variable][SECOND] + diff[SECOND]) {
-					generated = generateWaveformPair(&parameter->step->wave[2 * current], parameter->initialFrequency,
+					set(variable, pair, value);
+					generated = generateWaveformPair(pair, parameter->initialFrequency,
 					        parameter->samplingTime);
 					initMatch(generated->wave);
 					generatePSD(parameter->initialFrequency, parameter->samplingFrequency);
