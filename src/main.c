@@ -6,6 +6,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/dir.h>
+#include <sys/stat.h>
 #include "generator_lal.h"
 #include "util_IO.h"
 
@@ -26,7 +28,7 @@ void print(Variable *variable, Wave parameter[2], Analysed *analysed, char *name
 	fclose(file);
 }
 
-static int generateWaveforms(char *input, Parameter *parameter) {
+static int generateWaveforms(char *input, Parameter *parameter, string outputDir) {
 	int failure = SUCCESS;
 	failure &= parseWaves(input, parameter);
 	size_t minIndex, maxIndex;
@@ -60,6 +62,8 @@ typedef enum {
 	MASS, MAGNITUDE, INCLINATION, AZIMUTH, NUMBER_OF_VARIABLE,
 } Value;
 
+string fileName;
+
 static void set(Value variable, Wave *pair, double *value) {
 	for (int current = FIRST; current < THIRD; current++) {
 		switch (variable) {
@@ -83,9 +87,25 @@ static void set(Value variable, Wave *pair, double *value) {
 			break;
 		}
 	}
+	switch (variable) {
+	case MASS:
+		strcpy(fileName, "mass");
+		break;
+	case MAGNITUDE:
+		strcpy(fileName, "magn");
+		break;
+	case INCLINATION:
+		strcpy(fileName, "incl");
+		break;
+	case AZIMUTH:
+		strcpy(fileName, "azim");
+		break;
+	default:
+		break;
+	}
 }
 
-static int generateStatistic(char *input, Parameter *parameter) {
+static int generateStatistic(char *input, Parameter *parameter, string outputDir) {
 	int failure = SUCCESS;
 	failure &= parseStep(input, parameter);
 	double bounds[MINMAX][NUMBER_OF_VARIABLE][BH];
@@ -102,6 +122,7 @@ static int generateStatistic(char *input, Parameter *parameter) {
 	size_t minIndex, maxIndex;
 	Wave pair[NUMBER_OF_WAVE];
 	Variable *generated;
+	FILE *file;
 	for (size_t current = FIRST; current < parameter->step->length; current++) {
 		memcpy(pair, &parameter->step->wave[2 * current], 2 * sizeof(Wave));
 		for (int variable = MASS; variable < NUMBER_OF_VARIABLE; variable++) {
@@ -110,13 +131,23 @@ static int generateStatistic(char *input, Parameter *parameter) {
 			        / (parameter->numberOfStep[FIRST] - 1), (bounds[MAX][variable][SECOND]
 			        - bounds[MIN][variable][SECOND]) / (parameter->numberOfStep[SECOND] - 1) };
 			set(variable, pair, value);
+			string path;
+			sprintf(path, "%s/%s.data", outputDir, fileName);
+			printf("%s\n", path);
+			file = safelyOpenForWriting(path);
+			if (variable == MASS) {
+				fprintf(file, "#%10s %11s  ", "totalMass", "eta");
+			} else {
+				fprintf(file, "#");
+			}
+			fprintf(file, "%9s1 %10s2 %11s %11s %11s %11s %11s\n", fileName, fileName, "worst", "typical",
+			        "best", "relPeriod", "relLength");
 			while (value[FIRST] < bounds[MAX][variable][FIRST] + diff[FIRST]) {
 				value[SECOND] = bounds[MIN][variable][SECOND];
 				set(variable, pair, value);
 				while (value[SECOND] < bounds[MAX][variable][SECOND] + diff[SECOND]) {
 					set(variable, pair, value);
-					generated = generateWaveformPair(pair, parameter->initialFrequency,
-					        parameter->samplingTime);
+					generated = generateWaveformPair(pair, parameter->initialFrequency, parameter->samplingTime);
 					initMatch(generated->wave);
 					generatePSD(parameter->initialFrequency, parameter->samplingFrequency);
 					indexFromFrequency(parameter->initialFrequency, parameter->endingFrequency,
@@ -124,7 +155,12 @@ static int generateStatistic(char *input, Parameter *parameter) {
 					Analysed analysed;
 					calcMatches(minIndex, maxIndex, &analysed);
 					countPeriods(parameter->samplingTime, &analysed);
-					printf("%11.5g %11.5g %11.5g %11.5g %11.5g %11.5g %11.5g\n", value[FIRST], value[SECOND],
+					if (variable == MASS) {
+						double totalMass = value[FIRST] + value[SECOND];
+						double eta = value[FIRST] * value[SECOND] / square(totalMass);
+						fprintf(file, "%11.5g %11.5g ", totalMass, eta);
+					}
+					fprintf(file, "%11.5g %11.5g %11.5g %11.5g %11.5g %11.5g %11.5g\n", value[FIRST], value[SECOND],
 					        analysed.match[WORST], analysed.match[TYPICAL], analysed.match[BEST],
 					        analysed.relativePeriod, analysed.relativeLength);
 					cleanMatch();
@@ -134,10 +170,27 @@ static int generateStatistic(char *input, Parameter *parameter) {
 				}
 				value[FIRST] += diff[FIRST];
 			}
+			fclose(file);
 		}
 	}
 	return (failure);
 
+}
+
+static int initDirectory(string output, string input) {
+	char *fileName = strrchr(input, '/');
+	if (fileName) {
+		fileName++;
+	} else {
+		fileName = input;
+	}
+	int i;
+	i = strcspn(fileName, ".");
+	string dir;
+	memset(dir, 0, sizeof(string));
+	strncpy(dir, fileName, i);
+	sprintf(output, "%s/%s", output, dir);
+	mkdir(output, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 }
 
 /**
@@ -150,10 +203,13 @@ int main(int argc, char *argv[]) {
 	char *input = argc > 1 ? argv[1] : "test.conf";
 	Parameter parameter;
 	memset(&parameter, 0, sizeof(Parameter));
-	initParser(input, &parameter);
+	string outputDir;
+	initParser(input, &parameter, outputDir);
+	initDirectory(outputDir, input);
+	printf("%s\n", outputDir);
 	int failure = SUCCESS;
-	failure = generateWaveforms(input, &parameter);
-	failure |= generateStatistic(input, &parameter);
+	failure = generateWaveforms(input, &parameter, outputDir);
+	failure |= generateStatistic(input, &parameter, outputDir);
 	cleanParameter(&parameter);
 	if (!failure) {
 		puts("OK!");

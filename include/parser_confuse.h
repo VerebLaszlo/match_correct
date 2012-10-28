@@ -74,7 +74,7 @@ typedef struct {
 /**
  * Initialise the parser.
  */
-int initParser(char *file, Parameter *parameter);
+int initParser(char *file, Parameter *parameter, string outputDir);
 
 int parseWaves(char *file, Parameter *parameter);
 

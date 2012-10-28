@@ -12,6 +12,7 @@
 
 /** IDs for the names of the options. */
 enum {
+	OUTPUT,
 	ANGLE,
 	MASS,
 	DISTANCE,
@@ -36,6 +37,7 @@ enum {
 
 /** Names of the options. */
 char optionName[OPTIONS][STRING_LENGTH] = {
+    "output",
     "angle",
     "mass",
     "distance",
@@ -65,7 +67,7 @@ enum {
 	WAVE_SIZE = 3,
 	PAIR_SIZE = 2,
 	STEP_SIZE = 3,
-	OPTION_SIZE = 7,
+	OPTION_SIZE = 8,
 };
 
 /** Structure containing the options hierarchy. */
@@ -166,6 +168,7 @@ static int parsePair(cfg_t *config, Wave wave[]) {
 	return (failure);
 }
 
+#define outputConstant "out"
 #define samplingFrequencyConstant 10240
 #define boundaryFrequencyConstant "{20.0, 2000.0}"
 #define coordinateSystemConstant "precessing"
@@ -206,6 +209,7 @@ Option option = {	//
         CFG_INT_LIST(optionName[DIFF], differenceConstant, CFGF_NONE),
         CFG_END()
     }, {
+        CFG_STR(optionName[OUTPUT], outputConstant, CFGF_NONE),
         CFG_SEC(optionName[UNIT], option.units, CFGF_NONE),
         CFG_FLOAT_LIST(optionName[BOUNDARY_FREQUENCY], boundaryFrequencyConstant, CFGF_NONE),
         CFG_FLOAT(optionName[SAMPLING_FREQUENCY], samplingFrequencyConstant, CFGF_NONE),
@@ -292,6 +296,7 @@ static int initOptions(char *file, Parameter *parameter, cfg_t **config) {
 	        CFG_END()
         };
 	cfg_opt_t options[OPTION_SIZE] = {	//
+	        CFG_STR(optionName[OUTPUT], outputConstant, CFGF_NONE),
 	        CFG_SEC(optionName[UNIT], option.units, CFGF_NONE),
 	        CFG_FLOAT_LIST(optionName[BOUNDARY_FREQUENCY], boundaryFrequencyConstant, CFGF_NONE),
 	        CFG_FLOAT(optionName[SAMPLING_FREQUENCY], samplingFrequencyConstant, CFGF_NONE),
@@ -306,16 +311,20 @@ static int initOptions(char *file, Parameter *parameter, cfg_t **config) {
 
 cfg_t *config;
 
-int initParser(char *file, Parameter *parameter) {
+int initParser(char *file, Parameter *parameter, string outputDir) {
 	memset(&defaultWave, 0, sizeof(Wave));
-	sprintf(defaultWave.name, "wave");
-	sprintf(defaultWave.method.spin, "ALL");
+	strcpy(outputDir, outputConstant);
+	strcpy(defaultWave.name, "wave");
+	strcpy(defaultWave.method.spin, "ALL");
 	defaultWave.method.phase = 4;
 	defaultWave.method.amplitude = 2;
 	defaultWave.binary.distance = 1.0;
 	defaultWave.binary.mass[FIRST] = 3.0;
 	defaultWave.binary.mass[SECOND] = 3.0;
 	int failure = initOptions(file, parameter, &config);
+	failure &= cfg_parse(config, file) == CFG_PARSE_ERROR;
+	char *output = cfg_getstr(config, optionName[OUTPUT]);
+	strcpy(outputDir, output);
 	return (failure);
 }
 
