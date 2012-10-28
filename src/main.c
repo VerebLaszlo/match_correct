@@ -11,18 +11,18 @@
 #include "generator_lal.h"
 #include "util_IO.h"
 
-void print(Variable *variable, Wave parameter[2], Analysed *analysed, char *name, double samplingTime) {
+void print(Variable *variable, Wave parameter[2], Analysed *analysed, char *name, double samplingTime, string outputDir) {
 	string path;
 	FILE *file;
-	sprintf(path, "out/%s_spin.txt", name);
+	sprintf(path, "%s/%s_spin.txt", outputDir, name);
 	file = safelyOpenForWriting(path);
 	printSpins(file, variable, parameter, analysed, samplingTime);
 	fclose(file);
-	sprintf(path, "out/%s_system.txt", name);
+	sprintf(path, "%s/%s_system.txt", outputDir, name);
 	file = safelyOpenForWriting(path);
 	printSystem(file, variable, parameter, analysed, samplingTime);
 	fclose(file);
-	sprintf(path, "out/%s_wave.txt", name);
+	sprintf(path, "%s/%s_wave.txt", outputDir, name);
 	file = safelyOpenForWriting(path);
 	printOutput(file, variable, parameter, analysed, samplingTime);
 	fclose(file);
@@ -49,7 +49,7 @@ static int generateWaveforms(char *input, Parameter *parameter, string outputDir
 			        analysed.relativePeriod * 100.0, analysed.length[FIRST_WAVE], analysed.length[SECOND_WAVE],
 			        analysed.relativeLength * 100.0);
 			print(variable, &parameter->exact->wave[2 * index], &analysed, parameter->exact->name[index],
-			        parameter->samplingTime);
+			        parameter->samplingTime, outputDir);
 			cleanMatch();
 			destroyWaveform(&variable->wave);
 			destroyOutput(&variable);
