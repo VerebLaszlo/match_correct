@@ -105,6 +105,39 @@ static void set(Value variable, Wave *pair, double *value) {
 	}
 }
 
+static int printHeader(FILE *file, Wave parameter[], Value variable) {
+	if (variable != MASS) {
+		double M = parameter->binary.mass[0] + parameter->binary.mass[1];
+		double eta = parameter->binary.mass[0] * parameter->binary.mass[1] / square(M);
+		fprintf(file, "#mass  [m1,m2,M,eta] %11.5g %11.5g %11.5g %11.5g\n", parameter->binary.mass[0],
+		        parameter->binary.mass[1], M, eta);
+	} else {
+		fprintf(file, "#mass  [m1,m2,M,eta] %11s %11s %11s %11s\n", "X", "X", "X", "X");
+	}
+	for (int blackhole = 0; blackhole < BH; blackhole++) {
+		if (variable == MAGNITUDE) {
+			fprintf(file, "#spin%d [mag,inc,azi] %11s %11.5g %11.5g\n", blackhole, "X",
+			        degreeFromRadian(parameter->binary.spin.inclination[blackhole]),
+			        degreeFromRadian(parameter->binary.spin.azimuth[blackhole]));
+		}
+		if (variable == INCLINATION) {
+			fprintf(file, "#spin%d [mag,inc,azi] %11.5g %11s %11.5g\n", blackhole,
+			        parameter->binary.spin.magnitude[blackhole], "X",
+			        degreeFromRadian(parameter->binary.spin.azimuth[blackhole]));
+		}
+		if (variable == AZIMUTH) {
+			fprintf(file, "#spin%d [mag,inc,azi] %11.5g %11.5g %11s\n", blackhole,
+			        parameter->binary.spin.magnitude[blackhole],
+			        degreeFromRadian(parameter->binary.spin.inclination[blackhole]), "X");
+		}
+	}
+	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
+		fprintf(file, "#method[int, pn,amp] %11s %11d %11d\n", parameter[wave].method.spin,
+		        parameter[wave].method.phase, parameter[wave].method.amplitude);
+	}
+	return (SUCCESS);
+}
+
 static int generateStatistic(char *input, Parameter *parameter, string outputDir) {
 	int failure = SUCCESS;
 	failure &= parseStep(input, parameter);
@@ -135,13 +168,14 @@ static int generateStatistic(char *input, Parameter *parameter, string outputDir
 			sprintf(path, "%s/%s.data", outputDir, fileName);
 			printf("%s\n", path);
 			file = safelyOpenForWriting(path);
+			printHeader(file, pair, variable);
 			if (variable == MASS) {
 				fprintf(file, "#%10s %11s  ", "totalMass", "eta");
 			} else {
 				fprintf(file, "#");
 			}
-			fprintf(file, "%9s1 %10s2 %11s %11s %11s %11s %11s\n", fileName, fileName, "worst", "typical",
-			        "best", "relPeriod", "relLength");
+			fprintf(file, "%9s1 %10s2 %11s %11s %11s %11s %11s\n", fileName, fileName, "worst", "typical", "best",
+			        "relPeriod", "relLength");
 			while (value[FIRST] < bounds[MAX][variable][FIRST] + diff[FIRST]) {
 				value[SECOND] = bounds[MIN][variable][SECOND];
 				set(variable, pair, value);
@@ -174,7 +208,6 @@ static int generateStatistic(char *input, Parameter *parameter, string outputDir
 		}
 	}
 	return (failure);
-
 }
 
 static int initDirectory(string output, string input) {
@@ -191,6 +224,7 @@ static int initDirectory(string output, string input) {
 	strncpy(dir, fileName, i);
 	sprintf(output, "%s/%s", output, dir);
 	mkdir(output, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	return (SUCCESS);
 }
 
 /**
