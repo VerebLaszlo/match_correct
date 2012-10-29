@@ -14,7 +14,7 @@ typedef char string[STRING_LENGTH];
 
 /** Parameter specific constants. */
 enum {
-	FIRST, SECOND, THIRD, BH = THIRD,	///< number of blackholes in the binary system.
+	FIRST, SECOND, THIRD, BH = THIRD, GEN = 4,	///< number of blackholes in the binary system.
 };
 
 /** Coordinate system conventions. */
@@ -69,6 +69,7 @@ typedef struct {
 	Wave boundary[MINMAX];
 	WavePair *step;
 	size_t numberOfStep[BH];
+	bool gen[GEN];
 } Parameter;
 
 /**

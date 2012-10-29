@@ -159,6 +159,9 @@ static int generateStatistic(char *input, Parameter *parameter, string outputDir
 	for (size_t current = FIRST; current < parameter->step->length; current++) {
 		memcpy(pair, &parameter->step->wave[2 * current], 2 * sizeof(Wave));
 		for (int variable = MASS; variable < NUMBER_OF_VARIABLE; variable++) {
+			if (!parameter->gen[variable]) {
+				continue;
+			}
 			double value[THIRD] = { bounds[MIN][variable][FIRST], bounds[MIN][variable][SECOND] };
 			double diff[THIRD] = { (bounds[MAX][variable][FIRST] - bounds[MIN][variable][FIRST])
 			        / (parameter->numberOfStep[FIRST] - 1), (bounds[MAX][variable][SECOND]

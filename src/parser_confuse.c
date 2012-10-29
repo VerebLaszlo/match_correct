@@ -29,8 +29,9 @@ enum {
 	AMPLITUDE,
 	METHOD,
 	WAVEX,
-	DIFF,
 	PAIR,
+	DIFF,
+	GENERATE,
 	STEP,
 	OPTIONS,
 };
@@ -54,8 +55,9 @@ char optionName[OPTIONS][STRING_LENGTH] = {
     "amplitude",
     "method",
     "wave",
-    "diff",
     "pair",
+    "diff",
+    "gen",
     "step" };
 
 enum {
@@ -66,7 +68,7 @@ enum {
 	METHOD_SIZE = 4,
 	WAVE_SIZE = 3,
 	PAIR_SIZE = 2,
-	STEP_SIZE = 3,
+	STEP_SIZE = 4,
 	OPTION_SIZE = 8,
 };
 
@@ -174,6 +176,7 @@ static int parsePair(cfg_t *config, Wave wave[]) {
 #define coordinateSystemConstant "precessing"
 #define numberConstant 1
 #define differenceConstant "{2, 2}"
+#define genConstant "{true, true, true, true}"
 
 Option option = {	//
         { CFG_STR(optionName[ANGLE], "deg", CFGF_NONE),
@@ -207,6 +210,7 @@ Option option = {	//
     }, {
         CFG_SEC(optionName[WAVEX], option.defaultWave, CFGF_MULTI),
         CFG_INT_LIST(optionName[DIFF], differenceConstant, CFGF_NONE),
+        CFG_BOOL_LIST(optionName[GENERATE], genConstant, CFGF_NONE),
         CFG_END()
     }, {
         CFG_STR(optionName[OUTPUT], outputConstant, CFGF_NONE),
@@ -242,6 +246,9 @@ static int parse(char *file, Parameter *parameters) {
 					if (parameters->numberOfStep[current] < 2) {
 						parameters->numberOfStep[current] = 2;
 					}
+				}
+				for (size_t current = FIRST; current < cfg_size(step, optionName[GENERATE]); current++) {
+					parameters->gen[current] = cfg_getnbool(step, optionName[GENERATE], current);
 				}
 				break;
 			}
@@ -293,6 +300,7 @@ static int initOptions(char *file, Parameter *parameter, cfg_t **config) {
 	cfg_opt_t step[STEP_SIZE] = {	//
 	        CFG_SEC(optionName[WAVEX], wave, CFGF_MULTI),
 	        CFG_INT_LIST(optionName[DIFF], differenceConstant, CFGF_NONE),
+	        CFG_BOOL_LIST(optionName[GENERATE], genConstant, CFGF_NONE),
 	        CFG_END()
         };
 	cfg_opt_t options[OPTION_SIZE] = {	//
