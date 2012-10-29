@@ -11,7 +11,75 @@
 #include "generator_lal.h"
 #include "util_IO.h"
 
-void print(Variable *variable, Wave parameter[2], Analysed *analysed, char *name, double samplingTime, string outputDir) {
+static void printConfig(void) {
+	FILE*file = safelyOpenForWriting("base.conf");
+	fputs("output = \"out/test\"\n"
+			"units {	angle = \"degree\" mass = \"solar\" distance = \"Mpc\" }\n"
+			"boundaryFrequency = {30.0, 500.0}\n"
+			"samplingFrequency = 10240.0\n"
+			"\n"
+			"wave default {\n"
+			"	binary {\n"
+			"		mass = {3.0, 30.0}\n"
+			"		spin {\n"
+			"			magnitude = {1.0, 1.0}\n"
+			"			inclination = {90.0, 180.0}\n"
+			"			azimuth = {0.0, 60.0}\n"
+			"			coorSystem = \"precessing\"\n"
+			"		}\n"
+			"		inclination = 10.0\n"
+			"		distance = 1.0\n"
+			"	}\n"
+			"	method {\n"
+			"		spin = \"ALL\" phase = 4 amplitude = 0\n"
+			"	}\n"
+			"}\n"
+			"\n"
+			"pair qm {\n"
+			"	wave {method {spin = \"SO\"}}\n"
+			"	wave {method {spin = \"SOQM\"}}\n"
+			"}\n"
+			"\n"
+			"step default {\n"
+			"	wave {\n"
+			"		binary {\n"
+			"			mass = {3.0, 3.0}\n"
+			"			spin {\n"
+			"				magnitude = {0.0, 0.0}\n"
+			"				inclination = {0.0, 0.0}\n"
+			"				azimuth = {0.0, 0.0}\n"
+			"				coorSystem = \"precessing\"\n"
+			"			}\n"
+			"			inclination = 0.0\n"
+			"			distance = 1.0\n"
+			"		}\n"
+			"	}\n"
+			"	wave {\n"
+			"		binary {\n"
+			"			mass = {30.0, 30.0}\n"
+			"			spin {\n"
+			"				magnitude = {1.0, 1.0}\n"
+			"				inclination = {180.0, 180.0}\n"
+			"				azimuth = {360.0, 360.0}\n"
+			"				coorSystem = \"precessing\"\n"
+			"			}\n"
+			"			inclination = 180.0\n"
+			"			distance = 1.0\n"
+			"		}\n"
+			"	}\n"
+			"	diff = {1, 1}\n"
+			"	gen = {false, false, true}\n"
+			"}\n"
+			"\n"
+			"step qm {\n"
+			"	wave {method {spin = \"SO\"}}\n"
+			"	wave {method {spin = \"ALL\"}}\n"
+			"}\n", file);
+	fclose(file);
+}
+
+static void print(Variable *variable, Wave parameter[2], Analysed *analysed, char *name, double samplingTime,
+        string outputDir) {
 	string path;
 	FILE *file;
 	sprintf(path, "%s/%s_spin.txt", outputDir, name);
@@ -237,6 +305,7 @@ static int initDirectory(string output, string input) {
  * @return	error code
  */
 int main(int argc, char *argv[]) {
+	printConfig();
 	char *input = argc > 1 ? argv[1] : "test.conf";
 	Parameter parameter;
 	memset(&parameter, 0, sizeof(Parameter));

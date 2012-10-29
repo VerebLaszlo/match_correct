@@ -22,6 +22,7 @@ dpl
 
 # other
 *.zip
+base.conf
 
 # Ignore everything starting with dot, exept .gitignore
 .*
