@@ -225,6 +225,7 @@ Option option = {	//
 };
 
 static int parse(char *file, Parameter *parameters) {
+	parameters->exactTrue = parameters->stepTrue = false;
 	int failure = SUCCESS;
 	cfg_t *config = cfg_init(option.option, CFGF_NONE);
 	failure = cfg_parse(config, file) == CFG_PARSE_ERROR;
@@ -233,6 +234,7 @@ static int parse(char *file, Parameter *parameters) {
 		for (size_t current = FIRST; current < cfg_size(config, optionName[WAVEX]); current++) {
 			cfg_t *wave = cfg_getsec(config, optionName[WAVEX]);
 			if (strstr("default", cfg_title(wave))) {
+				parameters->exactTrue = true;
 				failure &= parseWave(wave, &defaultWave);
 				break;
 			}
@@ -240,6 +242,7 @@ static int parse(char *file, Parameter *parameters) {
 		for (size_t current = FIRST; current < cfg_size(config, optionName[STEP]); current++) {
 			cfg_t *step = cfg_getsec(config, optionName[STEP]);
 			if (strstr("default", cfg_title(step))) {
+				parameters->stepTrue = true;
 				failure &= parsePair(step, parameters->boundary);
 				for (int current = FIRST; current < BH; current++) {
 					parameters->numberOfStep[current] = cfg_getnint(step, optionName[DIFF], current);

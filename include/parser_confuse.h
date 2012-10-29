@@ -70,6 +70,8 @@ typedef struct {
 	WavePair *step;
 	size_t numberOfStep[BH];
 	bool gen[GEN];
+	bool exactTrue;
+	bool stepTrue;
 } Parameter;
 
 /**

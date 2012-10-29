@@ -314,8 +314,12 @@ int main(int argc, char *argv[]) {
 	initDirectory(outputDir, input);
 	printf("%s\n", outputDir);
 	int failure = SUCCESS;
-	failure = generateWaveforms(input, &parameter, outputDir);
-	failure |= generateStatistic(input, &parameter, outputDir);
+	if (parameter.exactTrue) {
+		failure = generateWaveforms(input, &parameter, outputDir);
+	}
+	if (parameter.stepTrue) {
+		failure |= generateStatistic(input, &parameter, outputDir);
+	}
 	cleanParameter(&parameter);
 	if (!failure) {
 		puts("OK!");
