@@ -39,11 +39,10 @@ files=system("ls -1 *".file);
 do for [file in files] {
 	command=sprintf("head -n 7 %s | tail -n 1", file)
 	method=system(command);
-	method1=method[header:*]
+	method1=method[header:header+length].method[header+length+length:*]."PN amplitude"
 	command=sprintf("head -n 8 %s | tail -n 1", file)
 	method=system(command);
-	method2=method[header:*]
-	method2=method2[*:2*length]
+	method2=method[header:header+length].method[header+length+length:*]."PN amplitude"
 	p file u 1:2 t method1 w l ls 1, file u 1:3 t method2 w l ls 2
 #load "wave.gpl"
 #load "spin.gpl"
