@@ -1,0 +1,18 @@
+#!/usr/bin/gnuplot -persist
+
+file="system.".type
+files=system("ls -1 *".file)
+set output "system.eps"
+
+do for [file in files] {
+	command=sprintf("head -n 7 %s | tail -n 1", file)
+	method=system(command)
+	method=method[header:*]
+	method1=word(method,1)
+	command=sprintf("head -n 8 %s | tail -n 1", file)
+	method=system(command)
+	method=method[header:*]
+	method2=word(method,1)
+	p file every 500 u 8:9:($11-$8):($12-$9) t word(method1,1)." --> ".word(method2,1) w vectors ls 1, file u 8:9 t method1 w l ls 2, file u 11:12 t method2 w l ls 3
+}
+
