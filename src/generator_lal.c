@@ -270,7 +270,7 @@ static void printHeader(FILE *file, Wave parameter[2], Analysed *analysed) {
 
 void printSpins(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime) {
 	printHeader(file, wave, analysed);
-	fprintf(file, "%11.5s ", "t");
+	fprintf(file, "#%10.5s ", "t");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "1s1x", "1s1y", "1s1z");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "2s1x", "2s1y", "2s1z");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "1s2x", "1s2y", "1s2z");
@@ -291,7 +291,7 @@ void printSpins(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed
 
 void printSystem(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime) {
 	printHeader(file, wave, analysed);
-	fprintf(file, "%11.5s ", "t");
+	fprintf(file, "#%10.5s ", "t");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "1e1x", "1e1y", "1e1z");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "2e1x", "2e1y", "2e1z");
 	fprintf(file, "%11.5s %11.5s %11.5s ", "1e3x", "1e3y", "1e3z");
@@ -312,7 +312,7 @@ void printSystem(FILE *file, Variable variable[2], Wave *wave, Analysed *analyse
 
 int printOutput(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime) {
 	printHeader(file, wave, analysed);
-	fprintf(file, "%11s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n", "t", "h1", "h2", "hp1", "hc1", "hp2",
+	fprintf(file, "#%10s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n", "t", "h1", "h2", "hp1", "hc1", "hp2",
 	        "hc2", "phi1", "phi2", "omega1", "omega2");
 	int shorter = variable->length[FIRST_WAVE] < variable->length[SECOND_WAVE] ? FIRST_WAVE : SECOND_WAVE;
 	for (size_t index = 0; index < variable->length[shorter]; index++) {
