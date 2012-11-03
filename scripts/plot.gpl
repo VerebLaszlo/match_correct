@@ -1,32 +1,32 @@
 #!/usr/bin/gnuplog -persist
 
 set terminal postscript landscape enhanced color dashlength 1.0 linewidth 1.0\
-	defaultplex palfuncparam 2000,0.003 butt "Helvetica" 9;
+	defaultplex palfuncparam 2000,0.003 butt "Helvetica" 9
 
 set encoding utf8
-set datafile commentschars "#";
-#set datafile separator "%";
+set datafile commentschars "#"
+#set datafile separator "%"
 
-type="txt";
+type="txt"
 
-header=23;
-length=13;
+header=23
+length=13
 
-set style line 1 lt 1 lc rgb "#FF0000";
-set style line 2 lt 1 lc rgb "#00FF00";
-set style line 3 lt 1 lc rgb "#0000FF";
-set style line 4 lt 1 lc rgb "#FFFF00";
-set style line 5 lt 1 lc rgb "#FF00FF";
-set style line 6 lt 1 lc rgb "#00FFFF";
-set style line 7 lt 1 lc rgb "#FFFFFF";
+set style line 1 lt 1 lc rgb "#FF0000"
+set style line 2 lt 1 lc rgb "#00FF00"
+set style line 3 lt 1 lc rgb "#0000FF"
+set style line 4 lt 1 lc rgb "#FFFF00"
+set style line 5 lt 1 lc rgb "#FF00FF"
+set style line 6 lt 1 lc rgb "#00FFFF"
+set style line 7 lt 1 lc rgb "#FFFFFF"
 
-set key below;
+set key below
 
 set border 4095 lw 0.5
 set xtics border mirror norotate autofreq
 set ytics border mirror norotate autofreq
 
-#load "wave.gpl"
+load "wave.gpl"
 load "system.gpl"
 
 # statistics need to be done.

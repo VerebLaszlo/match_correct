@@ -1,37 +1,37 @@
 #!/usr/bin/gnuplot -persist
 
-file="wave.".type;
+file="wave.".type
 
 set key below;
-set ytics format "%3.2t 10^{%+2.2T}";
-set yra [-09e-20:+09e-20];
-set xlabel "t[s]";
-set ylabel "h" rotate by 0;
+set ytics format "%3.2t 10^{%+2.2T}"
+set yra [-09e-20:+09e-20]
+set xlabel "t[s]"
+set ylabel "h" rotate by 0
 
-files=system("ls -1 *".file);
-set output "wave.eps";
+files=system("ls -1 *".file)
+set output "wave.eps"
 do for [file in files] {
 	command=sprintf("head -n 7 %s | tail -n 1", file)
-	method=system(command);
-	method=method[header:*];
-	amp=word(method,3)/2.0;
-	method1=sprintf("%s %g %s", word(method,1)." kölcsönhatás ",amp,"PN amplitúdóval");
-	command=sprintf("head -n 8 %s | tail -n 1", file)
-	method=system(command);
+	method=system(command)
 	method=method[header:*]
-	amp=word(method,3)/2.0;
-	method2=sprintf("%s %g %s", word(method,1)." kölcsönhatás ",amp,"PN amplitúdóval");
+	amp=word(method,3)/2.0
+	method1=sprintf("%s %g %s", word(method,1)." kölcsönhatás ",amp,"PN amplitúdóval")
+	command=sprintf("head -n 8 %s | tail -n 1", file)
+	method=system(command)
+	method=method[header:*]
+	amp=word(method,3)/2.0
+	method2=sprintf("%s %g %s", word(method,1)." kölcsönhatás ",amp,"PN amplitúdóval")
 	p file u 1:2 t method1 w l ls 1, file u 1:3 t method2 w l ls 2
-};
+}
 
-getTitle(fileName) = word(system("head -n 8 ".fileName." | tail -n 1")[header:*],1)."/".word(system("head -n 7 ".fileName." | tail -n 1")[header:*],1);
+getTitle(fileName) = word(system("head -n 8 ".fileName." | tail -n 1")[header:*],1)."/".word(system("head -n 7 ".fileName." | tail -n 1")[header:*],1)
 
 set ytics format "%g"
-set output "omega.eps";
+set output "omega.eps"
 set ylabel "{/Symbol w}" rotate by 0
 set multiplot
 
-set yra [*:*];
+set yra [*:*]
 plot for [index=1:words(files)] word(files,index) u 1:($11/$10) t getTitle(word(files,index)) w l ls index
 
 set size 0.5,0.5
