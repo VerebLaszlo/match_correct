@@ -51,13 +51,44 @@ do for [file in files] {
 
 getTitle(fileName) = word(system("head -n 8 ".fileName." | tail -n 1")[header:*],1)."/".word(system("head -n 7 ".fileName." | tail -n 1")[header:*],1);
 
-set output "phi.eps";
-set yra [*:*];
-plot for [index=1:words(files)] word(files,index) u 1:($9/$8) t getTitle(word(files,index)) w l ls index
-
+set ytics format "%g"
 set output "omega.eps";
+set ylabel "{/Symbol w}" rotate by 0
+set multiplot
+
 set yra [*:*];
 plot for [index=1:words(files)] word(files,index) u 1:($11/$10) t getTitle(word(files,index)) w l ls index
+
+set size 0.5,0.5
+set origin 0.1,0.2
+set xrange [2.00:2.50]
+set yrange [0.95:1.00]
+unset xlabel
+unset ylabel
+unset key
+plot for [index=1:words(files)] word(files,index) u 1:($11/$10) w l ls index
+
+unset multiplot
+
+set key below
+set size 1.0,1.0	# should not be here!!!
+set output "phi.eps"
+set ylabel "{/Symbol f}" rotate by 0
+set multiplot
+
+set yra [*:*]
+plot for [index=1:words(files)] word(files,index) u 1:($9/$8) t getTitle(word(files,index)) w l ls index
+
+set size 0.5,0.5
+set origin 0.2,0.6
+set xrange [2.40:*]
+set yrange [*:20.0]
+unset xlabel
+unset ylabel
+unset key
+plot for [index=1:words(files)] word(files,index) u 1:($9/$8) w l ls index
+
+unset multiplot
 
 # statistics need to be done.
 
