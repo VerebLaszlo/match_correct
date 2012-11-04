@@ -1,0 +1,44 @@
+#!/usr/bin/gnuplot -persist
+
+getTitle(fileName) = word(system("head -n 7 ".fileName." | tail -n 1")[header:*],1).", ".word(system("head -n 8 ".fileName." | tail -n 1")[header:*],1)
+length(x,y,z) = sqrt(x**2+y**2+z**2)
+angleBetween(ax,ay,az,bx,by,bz) = acos((ax*bx+ay*by+az*bz)/(length(ax,ay,az)*length(bx,by,bz)))
+degreeBetween(ax,ay,az,bx,by,bz) = 180.0/pi*angleBetween(ax,ay,az,bx,by,bz)
+
+set title "spin"
+file="spin.".type
+files=system("ls -1 *".file)
+plot for [index=1:words(files)] word(files,index) u 1:(degreeBetween($2,$3,$4,$5,$6,$7)) t getTitle(word(files,index)) w l ls index
+plot for [index=1:words(files)] word(files,index) u 1:(degreeBetween($8,$9,$10,$11,$12,$13)) t getTitle(word(files,index)) w l ls index
+
+#set yra[-1.0:+1.0]
+#set zra[-1.0:+1.0]
+#set xlabel "{/Symbol c}_x"
+#set ylabel "{/Symbol c}_y" rotate by 0
+#do for [file in files] {
+#	command=sprintf("head -n 7 %s | tail -n 1", file)
+#	method=system(command)
+#	method=method[header:*]
+#	method1=word(method,1)
+#	command=sprintf("head -n 8 %s | tail -n 1", file)
+#	method=system(command)
+#	method=method[header:*]
+#	method2=word(method,1)
+#	p file every 500 u 8:9:($11-$8):($12-$9) t word(method1,1)." --> ".word(method2,1) w vectors ls 1, file u 8:9 t method1 w l ls 2, file u 11:12 t method2 w l ls 3
+#}
+#
+#set xlabel "t[s]"
+#set ylabel "{/Symbol c}_x"
+#set zlabel "{/Symbol c}_y"
+#do for [file in files] {
+#	command=sprintf("head -n 7 %s | tail -n 1", file)
+#	method=system(command)
+#	method=method[header:*]
+#	method1=word(method,1)
+#	command=sprintf("head -n 8 %s | tail -n 1", file)
+#	method=system(command)
+#	method=method[header:*]
+#	method2=word(method,1)
+#	sp file every 500 u 1:8:9:(0):($11-$8):($12-$9) t word(method1,1)." --> ".word(method2,1) w vectors ls 1, file u 1:8:9 t method1 w l ls 2, file u 1:11:12 t method2 w l ls 3
+#}
+

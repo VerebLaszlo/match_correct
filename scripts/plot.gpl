@@ -28,6 +28,7 @@ set ytics border mirror norotate autofreq
 
 load "wave.gpl"
 load "system.gpl"
+load "spin.gpl"
 
 # statistics need to be done.
 
