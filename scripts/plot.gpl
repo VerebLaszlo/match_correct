@@ -27,6 +27,7 @@ set xtics border mirror norotate autofreq
 set ytics border mirror norotate autofreq
 
 load "wave.gpl"
+load "wave_v2.gpl"
 load "system.gpl"
 load "spin.gpl"
 
