@@ -6,12 +6,12 @@ file="wave.".type
 files=system("ls -1 *".file)
 
 # wave ============================================================================================
-set output "wave.eps"
 
 set key inside left bottom vertical
 set xlabel "t[s]"
 set ylabel "h[10^{-20}]"; set ytics format "%3.2t"; set yra [-9.9e-20:+9.9e-20]
 
+set output "wave.eps"
 do for [file in files] {
 	method=system("head -n 7 ".file." | tail -n 1")[header:*]
 	amp=word(method,3)/2.0
@@ -20,6 +20,29 @@ do for [file in files] {
 	amp=word(method,3)/2.0
 	method2=sprintf("%s %g %s", word(method,1)." kölcsönhatás ",amp,"PN amplitúdóval")
 	p file u 1:2 t method1 w l ls 1, file u 1:3 t method2 w l ls 2
+}
+
+set output "waveMagnified.eps"
+do for [file in files] {
+	method=system("head -n 7 ".file." | tail -n 1")[header:*]
+	amp=word(method,3)/2.0
+	method1=sprintf("%s %g %s", word(method,1)." kölcsönhatás ",amp,"PN amplitúdóval")
+	method=system("head -n 8 ".file." | tail -n 1")[header:*]
+	amp=word(method,3)/2.0
+	method2=sprintf("%s %g %s", word(method,1)." kölcsönhatás ",amp,"PN amplitúdóval")
+	set multiplot
+	set key inside left bottom vertical
+	set origin 0.0,0.0; set size 1.0,1.0
+	set xlabel "t[s]"; set xra[*:*]
+	set ylabel "h[10^{-20}]"; set yra [-6.0e-20:+9.9e-20]
+	p file u 1:2 t method1 w l ls 1, file u 1:3 t method2 w l ls 2
+
+	unset key
+	set origin 0.06,0.625; set size 0.8,0.35
+	unset xlabel; set xra [2.00:*]
+	unset ylabel; set ytics format "%3.1t"; set yra [-6.5e-20:+6.5e-20]
+	p file u 1:2 t method1 w l ls 1, file u 1:3 t method2 w l ls 2
+	unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 }
 
 # omega ===========================================================================================
