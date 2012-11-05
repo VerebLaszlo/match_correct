@@ -1,15 +1,17 @@
 #!/usr/bin/gnuplot -persist
+# initialization & functions ======================================================================
 
+getTitle(fileName) = word(system("head -n 8 ".fileName." | tail -n 1")[header:*],1)."/".word(system("head -n 7 ".fileName." | tail -n 1")[header:*],1)
 file="wave.".type
-
-set key below;
-set ytics format "%3.2t 10^{%+2.2T}"
-set yra [-09e-20:+09e-20]
-set xlabel "t[s]"
-set ylabel "h" rotate by 0
-
 files=system("ls -1 *".file)
+
+# wave ============================================================================================
 set output "wave.eps"
+
+set key inside left bottom vertical
+set xlabel "t[s]"
+set ylabel "h[10^{-20}]"; set ytics format "%3.2t"; set yra [-9.9e-20:+9.9e-20]
+
 do for [file in files] {
 	command=sprintf("head -n 7 %s | tail -n 1", file)
 	method=system(command)
@@ -24,44 +26,46 @@ do for [file in files] {
 	p file u 1:2 t method1 w l ls 1, file u 1:3 t method2 w l ls 2
 }
 
-getTitle(fileName) = word(system("head -n 8 ".fileName." | tail -n 1")[header:*],1)."/".word(system("head -n 7 ".fileName." | tail -n 1")[header:*],1)
-
-set ytics format "%g"
+# omega ===========================================================================================
 set output "omega.eps"
-set ylabel "{/Symbol w}" rotate by 0
-set multiplot
 
+set key below
+set xlabel "t[s]"
+set ylabel "{/Symbol w}" rotate by 00; set ytics format "%g"
+
+# -- {
+set multiplot
+set xra [*:*]
 set yra [*:*]
 plot for [index=1:words(files)] word(files,index) u 1:($11/$10) t getTitle(word(files,index)) w l ls index
 
-set size 0.5,0.5
-set origin 0.1,0.2
-set xrange [2.00:2.50]
-set yrange [0.95:1.00]
-unset xlabel
-unset ylabel
 unset key
+set origin 0.1,0.2; set size 0.5,0.5
+unset xlabel; set xrange [2.00:2.50]
+unset ylabel; set yrange [0.95:1.00]
 plot for [index=1:words(files)] word(files,index) u 1:($11/$10) w l ls index
 
-unset multiplot
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
+# phi =============================================================================================
+set output "phi.eps"
 
 set key below
-set size 1.0,1.0	# should not be here!!!
-set output "phi.eps"
+set xlabel "t[s]"
 set ylabel "{/Symbol f}" rotate by 0
-set multiplot
 
+# -- {
+set multiplot
+set xra [*:*]
 set yra [*:*]
 plot for [index=1:words(files)] word(files,index) u 1:($9/$8) t getTitle(word(files,index)) w l ls index
 
-set size 0.5,0.5
-set origin 0.2,0.6
-set xrange [2.40:*]
-set yrange [*:20.0]
-unset xlabel
-unset ylabel
 unset key
+set origin 0.1,0.4; set size 0.5,0.5
+unset xlabel; set xrange [2.40:*]
+unset ylabel; set yrange [*:20.0]
 plot for [index=1:words(files)] word(files,index) u 1:($9/$8) w l ls index
 
-unset multiplot
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
 
