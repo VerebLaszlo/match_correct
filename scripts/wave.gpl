@@ -13,14 +13,10 @@ set xlabel "t[s]"
 set ylabel "h[10^{-20}]"; set ytics format "%3.2t"; set yra [-9.9e-20:+9.9e-20]
 
 do for [file in files] {
-	command=sprintf("head -n 7 %s | tail -n 1", file)
-	method=system(command)
-	method=method[header:*]
+	method=system("head -n 7 ".file." | tail -n 1")[header:*]
 	amp=word(method,3)/2.0
 	method1=sprintf("%s %g %s", word(method,1)." kölcsönhatás ",amp,"PN amplitúdóval")
-	command=sprintf("head -n 8 %s | tail -n 1", file)
-	method=system(command)
-	method=method[header:*]
+	method=system("head -n 8 ".file." | tail -n 1")[header:*]
 	amp=word(method,3)/2.0
 	method2=sprintf("%s %g %s", word(method,1)." kölcsönhatás ",amp,"PN amplitúdóval")
 	p file u 1:2 t method1 w l ls 1, file u 1:3 t method2 w l ls 2
