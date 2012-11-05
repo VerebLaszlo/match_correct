@@ -99,16 +99,13 @@ unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 # -- }
 
 # phi =============================================================================================
-set output "phi.eps"
-
-set key below
-set xlabel "t[s]"
-set ylabel "{/Symbol f}" rotate by 0
 
 # -- {
+set output "phi.eps"
 set multiplot
-set xra [*:*]
-set yra [*:*]
+set key below
+set xlabel "t[s]"; set xra [*:*]
+set ylabel "{/Symbol f}" rotate by 0; set yra [*:*]
 plot for [index=1:words(files)] word(files,index) u 1:($9/$8) t getTitle(word(files,index)) w l ls index
 
 unset key
