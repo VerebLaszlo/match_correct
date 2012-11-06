@@ -117,3 +117,39 @@ plot for [index=1:words(files)] word(files,index) u 1:($9/$8) w l ls index
 unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 # -- }
 
+# -- {
+set output "phiDiff.eps"
+set multiplot
+set key below
+set xra [*:*]
+set ylabel "{/Symbol D}{/Symbol f}" rotate by 00; set ytics format "%g"; set yra [*:*]
+plot for [index=1:words(files)] word(files,index) u 1:(abs($9-$8)) t getTitle(word(files,index)) w l ls index
+
+unset key
+set origin 0.1,0.4; set size 0.5,0.5
+unset xlabel; set xrange [2.00:2.50]
+unset ylabel; set yrange [*:8.00]
+plot for [index=1:words(files)] word(files,index) u 1:(abs($9-$8)) w l ls index
+
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
+
+# -- {
+set output "phiRelDiff.eps"
+set multiplot
+set key below
+set xra [*:*]
+set ylabel "{/Symbol d}{/Symbol f}" rotate by 00; set ytics format "%g"; set yra [*:*]
+plot for [index=1:words(files)] word(files,index) u 1:(abs(1.0-$8/$9)) t getTitle(word(files,index)) w l ls index
+
+unset key
+set origin 0.1,0.4; set size 0.5,0.5
+unset xlabel; set xrange [2.00:2.50]
+unset ylabel; set yrange [*:0.10]
+plot for [index=1:words(files)] word(files,index) u 1:(abs(1.0-$8/$9)) w l ls index
+
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
+
+# phi =============================================================================================
+
