@@ -46,9 +46,9 @@ do for [file in files] {
 }
 
 # omega ===========================================================================================
+set output "omega.eps"
 
 # -- {
-set output "omega.eps"
 set multiplot
 set key below
 set xlabel "t[s]"; set xra [*:*]
@@ -65,7 +65,6 @@ unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 # -- }
 
 # -- {
-set output "omegaDiff.eps"
 set multiplot
 set key below
 set xra [*:*]
@@ -82,7 +81,6 @@ unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 # -- }
 
 # -- {
-set output "omegaRelDiff.eps"
 set multiplot
 set key below
 set xra [*:*]
@@ -99,13 +97,13 @@ unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 # -- }
 
 # phi =============================================================================================
+set output "phi.eps"
 
 # -- {
-set output "phi.eps"
 set multiplot
 set key below
 set xlabel "t[s]"; set xra [*:*]
-set ylabel "{/Symbol f}" rotate by 0; set yra [*:*]
+set ylabel "{/Symbol f}_1/{/Symbol f}_2" rotate by 90; set yra [*:*]
 plot for [index=1:words(files)] word(files,index) u 1:($9/$8) t getTitle(word(files,index)) w l ls index
 
 unset key
@@ -118,7 +116,6 @@ unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 # -- }
 
 # -- {
-set output "phiDiff.eps"
 set multiplot
 set key below
 set xra [*:*]
@@ -135,7 +132,6 @@ unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 # -- }
 
 # -- {
-set output "phiRelDiff.eps"
 set multiplot
 set key below
 set xra [*:*]
@@ -150,6 +146,4 @@ plot for [index=1:words(files)] word(files,index) u 1:(abs(1.0-$8/$9)) w l ls in
 
 unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 # -- }
-
-# phi =============================================================================================
 
