@@ -312,16 +312,18 @@ void printSystem(FILE *file, Variable variable[2], Wave *wave, Analysed *analyse
 
 int printOutput(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime) {
 	printHeader(file, wave, analysed);
-	fprintf(file, "#%10s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n", "t", "h1", "h2", "hp1", "hc1", "hp2",
-	        "hc2", "phi1", "phi2", "omega1", "omega2");
+	fprintf(file, "#%10s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n", "t", "h1", "h2", "hp1", "hc1", "hp2",
+	        "hc2", "omega1", "omega2", "phi1", "phi2", "phi1(deg)", "phi2(deg)");
 	int shorter = variable->length[FIRST_WAVE] < variable->length[SECOND_WAVE] ? FIRST_WAVE : SECOND_WAVE;
 	for (size_t index = 0; index < variable->length[shorter]; index++) {
 		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * samplingTime,
 		        variable->wave->H[FIRST_WAVE][index], variable->wave->H[SECOND_WAVE][index],
 		        variable->wave->h[HP1][index], variable->wave->h[HC1][index], variable->wave->h[HP2][index],
 		        variable->wave->h[HC2][index]);
-		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g\n", variable->Phi[FIRST_WAVE][index],
-		        variable->Phi[SECOND_WAVE][index], variable->V[FIRST_WAVE][index], variable->V[SECOND_WAVE][index]);
+		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g\n", variable->V[FIRST_WAVE][index],
+		        variable->V[SECOND_WAVE][index], variable->Phi[FIRST_WAVE][index], variable->Phi[SECOND_WAVE][index],
+		        degreeFromRadian(normaliseRadians(variable->Phi[FIRST_WAVE][index])),
+		        degreeFromRadian(normaliseRadians(variable->Phi[SECOND_WAVE][index])));
 	}
 	return (SUCCESS);
 }
