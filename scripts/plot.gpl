@@ -1,8 +1,9 @@
 #!/usr/bin/gnuplog -persist
-
+# output format ===================================================================================
 set terminal postscript landscape enhanced color dashlength 1.0 linewidth 1.0\
 	defaultplex palfuncparam 2000,0.003 butt "Helvetica" 9
 
+# global settigs ==================================================================================
 set encoding utf8
 set datafile commentschars "#"
 #set datafile separator "%"
@@ -26,6 +27,10 @@ set border 4095 lw 0.5
 set xtics border mirror norotate autofreq
 set ytics border mirror norotate autofreq
 
+# global functions =================================================================================
+getTitle(fileName) = word(system("head -n 8 ".fileName." | tail -n 1")[header:*],1).", ".word(system("head -n 7 ".fileName." | tail -n 1")[header:*],1)
+
+# start plotting ==================================================================================
 load "wave.gpl"
 #load "system.gpl"
 #load "spin.gpl"

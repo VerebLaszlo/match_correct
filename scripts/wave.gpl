@@ -1,12 +1,9 @@
 #!/usr/bin/gnuplot -persist
-# initialization & functions ======================================================================
-
-getTitle(fileName) = word(system("head -n 8 ".fileName." | tail -n 1")[header:*],1).", ".word(system("head -n 7 ".fileName." | tail -n 1")[header:*],1)
+# initialise ======================================================================================
 file="wave.".type
 files=system("ls -1 *".file)
 
 # wave ============================================================================================
-
 set key inside left bottom vertical
 set xlabel "t[s]"
 set ylabel "h[10^{-20}]"; set ytics format "%3.2t"; set yra [-9.9e-20:+9.9e-20]
