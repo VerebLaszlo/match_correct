@@ -1,0 +1,113 @@
+#!/usr/bin/gnuplot -persist
+# initialise ======================================================================================
+file="wave.".type
+files=system("ls -1 *".file)
+
+# phi =============================================================================================
+set output "phi.eps"
+
+# -- {
+set multiplot
+set key below
+set xlabel "t[s]"; set xra [*:*]
+set ylabel "{/Symbol f}_1/{/Symbol f}_2" rotate by 90; set yra [*:*]
+plot for [index=1:words(files)] word(files,index) u 1:($11/$10) t getTitle(word(files,index)) w l ls index
+
+unset key
+set origin 0.1,0.4; set size 0.5,0.5
+unset xlabel; set xrange [2.40:*]
+unset ylabel; set yrange [*:20.0]
+plot for [index=1:words(files)] word(files,index) u 1:($11/$10) w l ls index
+
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
+
+# -- {
+set multiplot
+set key below
+set xra [*:*]
+set ylabel "{/Symbol D}{/Symbol f}[rad]" rotate by 90; set ytics format "%g"; set yra [*:*]
+plot for [index=1:words(files)] word(files,index) u 1:(abs($11-$10)) t getTitle(word(files,index)) w l ls index
+
+unset key
+set origin 0.1,0.4; set size 0.5,0.5
+unset xlabel; set xrange [2.00:2.50]
+unset ylabel; set yrange [*:8.00]
+plot for [index=1:words(files)] word(files,index) u 1:(abs($11-$10)) w l ls index
+
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
+
+# -- {
+set multiplot
+set key below
+set xra [*:*]
+set ylabel "{/Symbol D}{/Symbol f}[{/Symbol \260}]" rotate by 90; set ytics format "%g"; set yra [*:*]
+plot for [index=1:words(files)] word(files,index) u 1:(180/pi*abs($11-$10)) t getTitle(word(files,index)) w l ls index,\
+	360 w l ls 0, 720 w l ls 0
+
+unset key
+set origin 0.1,0.4; set size 0.5,0.5
+unset xlabel; set xrange [2.00:2.50]
+unset ylabel; set yrange [*:450.00]
+plot for [index=1:words(files)] word(files,index) u 1:(180/pi*abs($11-$10)) w l ls index
+
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
+
+# -- {
+set multiplot
+set key below
+set xra [*:*]
+set ylabel "{/Symbol d}{/Symbol f}" rotate by 00; set ytics format "%g"; set yra [*:*]
+plot for [index=1:words(files)] word(files,index) u 1:(abs(1.0-$10/$11)) t getTitle(word(files,index)) w l ls index
+
+unset key
+set origin 0.1,0.4; set size 0.5,0.5
+unset xlabel; set xrange [2.00:2.50]
+unset ylabel; set yrange [*:0.10]
+plot for [index=1:words(files)] word(files,index) u 1:(abs(1.0-$10/$11)) w l ls index
+
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
+
+# normalised phi ==================================================================================
+set output "phiNormalised.eps"
+
+# -- {
+set multiplot
+set key lmargin center vertical
+set xlabel "t[s]"; set xra [*:*]
+set ylabel "{/Symbol f}_1/{/Symbol f}_2" rotate by 90; set yra [*:2]
+do for [index=1:words(files)] {
+	set origin 0.0,(1.0/words(files)*(index-1)); set size 1.0,1.0/words(files)
+	p word(files,index) u 1:($13/$12) t getTitle(word(files,index)) w l ls index
+}
+
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
+
+# -- {
+set multiplot
+set key lmargin center vertical
+set xra [*:*]
+set ylabel "{/Symbol D}{/Symbol f}" rotate by 00; set ytics format "%g"; set yra [*:*]
+do for [index=1:words(files)] {
+	set origin 0.0,(1.0/words(files)*(index-1)); set size 1.0,1.0/words(files)
+	p word(files,index) u 1:(abs($13-$12)) t getTitle(word(files,index)) w l ls index
+}
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
+
+# -- {
+set multiplot
+set key lmargin center vertical
+set xra [*:*]
+set ylabel "{/Symbol d}{/Symbol f}" rotate by 00; set ytics format "%g"; set yra [*:2]
+do for [index=1:words(files)] {
+	set origin 0.0,(1.0/words(files)*(index-1)); set size 1.0,1.0/words(files)
+	p word(files,index) u 1:(abs(1.0-$12/$13)) t getTitle(word(files,index)) w l ls index
+}
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
+

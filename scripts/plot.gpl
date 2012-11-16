@@ -32,6 +32,7 @@ getTitle(fileName) = word(system("head -n 8 ".fileName." | tail -n 1")[header:*]
 
 # start plotting ==================================================================================
 load "wave.gpl"
+load "phi.gpl"
 #load "system.gpl"
 #load "spin.gpl"
 
