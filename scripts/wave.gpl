@@ -119,7 +119,7 @@ unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 set multiplot
 set key below
 set xra [*:*]
-set ylabel "{/Symbol D}{/Symbol f}" rotate by 00; set ytics format "%g"; set yra [*:*]
+set ylabel "{/Symbol D}{/Symbol f}[rad]" rotate by 90; set ytics format "%g"; set yra [*:*]
 plot for [index=1:words(files)] word(files,index) u 1:(abs($11-$10)) t getTitle(word(files,index)) w l ls index
 
 unset key
@@ -130,6 +130,24 @@ plot for [index=1:words(files)] word(files,index) u 1:(abs($11-$10)) w l ls inde
 
 unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 # -- }
+
+# -- {
+set multiplot
+set key below
+set xra [*:*]
+set ylabel "{/Symbol D}{/Symbol f}[{/Symbol \260}]" rotate by 90; set ytics format "%g"; set yra [*:*]
+plot for [index=1:words(files)] word(files,index) u 1:(180/pi*abs($11-$10)) t getTitle(word(files,index)) w l ls index,\
+	360 w l ls 0, 720 w l ls 0
+
+unset key
+set origin 0.1,0.4; set size 0.5,0.5
+unset xlabel; set xrange [2.00:2.50]
+unset ylabel; set yrange [*:450.00]
+plot for [index=1:words(files)] word(files,index) u 1:(180/pi*abs($11-$10)) w l ls index
+
+unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
+# -- }
+
 
 # -- {
 set multiplot
