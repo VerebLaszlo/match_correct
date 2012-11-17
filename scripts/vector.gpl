@@ -17,3 +17,12 @@ plot for [index=1:words(files)] word(files,index) u 1:(degreeBetween($8,$9,$10,$
 set yra[*:*]; set ylabel "szög a pályasík e_1 vektorai között között [{/Symbol \260}]"
 plot for [index=1:words(files)] word(files,index) u 1:(degreeBetween($2,$3,$4,$5,$6,$7)) t getTitle(word(files,index)) w l ls index
 
+file="spin.".type
+files=system("ls -1 *".file)
+set output "spin.eps"
+set xra [*:*]; set xlabel "t[s]"
+set yra [*:*]; set ylabel "a {/Symbol c}_1 spinek által bezárt szög"
+plot for [index=1:words(files)] word(files,index) u 1:(degreeBetween($2,$3,$4,$5,$6,$7)) t getTitle(word(files,index)) w l ls index
+set yra [*:*]; set ylabel "a {/Symbol c}_2 spinek által bezárt szög"
+plot for [index=1:words(files)] word(files,index) u 1:(degreeBetween($8,$9,$10,$11,$12,$13)) t getTitle(word(files,index)) w l ls index
+
