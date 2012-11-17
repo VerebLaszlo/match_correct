@@ -20,6 +20,8 @@ set style line 4 lt 1 lc rgb "#FFFF00"
 set style line 5 lt 1 lc rgb "#FF00FF"
 set style line 6 lt 1 lc rgb "#00FFFF"
 set style line 7 lt 1 lc rgb "#FFFFFF"
+set style line 8 lt 1 lc rgb "#000000"
+set style line 9 lt 1 lc rgb "#FFFFFF"
 
 set key below
 

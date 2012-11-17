@@ -73,41 +73,51 @@ unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
 
 # normalised phi ==================================================================================
 set output "phiNormalised.eps"
+number=3
 
-# -- {
-set multiplot
-set key lmargin center vertical
-set xlabel "t[s]"; set xra [*:*]
-set ylabel "{/Symbol f}_1/{/Symbol f}_2" rotate by 90; set yra [*:2]
+set xra [*:*];   set xlabel "t[s]"
+set yra [*:2.0]; set ylabel "{/Symbol f}_1/{/Symbol f}_2"
 do for [index=1:words(files)] {
-	set origin 0.0,(1.0/words(files)*(index-1)); set size 1.0,1.0/words(files)
+	if (index%number==1) {
+		set multiplot
+	}
+	set origin 0.0,(1.0/number*(index%number)); set size 1.0,(1.0/number)
 	p word(files,index) u 1:($13/$12) t getTitle(word(files,index)) w l ls index
+	if (index%number==0) {
+		unset multiplot
+	}
+}
+if (words(files)%number!=0) {
+	unset multiplot
 }
 
-unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
-# -- }
-
-# -- {
-set multiplot
-set key lmargin center vertical
-set xra [*:*]
-set ylabel "{/Symbol D}{/Symbol f}" rotate by 00; set ytics format "%g"; set yra [*:*]
+set yra [*:360.0]; set ylabel "{/Symbol D}{/Symbol f}"
 do for [index=1:words(files)] {
-	set origin 0.0,(1.0/words(files)*(index-1)); set size 1.0,1.0/words(files)
+	if (index%number==1) {
+		set multiplot
+	}
+	set origin 0.0,(1.0/number*(index%number)); set size 1.0,(1.0/number)
 	p word(files,index) u 1:(abs($13-$12)) t getTitle(word(files,index)) w l ls index
+	if (index%number==0) {
+		unset multiplot
+	}
 }
-unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
-# -- }
+if (words(files)%number!=0) {
+	unset multiplot
+}
 
-# -- {
-set multiplot
-set key lmargin center vertical
-set xra [*:*]
-set ylabel "{/Symbol d}{/Symbol f}" rotate by 00; set ytics format "%g"; set yra [*:2]
+set yra [*:2.0]; set ylabel "{/Symbol d}{/Symbol f}"
 do for [index=1:words(files)] {
-	set origin 0.0,(1.0/words(files)*(index-1)); set size 1.0,1.0/words(files)
+	if (index%number==1) {
+		set multiplot
+	}
+	set origin 0.0,(1.0/number*(index%number)); set size 1.0,(1.0/number)
 	p word(files,index) u 1:(abs(1.0-$12/$13)) t getTitle(word(files,index)) w l ls index
+	if (index%number==0) {
+		unset multiplot
+	}
 }
-unset multiplot; set origin 0.0,0.0; set size 1.0,1.0
-# -- }
+if (words(files)%number!=0) {
+	unset multiplot
+}
 
