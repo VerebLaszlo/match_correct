@@ -1,4 +1,4 @@
-#!/usr/bin/gnuplog -persist
+#!/usr/bin/gnuplot -persist
 # output format ===================================================================================
 set terminal postscript landscape enhanced color dashlength 1.0 linewidth 1.0\
 	defaultplex palfuncparam 2000,0.003 butt "Helvetica" 9
@@ -16,10 +16,10 @@ length=13
 set style line 1 lt 1 lc rgb "#FF0000"
 set style line 2 lt 1 lc rgb "#00FF00"
 set style line 3 lt 1 lc rgb "#0000FF"
-set style line 4 lt 1 lc rgb "#FFFF00"
+set style line 4 lt 1 lc rgb "#00FFFF"
 set style line 5 lt 1 lc rgb "#FF00FF"
-set style line 6 lt 1 lc rgb "#00FFFF"
-set style line 7 lt 1 lc rgb "#FFFFFF"
+set style line 6 lt 1 lc rgb "#FFFF00"
+set style line 7 lt 1 lc rgb "#888888"
 set style line 8 lt 1 lc rgb "#000000"
 set style line 9 lt 1 lc rgb "#FFFFFF"
 
@@ -35,8 +35,8 @@ getTitle(fileName) = word(system("head -n 8 ".fileName." | tail -n 1")[header:*]
 # start plotting ==================================================================================
 load "wave.gpl"
 load "phi.gpl"
-#load "system.gpl"
-#load "spin.gpl"
+load "system.gpl"
+load "spin.gpl"
 
 # statistics need to be done.
 
