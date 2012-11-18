@@ -1,14 +1,8 @@
 #!/usr/bin/gnuplot -persist
-
-getTitle(fileName) = word(system("head -n 7 ".fileName." | tail -n 1")[header:*],1).", ".word(system("head -n 8 ".fileName." | tail -n 1")[header:*],1)
-length(x,y,z) = sqrt(x**2+y**2+z**2)
-angleBetween(ax,ay,az,bx,by,bz) = acos((ax*bx+ay*by+az*bz)/(length(ax,ay,az)*length(bx,by,bz)))
-degreeBetween(ax,ay,az,bx,by,bz) = 180.0/pi*angleBetween(ax,ay,az,bx,by,bz)
-
+# pályaimpulzus ===================================================================================
 file="system.".type
 files=system("ls -1 *".file)
 set output "system.eps"
-
 set key below
 set size 1.0,1.0
 set xra[*:*]; set xlabel "t[s]"
@@ -17,9 +11,12 @@ plot for [index=1:words(files)] word(files,index) u 1:(degreeBetween($8,$9,$10,$
 set yra[*:*]; set ylabel "szög a pályasík e_1 vektorai között között [{/Symbol \260}]"
 plot for [index=1:words(files)] word(files,index) u 1:(degreeBetween($2,$3,$4,$5,$6,$7)) t getTitle(word(files,index)) w l ls index
 
+# spin ============================================================================================
 file="spin.".type
 files=system("ls -1 *".file)
 set output "spin.eps"
+set key below
+set size 1.0,1.0
 set xra [*:*]; set xlabel "t[s]"
 set yra [*:*]; set ylabel "a {/Symbol c}_1 spinek által bezárt szög"
 plot for [index=1:words(files)] word(files,index) u 1:(degreeBetween($2,$3,$4,$5,$6,$7)) t getTitle(word(files,index)) w l ls index

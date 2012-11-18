@@ -30,7 +30,10 @@ set xtics border mirror norotate autofreq
 set ytics border mirror norotate autofreq
 
 # global functions =================================================================================
-getTitle(fileName) = word(system("head -n 8 ".fileName." | tail -n 1")[header:*],1).", ".word(system("head -n 7 ".fileName." | tail -n 1")[header:*],1)
+getTitle(fileName) = word(system("head -n 7 ".fileName." | tail -n 1")[header:*],1).", ".word(system("head -n 8 ".fileName." | tail -n 1")[header:*],1)
+length(x,y,z) = sqrt(x**2+y**2+z**2)
+angleBetween(ax,ay,az,bx,by,bz) = acos((ax*bx+ay*by+az*bz)/(length(ax,ay,az)*length(bx,by,bz)))
+degreeBetween(ax,ay,az,bx,by,bz) = 180.0/pi*angleBetween(ax,ay,az,bx,by,bz)
 
 # start plotting ==================================================================================
 load "wave.gpl"
