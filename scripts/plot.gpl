@@ -39,6 +39,7 @@ degreeBetween(ax,ay,az,bx,by,bz) = 180.0/pi*angleBetween(ax,ay,az,bx,by,bz)
 load "wave.gpl"
 load "phi.gpl"
 load "vector.gpl"
+load "mass.gpl"
 
 # statistics need to be done.
 
