@@ -181,6 +181,12 @@ static int printHeader(FILE *file, Wave parameter[], Value variable) {
 		        parameter->binary.mass[1], M, eta);
 	} else {
 		fprintf(file, "#mass  [m1,m2,M,eta] %11s %11s %11s %11s\n", "X", "X", "X", "X");
+		for (int blackhole = 0; blackhole < BH; blackhole++) {
+			fprintf(file, "#spin%d [mag,inc,azi] %11g %11.5g %11.5g\n", blackhole,
+			        parameter->binary.spin.magnitude[blackhole],
+			        degreeFromRadian(parameter->binary.spin.inclination[blackhole]),
+			        degreeFromRadian(parameter->binary.spin.azimuth[blackhole]));
+		}
 	}
 	for (int blackhole = 0; blackhole < BH; blackhole++) {
 		if (variable == MAGNITUDE) {
