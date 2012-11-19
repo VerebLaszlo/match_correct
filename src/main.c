@@ -236,7 +236,7 @@ static int generateStatistic(char *input, Parameter *parameter, string outputDir
 			        - bounds[MIN][variable][SECOND]) / (parameter->numberOfStep[SECOND] - 1) };
 			set(variable, pair, value);
 			string path;
-			sprintf(path, "%s/%s.data", outputDir, fileName);
+			sprintf(path, "%s/%s_%s.data", outputDir, parameter->step->name[current], fileName);
 			printf("%s\n", path);
 			file = safelyOpenForWriting(path);
 			printHeader(file, pair, variable);
