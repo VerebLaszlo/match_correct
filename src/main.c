@@ -82,15 +82,15 @@ static void print(Variable *variable, Wave parameter[2], Analysed *analysed, cha
         string outputDir) {
 	string path;
 	FILE *file;
-	sprintf(path, "%s/%s_spin.txt", outputDir, name);
+	sprintf(path, "%s/%s_spin.data", outputDir, name);
 	file = safelyOpenForWriting(path);
 	printSpins(file, variable, parameter, analysed, samplingTime);
 	fclose(file);
-	sprintf(path, "%s/%s_system.txt", outputDir, name);
+	sprintf(path, "%s/%s_system.data", outputDir, name);
 	file = safelyOpenForWriting(path);
 	printSystem(file, variable, parameter, analysed, samplingTime);
 	fclose(file);
-	sprintf(path, "%s/%s_wave.txt", outputDir, name);
+	sprintf(path, "%s/%s_wave.data", outputDir, name);
 	file = safelyOpenForWriting(path);
 	printOutput(file, variable, parameter, analysed, samplingTime);
 	fclose(file);
@@ -236,7 +236,7 @@ static int generateStatistic(char *input, Parameter *parameter, string outputDir
 			        - bounds[MIN][variable][SECOND]) / (parameter->numberOfStep[SECOND] - 1) };
 			set(variable, pair, value);
 			string path;
-			sprintf(path, "%s/%s.data", outputDir, fileName);
+			sprintf(path, "%s/%s_%s.data", outputDir, parameter->step->name[current], fileName);
 			printf("%s\n", path);
 			file = safelyOpenForWriting(path);
 			printHeader(file, pair, variable);
