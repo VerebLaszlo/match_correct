@@ -8,7 +8,7 @@ set encoding utf8
 set datafile commentschars "#"
 #set datafile separator "%"
 
-type="txt"
+type="data"
 
 header=23
 length=13
@@ -39,6 +39,7 @@ degreeBetween(ax,ay,az,bx,by,bz) = 180.0/pi*angleBetween(ax,ay,az,bx,by,bz)
 load "wave.gpl"
 load "phi.gpl"
 load "vector.gpl"
+getTitle(fileName) = word(system("head -n 2 ".fileName." | tail -n 1")[header:*],1).", ".word(system("head -n 3 ".fileName." | tail -n 1")[header:*],1)
 load "mass.gpl"
 
 # statistics need to be done.

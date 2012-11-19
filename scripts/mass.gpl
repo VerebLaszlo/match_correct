@@ -1,26 +1,27 @@
 #!/usr/bin/gnuplot -persist
 # initialise ======================================================================================
-#set term x11
+file="mass.".type
+files=system("ls -1 *".file)
+
+# mass ============================================================================================
 set output "mass.eps"
 set view 60,240
 set xra[6.0:*];  set xlabel "M"
 set yra[*:0.25]; set ylabel "{/Symbol e}"
 
-# mass ============================================================================================
-input='mass.data'
-set zlabel "{/URWChanceryL M}_{typ}"
-set dgrid3d 50,50; set table 'match.out'; sp input u 1:2:6; unset table; input='match.out'
-sp input u 1:2:3 w pm3d
+do for [index=1:words(files)] {
+	set zlabel "{/URWChanceryL M}_{typ}"
+	set dgrid3d 50,50; set table 'match.out'; sp word(files,index) u 1:2:6; unset table; input='match.out'
+	sp input u 1:2:3 t getTitle(word(files,index)) w pm3d
 
-input='mass.data'
-set zlabel "{/Symbol d}t"
-set dgrid3d 50,50; set table 'match.out'; sp input u 1:2:9; unset table; input='match.out'
-sp input u 1:2:3 w pm3d
+	set zlabel "{/Symbol d}t"
+	set dgrid3d 50,50; set table 'match.out'; sp word(files,index) u 1:2:9; unset table; input='match.out'
+	sp input u 1:2:3 t getTitle(word(files,index)) w pm3d
 
-input='mass.data'
-set zlabel "relatíve periódus eltérés" rotate by 90
-set dgrid3d 50,50; set table 'match.out'; sp input u 1:2:8; unset table; input='match.out'
-sp input u 1:2:3 w pm3d
+	set zlabel "relatíve periódus eltérés" rotate by 90
+	set dgrid3d 50,50; set table 'match.out'; sp word(files,index) u 1:2:8; unset table; input='match.out'
+	sp input u 1:2:3 t getTitle(word(files,index)) w pm3d
+}
 
 #pause -1
 
