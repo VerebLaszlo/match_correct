@@ -1,3 +1,4 @@
 clean:
-	rm *.data
-	rm *.eps
+	-rm match.out
+	-rm *.data
+	-rm *.eps
