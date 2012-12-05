@@ -75,7 +75,7 @@ inline static void orthogonalise(complex *plus, complex *cross, double *norm, si
 	double pc = innerProduct(plus, cross, norm, minIndex, maxIndex);
 	double constant = 1.0 / sqrt(1.0 - square(pc));
 	for (size_t index = 0; index < length; index++) {
-		out[index] = (cross[index] - plus[index] * pc) / constant;
+		out[index] = (cross[index] - plus[index] * pc) * constant;
 	}
 }
 

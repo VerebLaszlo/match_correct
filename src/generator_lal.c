@@ -150,13 +150,13 @@ static Variable *createOutput(TimeSeries timeSeries[NUMBER_OF_WAVE]) {
 	                timeSeries[FIRST_WAVE].h[HP]->data->length : timeSeries[SECOND_WAVE].h[HC]->data->length;
 	for (int wave = FIRST_WAVE; wave < NUMBER_OF_WAVE; wave++) {
 		variable->length[wave] = timeSeries[wave].h[HP]->data->length;
-		variable->V[wave] = calloc(variable->length[wave], sizeof(double));
-		variable->Phi[wave] = calloc(variable->length[wave], sizeof(double));
+		variable->V[wave] = calloc(variable->size, sizeof(double));
+		variable->Phi[wave] = calloc(variable->size, sizeof(double));
 		for (int dimension = X; dimension < DIMENSION; dimension++) {
-			variable->S1[wave][dimension] = calloc(variable->length[wave], sizeof(double));
-			variable->S2[wave][dimension] = calloc(variable->length[wave], sizeof(double));
-			variable->E1[wave][dimension] = calloc(variable->length[wave], sizeof(double));
-			variable->E3[wave][dimension] = calloc(variable->length[wave], sizeof(double));
+			variable->S1[wave][dimension] = calloc(variable->size, sizeof(double));
+			variable->S2[wave][dimension] = calloc(variable->size, sizeof(double));
+			variable->E1[wave][dimension] = calloc(variable->size, sizeof(double));
+			variable->E3[wave][dimension] = calloc(variable->size, sizeof(double));
 		}
 	}
 	variable->wave = createWaveform(variable->length[FIRST_WAVE], variable->length[SECOND_WAVE]);
@@ -312,8 +312,8 @@ void printSystem(FILE *file, Variable variable[2], Wave *wave, Analysed *analyse
 
 int printOutput(FILE *file, Variable variable[2], Wave *wave, Analysed *analysed, double samplingTime) {
 	printHeader(file, wave, analysed);
-	fprintf(file, "#%10s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n", "t", "h1", "h2", "hp1", "hc1", "hp2",
-	        "hc2", "omega1", "omega2", "phi1", "phi2", "phi1(deg)", "phi2(deg)");
+	fprintf(file, "#%10s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n", "t", "h1", "h2", "hp1", "hc1",
+	        "hp2", "hc2", "omega1", "omega2", "phi1", "phi2", "phi1(deg)", "phi2(deg)");
 	int shorter = variable->length[FIRST_WAVE] < variable->length[SECOND_WAVE] ? FIRST_WAVE : SECOND_WAVE;
 	for (size_t index = 0; index < variable->length[shorter]; index++) {
 		fprintf(file, "% 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g % 11.5g ", index * samplingTime,
