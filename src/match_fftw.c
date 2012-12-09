@@ -219,8 +219,9 @@ void initMatch(Waveform *waveform) {
 		memset(data.inFrequency[wave], 0, data.size * sizeof(complex));
 		memset(data.correlated[wave], 0, data.size * sizeof(double));
 	}
-	memset(data.product, 0, data.size * sizeof(double));
+	memset(data.product, 0, data.size * sizeof(complex));
 	data.norm = fftw_alloc_real(data.size);
+	memset(data.norm, 0, data.size * sizeof(double));
 }
 
 void cleanMatch(void) {
